@@ -1,61 +1,228 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+const monthName = "November";
+const year = 2025;
+const monthIndex = 10; // 0=Jan ... 10=Nov
+const ticketPrice = 100;
+
+const flyerMeta = {
+    title: `${monthName} ${year} — Calendar Raffle`,
+    subtitle: "30 Day Giveaway",
+    orgLine: "Friends of Lake Henry",
+    address: "P.O. Box 142, Blair, WI 54616",
+    phone: "608-484-9241",
+};
+
+const rules = [
+    "Drawing at 6pm EVERYDAY in November.",
+    "All proceeds go to Lake Henry Project.",
+    "If drawn, name goes in for remaining drawings.",
+    "Every firearm has a minimum value of $1000; $800 cash option if you do not choose the firearm.",
+    "All State & Federal laws apply; MUST be 21 or older to purchase a ticket.",
+];
+
+const prizeByDay = new Map<number, string>([
+    [1,  "Ruger SR1911 Commander .45 Auto Semi-Automatic Pistol"],
+    [2,  "Browning X-Bolt Stalker 7mm Rem Mag Bolt Action Rifle"],
+    [3,  "Savage 110 High Country 30-06 Bolt Action Rifle"],
+    [4,  "Bergara HMR 300 Win Mag Bolt Action Rifle"],
+    [5,  "Tikka T3X Hunter 7mm Rem Mag Bolt Action Rifle"],
+    [6,  "Ruger SR1911 Commander .45 Auto Semi-Automatic Pistol"],
+    [7,  "Metro Arms 1911 American Classic Trophy .45 Auto Pistol"],
+    [8,  "Henry Big Boy Steel All Weather Side Gate .44 Mag Lever Action Rifle"],
+    [9,  "Browning X-Bolt Western Hunter LR (6.8mm Western) Rifle"],
+    [10, "Weatherby Vanguard First Lite Specter 7mm Rem Mag Rifle"],
+    [11, "Henry Side Gate 45-70 Govt Rifle"],
+    [12, "Bergara HMR 6.5 Creedmoor Rifle"],
+    [13, "Auto-Ordnance 1911 A1 Tanker .45 ACP Pistol"],
+    [14, "Browning X-Bolt Stalker .270 Win Rifle"],
+    [15, "Springfield Armory 1911 Emissary 9mm Pistol"],
+    [16, "Winchester 1892 Carbine .357 Mag Lever Action Rifle"],
+    [17, "Browning X-Bolt Hunter .243 Win Bolt Action Rifle"],
+    [18, "Kimber Stainless II 1911 .38 Super Auto +P Pistol"],
+    [19, "Cimarron 1892 Short Rifle .357 Mag 20\" Lever Action Rifle"],
+    [20, "Savage 110 Long Range Hunter .338 Lapua Mag 26\" Bolt Action Rifle"],
+    [21, "Kimber Camp Guard 10 1911 10mm Semi-Auto Pistol"],
+    [22, "Ruger Hawkeye Predator 22-250 Bolt Action Rifle"],
+    [23, "Henry .410 Side Gate Lever Action Shotgun"],
+    [24, "Smith & Wesson 500 Mag 8.375\" 5-Round Revolver"],
+    [25, "Ruger New Vaquero .45 Colt Revolver"],
+    [26, "Auto-Ordnance M1 Carbine .30 Carbine Semi-Auto Rifle"],
+    [27, "EAA Girsan MC 1911 Match LUX .45 Auto Pistol"],
+    [28, "Christensen Arms Mesa FFT 7mm Rem Mag Bolt Action Rifle"],
+    [29, "Winchester M94 Sporter 38-55 Win 24\" Lever Action Rifle"],
+    [30, "Charles Daly Triple Threat .410 Triple Barrel Shotgun"],
+]);
+
+function daysInMonth(y: number, m: number) {
+    return new Date(y, m + 1, 0).getDate();
+}
+function startDow(y: number, m: number) {
+    return new Date(y, m, 1).getDay(); // 0=Sun
+}
+
+const totalDays = daysInMonth(year, monthIndex);
+const firstDow = startDow(year, monthIndex);
+const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 ---
-<BaseLayout title="Raffle | Friends of Lake Henry">
+
+<BaseLayout title={`Raffle | Friends of Lake Henry`}>
     <div class="container">
-        <section class="card pad">
-            <h1>Raffle</h1>
-            <p class="lead">
-                Raffle proceeds directly support Lake Henry restoration. Details below will be finalized for the next fundraiser.
-            </p>
+        <section class="card hero">
+            <div class="heroLeft">
+                <div class="kicker">{monthName} {year}</div>
+                <h1>{flyerMeta.subtitle}</h1>
+                <p class="lead">
+                    ${ticketPrice}.00 per ticket • Drawing daily • Proceeds support Lake Henry restoration.
+                </p>
 
-            <div class="grid">
-                <div class="cardInner">
-                    <h2>Status</h2>
-                    <p class="muted"><strong>Coming soon.</strong> Ticket sales open closer to the event date.</p>
+                <div class="heroCtas">
+                    <a class="btn primary" href="#" aria-disabled="true">Buy tickets (coming soon)</a>
+                    <a class="btn" href="/events">View events</a>
                 </div>
-                <div class="cardInner">
-                    <h2>How it works</h2>
-                    <ul>
-                        <li>Purchase tickets during the fundraiser window</li>
-                        <li>Drawing held on the posted date/time</li>
-                        <li>Winners announced on this site and at the event</li>
-                    </ul>
-                </div>
+
+                <p class="fine">
+                    Online ticket purchasing will be enabled once raffle rules and processing details are confirmed.
+                </p>
             </div>
 
-            <div class="ctaRow">
-                <a class="btn primary" href="#">Buy tickets (placeholder)</a>
-                <a class="btn" href="/events">See events</a>
+            <div class="heroRight">
+                <div class="infoCard">
+                    <div class="infoTitle">{flyerMeta.orgLine}</div>
+                    <div class="muted">{flyerMeta.address}</div>
+                    <div class="muted">Phone: {flyerMeta.phone}</div>
+                    <div class="muted" style="margin-top:.5rem;">
+                        Winners will be posted on our Facebook page.
+                    </div>
+                </div>
             </div>
+        </section>
 
-            <p class="fineprint">
-                Note: Online ticket purchasing will be enabled once raffle rules, dates, and processing are confirmed.
-            </p>
+        <section class="pad">
+            <h2 class="sectionTitle">{flyerMeta.title}</h2>
+
+            <div class="calendar" role="grid" aria-label={`${monthName} ${year} raffle calendar`}>
+                {dowLabels.map((d) => (
+                        <div class="dow" role="columnheader">{d}</div>
+                ))}
+
+                {/* Blank cells before the 1st */}
+                {Array.from({ length: firstDow }).map(() => (
+                        <div class="cell blank" aria-hidden="true"></div>
+                ))}
+
+                {Array.from({ length: totalDays }).map((_, idx) => {
+                    const day = idx + 1;
+                    const prize = prizeByDay.get(day);
+                    return (
+                            <div class="cell" role="gridcell">
+                                <div class="dayNum">{day}</div>
+                                <div class="prize">{prize ?? "Prize TBD"}</div>
+                            </div>
+                    );
+                })}
+            </div>
+        </section>
+
+        <section class="card rules">
+            <h2>Rules</h2>
+            <ul>
+                {rules.map((r) => <li>{r}</li>)}
+            </ul>
         </section>
     </div>
 
     <style>
-        .pad { padding: 2rem; margin-top: 1.25rem; }
-        h1 { margin: 0 0 0.75rem; font-size: 2rem; }
-        .lead { color: var(--muted); max-width: 75ch; margin: 0 0 1.25rem; }
-        .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin: 1rem 0 1.25rem; }
-        .cardInner { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
-        h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
-        ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
-        .muted { color: var(--muted); margin: 0; }
-        .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
-        .btn{
-            display:inline-block;
-            padding: 0.75rem 1rem;
+        .pad { margin-top: 1.25rem; }
+        .hero {
+            margin-top: 1.25rem;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+        .kicker { color: var(--muted); font-weight: 800; letter-spacing: .3px; }
+        h1 { margin: .25rem 0 .5rem; font-size: 2rem; }
+        .lead { margin: 0; color: var(--muted); max-width: 70ch; }
+
+        .heroCtas { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
+        .btn {
+            display: inline-block;
+            padding: .75rem 1rem;
             border-radius: 12px;
             border: 1px solid var(--border);
             color: var(--text);
             font-weight: 800;
+            text-decoration: none;
         }
-        .primary{ background: var(--brand); border-color: transparent; }
-        .fineprint { margin: 1.25rem 0 0; color: var(--muted); font-size: 0.95rem; }
-        @media (min-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } }
+        .primary { background: var(--brand); border-color: transparent; }
+        .fine { margin: .75rem 0 0; color: var(--muted); font-size: .95rem; }
+
+        .infoCard {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            background: rgba(255,255,255,0.02);
+        }
+        .infoTitle { font-weight: 900; margin-bottom: .25rem; }
+        .muted { color: var(--muted); }
+
+        .sectionTitle { margin: 1.5rem 0 .75rem; font-size: 1.35rem; }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: .5rem;
+        }
+        .dow {
+            color: var(--muted);
+            font-weight: 800;
+            font-size: .85rem;
+            padding: .5rem .5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .cell {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: .65rem .65rem .75rem;
+            background: rgba(255,255,255,0.02);
+            min-height: 86px;
+        }
+        .blank {
+            background: transparent;
+            border: 1px dashed rgba(255,255,255,0.08);
+        }
+        .dayNum {
+            font-weight: 900;
+            font-size: .95rem;
+            margin-bottom: .35rem;
+        }
+        .prize {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.25;
+        }
+
+        .rules {
+            margin-top: 2rem;
+            padding: 1.5rem 1.75rem;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+        }
+        .rules h2 { margin: 0 0 .75rem; font-size: 1.25rem; }
+        .rules ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
+        .rules li { margin: 0.4rem 0;
+            line-height: 1.5; }
+
+        @media (min-width: 980px) {
+            .hero { grid-template-columns: 1.35fr .65fr; align-items: start; }
+        }
+        @media (max-width: 760px) {
+            .dow { display: none; } /* mobile: grid still works, less clutter */
+            .calendar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
     </style>
 </BaseLayout>
 
