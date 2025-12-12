@@ -12,10 +12,31 @@ const nav = [
         <a class="brand" href="/">Friends of Lake Henry</a>
 
         <nav class="nav" aria-label="Primary">
-            {nav.map((i) => <a href={i.href} class="navLink">{i.label}</a>)}
+            {nav.map((i) => (
+                    <a href={i.href} class="navLink">{i.label}</a>
+            ))}
+
+            <a
+                    href="https://www.facebook.com/people/Friends-of-Lake-Henry/61552199315213/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Friends of Lake Henry on Facebook"
+                    class="social"
+            >
+                <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden="true"
+                >
+                    <path d="M22.675 0h-21.35C.597 0 0 .597 0 1.326v21.348C0 23.403.597 24 1.326 24h11.495v-9.294H9.691V11.01h3.13V8.309c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24h-1.918c-1.504 0-1.796.715-1.796 1.763v2.313h3.587l-.467 3.696h-3.12V24h6.116C23.403 24 24 23.403 24 22.674V1.326C24 .597 23.403 0 22.675 0z"/>
+                </svg>
+            </a>
         </nav>
     </div>
 </header>
+
 
 <style>
     .header{
@@ -41,4 +62,15 @@ const nav = [
     .nav{ display:flex; gap: 1rem; flex-wrap: wrap; }
     .navLink{ color: var(--muted); font-weight: 600; }
     .navLink:hover{ color: var(--text); text-decoration:none; }
+    .social {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        margin-left: 0.25rem;
+    }
+
+    .social:hover {
+        color: var(--brand);
+    }
 </style>
