@@ -1,0 +1,44 @@
+---
+const nav = [
+    { href: "/", label: "Home" },
+    { href: "/about", label: "About / Mission" },
+    { href: "/events", label: "Events" },
+    { href: "/raffle", label: "Raffle" },
+    { href: "/donate", label: "Donate" },
+];
+---
+<header class="header">
+    <div class="container inner">
+        <a class="brand" href="/">Friends of Lake Henry</a>
+
+        <nav class="nav" aria-label="Primary">
+            {nav.map((i) => <a href={i.href} class="navLink">{i.label}</a>)}
+        </nav>
+    </div>
+</header>
+
+<style>
+    .header{
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(11,18,32,0.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+    }
+    .inner{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding: 0.85rem 0;
+        gap: 1rem;
+    }
+    .brand{
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        color: var(--text);
+    }
+    .nav{ display:flex; gap: 1rem; flex-wrap: wrap; }
+    .navLink{ color: var(--muted); font-weight: 600; }
+    .navLink:hover{ color: var(--text); text-decoration:none; }
+</style>

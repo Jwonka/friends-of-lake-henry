@@ -1,0 +1,31 @@
+---
+const raffleUrl = "/raffle";
+const message = "Raffle tickets available — support Lake Henry restoration.";
+const cta = "Click here";
+---
+<div class="bar">
+    <div class="container inner">
+        <span class="msg">{message}</span>
+        <a class="cta" href={raffleUrl}>{cta}</a>
+    </div>
+</div>
+
+<style>
+    .bar{
+        background: linear-gradient(90deg, var(--brand-dark), var(--brand));
+        color: white;
+    }
+    .inner{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding: 0.6rem 0;
+        gap: 1rem;
+    }
+    .msg{ font-weight: 600; }
+    .cta{
+        color: white;
+        font-weight: 800;
+        text-decoration: underline;
+    }
+</style>

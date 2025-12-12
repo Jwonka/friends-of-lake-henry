@@ -1,16 +1,39 @@
 ---
-
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
+<BaseLayout title="Friends of Lake Henry">
+	<div class="container">
+		<section class="hero card">
+			<div class="pad">
+				<h1>Protecting and restoring Lake Henry—together.</h1>
+				<p>
+					Friends of Lake Henry is a community nonprofit raising funds and organizing support for long-term lake restoration.
+				</p>
+				<div class="actions">
+					<a class="btn primary" href="/donate">Donate</a>
+					<a class="btn" href="/events">View events</a>
+				</div>
+			</div>
+		</section>
+	</div>
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+	<style>
+		.hero { margin-top: 1.25rem; }
+		.pad { padding: 2rem; }
+		h1 { margin: 0 0 0.75rem; font-size: 2rem; }
+		p { margin: 0 0 1.25rem; color: var(--muted); max-width: 65ch; }
+		.actions { display:flex; gap: 0.75rem; flex-wrap: wrap; }
+		.btn{
+			display:inline-block;
+			padding: 0.75rem 1rem;
+			border-radius: 12px;
+			border: 1px solid var(--border);
+			color: var(--text);
+			font-weight: 700;
+		}
+		.primary{
+			background: var(--brand);
+			border-color: transparent;
+		}
+	</style>
+</BaseLayout>

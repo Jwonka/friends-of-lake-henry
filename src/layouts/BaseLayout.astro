@@ -1,0 +1,51 @@
+---
+import "../styles/global.css";
+import SiteHeader from "../components/SiteHeader.astro";
+import RaffleBanner from "../components/RaffleBanner.astro";
+
+const { title = "Friends of Lake Henry" } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+</head>
+<body>
+<SiteHeader />
+<RaffleBanner />
+
+<main class="main">
+    <slot />
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footInner">
+            <div>
+                <strong>Friends of Lake Henry</strong>
+                <div class="muted">A community nonprofit supporting lake restoration.</div>
+            </div>
+            <div class="muted">© {new Date().getFullYear()}</div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
+
+<style>
+    .main { padding: 2rem 0 3rem; }
+    .footer{
+        border-top: 1px solid var(--border);
+        padding: 2rem 0;
+        color: var(--muted);
+    }
+    .footInner{
+        display:flex;
+        justify-content:space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .muted{ color: var(--muted); }
+</style>
