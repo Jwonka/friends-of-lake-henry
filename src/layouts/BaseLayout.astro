@@ -18,7 +18,7 @@ const { title = "Friends of Lake Henry" } = Astro.props;
 <RaffleBanner />
 
 <main class="siteMain">
-    <div class="pageBg" aria-hidden="true"></div>
+    <div class="pageBg pageEnterBg" aria-hidden="true"></div>
     <div class="pageContent">
         <slot />
     </div>
@@ -39,7 +39,8 @@ const { title = "Friends of Lake Henry" } = Astro.props;
 </html>
 
 <style>
-    .siteMain{
+    /* Prevent sideways scroll when content starts offscreen */
+    .siteMain {
         position: relative;
         min-height: calc(100vh - 160px);
         padding: 2rem 0 3rem;
@@ -49,12 +50,13 @@ const { title = "Friends of Lake Henry" } = Astro.props;
     /* This is the “page-wide” image background (main only) */
     .pageBg{
         position: absolute;
-        inset: 0;
+        inset: -24px;
         background-image: url("/images/hero.jpg");
         background-size: cover;
         background-position: center;
         transform: scale(1.02);
         z-index: 0;
+        pointer-events: none;
     }
 
     /* Darken the image for readability (main only) */
@@ -62,7 +64,7 @@ const { title = "Friends of Lake Henry" } = Astro.props;
         content: "";
         position: absolute;
         inset: 0;
-        background: rgba(0,0,0,0.3);
+        background: rgba(0,0,0,0.22);
     }
 
     .pageContent{

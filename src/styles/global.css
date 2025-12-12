@@ -16,7 +16,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { height: 100%; }
+html, body { height: 100%; overflow-x: hidden; }
 body {
     margin: 0;
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -107,4 +107,45 @@ button.btn {
 p {
     color: rgba(255,255,255,0.88);
 }
+
+/* Block motion: noticeable slide from right */
+@keyframes enterFromRight {
+    from { transform: translateX(var(--enter-x)); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+
+.enter-block {
+    --enter-x: min(220px, 22vw);
+    animation: enterFromRight 950ms cubic-bezier(.12, 1, .25, 1) both;
+}
+
+/* Page motion: subtle fade only (no slide) */
+@keyframes pageFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.enter-page {
+    animation: pageFadeIn 950ms ease-out both;
+}
+
+.delay-1 { animation-delay: 150ms; }
+.delay-2 { animation-delay: 320ms; }
+.delay-3 { animation-delay: 490ms; }
+
+@keyframes bgLift {
+    from { filter: blur(10px); opacity: 0.6; transform: scale(1.03); }
+    to   { filter: blur(0);    opacity: 1;   transform: scale(1.02); }
+}
+
+.pageEnterBg{
+    animation: bgLift 950ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .enter-page, .enter-block { animation: none; }
+    .delay-1, .delay-2, .delay-3 { animation-delay: 0ms; }
+    .pageEnterBg { animation: none; }
+}
+
 

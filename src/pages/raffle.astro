@@ -68,8 +68,8 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
 ---
 
 <BaseLayout title={`Raffle | Friends of Lake Henry`}>
-    <div class="container">
-        <section class="card hero">
+    <div class="container enter-page">
+        <section class="card hero enter-block delay-1">
             <div class="heroLeft">
                 <div class="kicker">{monthName} {year}</div>
                 <h1>{flyerMeta.subtitle}</h1>
@@ -79,7 +79,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
 
                 <div class="heroCtas">
                     <a class="btn primary" href="#" aria-disabled="true">Buy tickets (coming soon)</a>
-                    <a class="btn" href="/events">View events</a>
+                    <a class="btn primary" href="/events">View events</a>
                 </div>
 
                 <p class="fine">
@@ -99,7 +99,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             </div>
         </section>
 
-        <section class="pad">
+        <section class="card calendarCard enter-block delay-2">
             <h2 class="sectionTitle">{flyerMeta.title}</h2>
 
             <div class="calendar" role="grid" aria-label={`${monthName} ${year} raffle calendar`}>
@@ -107,7 +107,6 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
                         <div class="dow" role="columnheader">{d}</div>
                 ))}
 
-                {/* Blank cells before the 1st */}
                 {Array.from({ length: firstDow }).map(() => (
                         <div class="cell blank" aria-hidden="true"></div>
                 ))}
@@ -125,7 +124,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             </div>
         </section>
 
-        <section class="card rules">
+        <section class="card rules  enter-block delay-3">
             <h2>Rules</h2>
             <ul>
                 {rules.map((r) => <li>{r}</li>)}
@@ -147,16 +146,6 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
         .lead { margin: 0; color: var(--muted); max-width: 70ch; }
 
         .heroCtas { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
-        .btn {
-            display: inline-block;
-            padding: .75rem 1rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-weight: 800;
-            text-decoration: none;
-        }
-        .primary { background: var(--brand); border-color: transparent; }
         .fine { margin: .75rem 0 0; color: var(--muted); font-size: .95rem; }
 
         .infoCard {
@@ -168,13 +157,18 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
         .infoTitle { font-weight: 900; margin-bottom: .25rem; }
         .muted { color: var(--muted); }
 
-        .sectionTitle { margin: 1.5rem 0 .75rem; font-size: 1.35rem; }
+        .sectionTitle { margin: 0 0 1rem; font-size: 1.35rem; }
 
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
             gap: .5rem;
         }
+        .calendarCard{
+            margin-top: 1.25rem;
+            padding: 1.5rem;
+        }
+
         .dow {
             color: var(--muted);
             font-weight: 800;
@@ -182,26 +176,33 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             padding: .5rem .5rem;
             border-bottom: 1px solid var(--border);
         }
-        .cell {
+        .cell{
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: .65rem .65rem .75rem;
-            background: rgba(255,255,255,0.02);
+            background: rgba(0,0,0,0.18); /* was too transparent */
             min-height: 86px;
+            backdrop-filter: blur(1.5px);
         }
-        .blank {
-            background: transparent;
-            border: 1px dashed rgba(255,255,255,0.08);
-        }
-        .dayNum {
+
+        .dayNum{
             font-weight: 900;
             font-size: .95rem;
             margin-bottom: .35rem;
+            color: rgba(255,255,255,0.95);
+            text-shadow: 0 1px 6px rgba(0,0,0,0.35);
         }
-        .prize {
-            color: var(--muted);
+
+        .prize{
+            color: rgba(255,255,255,0.86); /* instead of var(--muted) */
             font-size: .85rem;
             line-height: 1.25;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+        }
+
+        .blank {
+            background: transparent;
+            border: 1px dashed rgba(255,255,255,0.08);
         }
 
         .rules {
