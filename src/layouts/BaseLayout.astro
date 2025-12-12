@@ -5,6 +5,7 @@ import RaffleBanner from "../components/RaffleBanner.astro";
 
 const { title = "Friends of Lake Henry" } = Astro.props;
 ---
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -16,8 +17,11 @@ const { title = "Friends of Lake Henry" } = Astro.props;
 <SiteHeader />
 <RaffleBanner />
 
-<main class="main">
-    <slot />
+<main class="siteMain">
+    <div class="pageBg" aria-hidden="true"></div>
+    <div class="pageContent">
+        <slot />
+    </div>
 </main>
 
 <footer class="footer">
@@ -35,13 +39,44 @@ const { title = "Friends of Lake Henry" } = Astro.props;
 </html>
 
 <style>
-    .main { padding: 2rem 0 3rem; }
+    .siteMain{
+        position: relative;
+        min-height: calc(100vh - 160px);
+        padding: 2rem 0 3rem;
+        overflow: hidden;
+    }
+
+    /* This is the “page-wide” image background (main only) */
+    .pageBg{
+        position: absolute;
+        inset: 0;
+        background-image: url("/images/hero.jpg");
+        background-size: cover;
+        background-position: center;
+        transform: scale(1.02);
+        z-index: 0;
+    }
+
+    /* Darken the image for readability (main only) */
+    .pageBg::after{
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+    }
+
+    .pageContent{
+        position: relative;
+        z-index: 1;
+    }
+
     .footer{
-        display: block;
-        margin-bottom: 0.25rem;
         border-top: 1px solid var(--border);
         padding: 2rem 0;
         color: var(--muted);
+        /* keep footer dark/solid like header */
+        background: rgba(11,18,32,0.92);
+        backdrop-filter: blur(10px);
     }
     .footInner{
         display:flex;

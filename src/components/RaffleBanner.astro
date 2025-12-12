@@ -3,29 +3,45 @@ const raffleUrl = "/raffle";
 const message = "Raffle tickets available — support Lake Henry restoration.";
 const cta = "Click here";
 ---
-<div class="bar">
+
+<a href={raffleUrl} class="bar" aria-label="View raffle details">
     <div class="container inner">
         <span class="msg">{message}</span>
-        <a class="cta" href={raffleUrl}>{cta}</a>
+        <span class="cta">{cta}</span>
     </div>
-</div>
+</a>
 
 <style>
     .bar{
+        display: block;
         background: linear-gradient(90deg, var(--brand-dark), var(--brand));
-        color: white;
+        text-decoration: none;
     }
+
     .inner{
         display:flex;
         align-items:center;
-        justify-content:space-between;
+        justify-content:center;
+        gap: 0.75rem;
         padding: 0.6rem 0;
-        gap: 1rem;
+        text-align: center;
     }
-    .msg{ font-weight: 600; }
+
+    .msg,
     .cta{
         color: white;
+        font-weight: 600;
+        transition: color 0.15s ease;
+        text-decoration: none;
+    }
+
+    .cta{
         font-weight: 800;
-        text-decoration: underline;
+        white-space: nowrap;
+    }
+
+    .bar:hover .msg,
+    .bar:hover .cta{
+        color: rgba(11, 18, 32, 0.95);
     }
 </style>

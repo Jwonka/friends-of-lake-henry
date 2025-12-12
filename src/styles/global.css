@@ -2,13 +2,17 @@
     --bg: #0b1220;
     --surface: #0f1a2e;
     --text: #e9eef7;
-    --muted: #b8c4d9;
+    --muted: rgba(255, 255, 255, 0.72);
 
     --brand: #3b82f6;
     --brand-dark: #2563eb;
-    --border: rgba(255,255,255,0.12);
+    --border: rgba(255, 255, 255, 0.12);
 
     --maxw: 1100px;
+    --text-strong: rgba(255, 255, 255, 0.96);
+    --text-soft: rgba(255, 255, 255, 0.78);
+
+    --btn-primary: #8bbcff;
 }
 
 * { box-sizing: border-box; }
@@ -22,7 +26,7 @@ body {
 }
 
 a { color: var(--brand); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a:hover { text-decoration: none; }
 
 .container {
     width: min(var(--maxw), calc(100% - 2rem));
@@ -32,13 +36,16 @@ a:hover { text-decoration: underline; }
 .card {
     padding: 2rem;
     border-radius: 16px;
+    backdrop-filter: blur(1px);
     background: linear-gradient(
             180deg,
-            rgba(255,255,255,0.04),
+            rgba(255,255,255,0.09),
             rgba(255,255,255,0.02)
     );
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
     border: 1px solid var(--border);
 }
+
 .card h1,
 .card h2,
 .card h3 {
@@ -50,6 +57,54 @@ a:hover { text-decoration: underline; }
     line-height: 1.6;
 }
 
+.card p {
+    color: var(--text-strong);
+}
+
+.card .muted,
+.card p.muted {
+    color: var(--text-soft);
+}
+
+.form .fine {
+    color: var(--text-soft);
+}
+
 .card > * + * {
     margin-top: 1rem;
 }
+
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.2;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, transform 0.05s ease;
+}
+
+button.btn {
+     font: inherit;
+     font-weight: 700;
+     font-size: 1rem;
+     line-height: 1.2;
+     cursor: pointer;
+}
+
+.btn.primary {
+    background: var(--btn-primary);
+    color: #08162a;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+p {
+    color: rgba(255,255,255,0.88);
+}
+
