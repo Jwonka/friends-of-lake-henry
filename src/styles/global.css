@@ -84,7 +84,10 @@ a:hover { text-decoration: none; }
     line-height: 1.2;
     text-decoration: none;
     border: 1px solid transparent;
-    transition: background 0.15s ease, transform 0.05s ease;
+    transition:
+            background-color 160ms ease,
+            color 160ms ease,
+            transform 120ms ease;
 }
 
 button.btn {
@@ -100,7 +103,14 @@ button.btn {
     color: #08162a;
 }
 
-.btn:hover {
+.btn.primary:hover,
+.btn.primary:focus-visible {
+    color: #ffffff;
+}
+
+/* Hover */
+.btn:hover,
+.btn:focus-visible {
     transform: translateY(-1px);
 }
 
