@@ -1,0 +1,61 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout title="Raffle | Friends of Lake Henry">
+    <div class="container">
+        <section class="card pad">
+            <h1>Raffle</h1>
+            <p class="lead">
+                Raffle proceeds directly support Lake Henry restoration. Details below will be finalized for the next fundraiser.
+            </p>
+
+            <div class="grid">
+                <div class="cardInner">
+                    <h2>Status</h2>
+                    <p class="muted"><strong>Coming soon.</strong> Ticket sales open closer to the event date.</p>
+                </div>
+                <div class="cardInner">
+                    <h2>How it works</h2>
+                    <ul>
+                        <li>Purchase tickets during the fundraiser window</li>
+                        <li>Drawing held on the posted date/time</li>
+                        <li>Winners announced on this site and at the event</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="ctaRow">
+                <a class="btn primary" href="#">Buy tickets (placeholder)</a>
+                <a class="btn" href="/events">See events</a>
+            </div>
+
+            <p class="fineprint">
+                Note: Online ticket purchasing will be enabled once raffle rules, dates, and processing are confirmed.
+            </p>
+        </section>
+    </div>
+
+    <style>
+        .pad { padding: 2rem; margin-top: 1.25rem; }
+        h1 { margin: 0 0 0.75rem; font-size: 2rem; }
+        .lead { color: var(--muted); max-width: 75ch; margin: 0 0 1.25rem; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin: 1rem 0 1.25rem; }
+        .cardInner { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+        h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+        ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
+        .muted { color: var(--muted); margin: 0; }
+        .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .btn{
+            display:inline-block;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-weight: 800;
+        }
+        .primary{ background: var(--brand); border-color: transparent; }
+        .fineprint { margin: 1.25rem 0 0; color: var(--muted); font-size: 0.95rem; }
+        @media (min-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+</BaseLayout>
+

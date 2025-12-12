@@ -1,0 +1,49 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const events = [
+    {
+        title: "Community Meeting",
+        date: "TBD",
+        location: "Lake Henry Pavilion",
+        summary: "Project overview and Q&A. Learn how restoration funding is used."
+    },
+    {
+        title: "Fundraising Dinner",
+        date: "TBD",
+        location: "Richland Center (Venue TBD)",
+        summary: "Community dinner to support restoration work."
+    }
+];
+---
+<BaseLayout title="Events | Friends of Lake Henry">
+    <div class="container">
+        <section class="pad">
+            <h1>Events</h1>
+            <p class="lead">Upcoming events and community opportunities to support Lake Henry.</p>
+
+            <div class="list">
+                {events.map((e) => (
+                        <article class="card item">
+                            <div class="meta">
+                                <div class="title">{e.title}</div>
+                                <div class="sub">{e.date} • {e.location}</div>
+                            </div>
+                            <p class="summary">{e.summary}</p>
+                        </article>
+                ))}
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .pad { margin-top: 1.25rem; }
+        h1 { margin: 0 0 0.5rem; font-size: 2rem; }
+        .lead { margin: 0 0 1.25rem; color: var(--muted); max-width: 70ch; }
+        .list { display: grid; gap: 1rem; }
+        .item { padding: 1.25rem; }
+        .title { font-weight: 800; font-size: 1.1rem; }
+        .sub { color: var(--muted); margin-top: 0.25rem; }
+        .summary { margin: 0.75rem 0 0; color: var(--muted); max-width: 80ch; }
+    </style>
+</BaseLayout>
