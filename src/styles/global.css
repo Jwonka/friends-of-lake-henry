@@ -18,6 +18,13 @@
     --btn-bg-hover: var(--brand-dark);
     --btn-text-hover: #ffffff;
     --btn-bg-active: #1d4ed8;
+
+    --panel-bg: rgba(0,0,0,0.18);
+    --panel-border: rgba(255,255,255,0.12);
+    --panel-blur: 1.5px;
+
+    /* Readability helpers */
+    --text-shadow: 0 1px 6px rgba(0,0,0,0.35);
 }
 
 * { box-sizing: border-box; }
@@ -29,7 +36,6 @@ body {
     color: var(--text);
     line-height: 1.5;
 }
-
 a { color: var(--brand); text-decoration: none; }
 a:hover { text-decoration: none; }
 
@@ -79,6 +85,28 @@ a:hover { text-decoration: none; }
     margin-top: 1rem;
 }
 
+/* “card inside card” */
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    backdrop-filter: blur(var(--panel-blur));
+}
+
+.panel,
+.panel p,
+.panel li{
+    color: var(--text-strong);
+    text-shadow: var(--text-shadow);
+}
+
+.muted { color: var(--text-soft); }
+.panel .muted{
+    color: rgba(255,255,255,0.86);
+}
+/* lead text readability */
+.lead {color: var(--text-soft);}
 
 .btn {
     display: inline-flex;
@@ -134,10 +162,7 @@ a:hover { text-decoration: none; }
     transform: none;
 }
 
-p {
-    color: rgba(255,255,255,0.88);
-}
-
+p { color: var(--text-strong); }
 .btn:focus-visible,
 .navLink:focus-visible,
 .social:focus-visible,

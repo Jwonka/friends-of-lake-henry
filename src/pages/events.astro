@@ -18,13 +18,13 @@ const events = [
 ---
 <BaseLayout title="Events | Friends of Lake Henry">
     <div class="container">
-        <section class="pad enter-block">
+        <section class="card pad enter-block">
             <h1>Events</h1>
             <p class="lead">Upcoming events and community opportunities to support Lake Henry.</p>
 
             <div class="list">
-                {events.map((e) => (
-                        <article class="card item enter-block delay-1">
+                {events.map((e, idx) => (
+                        <article class={`panel item enter-block ${idx === 0 ? "delay-1" : idx === 1 ? "delay-2" : "delay-3"}`}>
                             <div class="meta">
                                 <div class="title">{e.title}</div>
                                 <div class="sub">{e.date} • {e.location}</div>
@@ -39,11 +39,11 @@ const events = [
     <style>
         .pad { margin-top: var(--section-gap); }
         h1 { margin: 0 0 0.5rem; font-size: 2rem; }
-        .lead { margin: 0 0 1.25rem; color: var(--muted); max-width: 70ch; }
+        .lead { margin: 0 0 1.25rem; max-width: 70ch; }
         .list { display: grid; gap: var(--section-gap); }
         .item { padding: 1.25rem; }
         .title { font-weight: 900; font-size: 1.15rem; }
         .sub { color: var(--text-soft); font-size: 0.95rem; margin-top: 0.35rem; }
-        .summary { margin: 0.75rem 0 0; color: var(--muted); max-width: 80ch; }
+        .summary { margin: 0.75rem 0 0; color: var(--text-strong); max-width: 80ch; }
     </style>
 </BaseLayout>

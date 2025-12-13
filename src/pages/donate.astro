@@ -3,13 +3,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 <BaseLayout title="Donate | Friends of Lake Henry">
     <div class="container">
-        <section class="card pad">
+        <section class="card pad enter-block">
             <h1>Donate</h1>
             <p class="lead">
                 Your donation supports lake restoration efforts, community outreach, and fundraising operations.
             </p>
 
-            <div class="cardInner">
+            <div class="panel enter-block delay-1">
                 <h2>Donation options</h2>
                 <ul>
                     <li>One-time donation</li>
@@ -17,7 +17,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                     <li>Sponsorship opportunities (optional)</li>
                 </ul>
                 <div class="ctaRow">
-                    <a class="btn primary" href="#" aria-disabled="true">Donate (placeholder)</a>
+                    <a class="btn" href="#" aria-disabled="true">Donate (placeholder)</a>
                 </div>
                 <p class="muted small">
                     We’ll link this button to your chosen donation processor (Square, Stripe, PayPal, etc.) once confirmed.
@@ -29,21 +29,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <style>
         .pad { padding: 2rem; margin-top: var(--section-gap); }
         h1 { margin: 0 0 0.75rem; font-size: 2rem; }
-        .lead { color: var(--muted); max-width: 75ch; margin: 0 0 1.25rem; }
-        .cardInner { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+        .lead { max-width: 75ch; margin: 0 0 1.25rem; }
         h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
-        ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
+        ul { margin: 0; padding-left: 1.1rem; color: var(--text-soft); }
         .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
-        .btn{
-            display:inline-block;
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-weight: 800;
-        }
-        .primary{ background: var(--brand); border-color: transparent; }
-        .muted { color: var(--muted); margin: 0.75rem 0 0; }
+        .muted { color: var(--text-soft); margin: 0.75rem 0 0; }
         .small { font-size: 0.95rem; }
     </style>
 </BaseLayout>
