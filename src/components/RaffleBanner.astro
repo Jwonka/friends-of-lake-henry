@@ -20,6 +20,24 @@ const cta = "Click here";
         z-index: 150;
     }
 
+    .bar::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255,255,255,0.15),
+                transparent
+        );
+        opacity: 0;
+        transition: opacity 200ms ease;
+    }
+
+    .bar:hover::after {
+        opacity: 1;
+    }
+
     .inner{
         display:flex;
         align-items:center;
@@ -41,10 +59,5 @@ const cta = "Click here";
     .cta{
         font-weight: 800;
         white-space: nowrap;
-    }
-
-    .bar:hover .msg,
-    .bar:hover .cta{
-        color: rgba(11, 18, 32, 0.95);
     }
 </style>
