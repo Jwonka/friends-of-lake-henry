@@ -133,9 +133,9 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
     </div>
 
     <style>
-        .pad { margin-top: 1.25rem; }
+        .pad { margin-top: var(--section-gap); }
         .hero {
-            margin-top: 1.75rem;
+            margin-top: var(--section-gap);
             padding: 2rem;
             display: grid;
             grid-template-columns: 1fr;
@@ -145,7 +145,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
         h1 { margin: .25rem 0 .5rem; font-size: 2rem; }
         .lead { margin: 0; color: var(--muted); max-width: 70ch; }
 
-        .heroCtas { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
+        .heroCtas { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: var(--section-gap); }
         .fine { margin: .75rem 0 0; color: var(--muted); font-size: .95rem; }
 
         .infoCard {
@@ -166,7 +166,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             gap: .5rem;
         }
         .calendarCard{
-            margin-top: 1.75rem;
+            margin-top: var(--section-gap);
             padding: 1.5rem;
         }
 
@@ -212,7 +212,8 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
         }
 
         .rules {
-            margin-top: 2.5rem;
+            margin-top: var(--section-gap);
+            margin-bottom: calc(var(--section-gap) * 1.25);
             padding: 1.5rem 1.75rem;
             border-radius: 14px;
             background: rgba(255,255,255,0.03);

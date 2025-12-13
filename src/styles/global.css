@@ -11,6 +11,7 @@
     --maxw: 1100px;
     --text-strong: rgba(255, 255, 255, 0.96);
     --text-soft: rgba(255, 255, 255, 0.78);
+    --section-gap: 2.25rem;
 
     --btn-bg: #8bbcff;
     --btn-text: #08162a;
