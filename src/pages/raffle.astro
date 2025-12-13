@@ -68,8 +68,8 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
 ---
 
 <BaseLayout title={`Raffle | Friends of Lake Henry`}>
-    <div class="container enter-page">
-        <section class="card hero enter-block delay-1">
+    <div class="container">
+        <section class="card hero enter-block">
             <div class="heroLeft">
                 <div class="kicker">{monthName} {year}</div>
                 <h1>{flyerMeta.subtitle}</h1>
@@ -99,7 +99,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             </div>
         </section>
 
-        <section class="card calendarCard enter-block delay-2">
+        <section class="card calendarCard enter-block delay-1">
             <h2 class="sectionTitle">{flyerMeta.title}</h2>
 
             <div class="calendar" role="grid" aria-label={`${monthName} ${year} raffle calendar`}>
@@ -124,7 +124,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             </div>
         </section>
 
-        <section class="card rules  enter-block delay-3">
+        <section class="card rules  enter-block delay-2">
             <h2>Rules</h2>
             <ul>
                 {rules.map((r) => <li>{r}</li>)}
