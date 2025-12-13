@@ -135,7 +135,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
     <style>
         .pad { margin-top: 1.25rem; }
         .hero {
-            margin-top: 1.25rem;
+            margin-top: 1.75rem;
             padding: 2rem;
             display: grid;
             grid-template-columns: 1fr;
@@ -152,7 +152,8 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 1.25rem;
-            background: rgba(255,255,255,0.02);
+            background: rgba(0,0,0,0.28);
+            backdrop-filter: blur(2px);
         }
         .infoTitle { font-weight: 900; margin-bottom: .25rem; }
         .muted { color: var(--muted); }
@@ -165,7 +166,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             gap: .5rem;
         }
         .calendarCard{
-            margin-top: 1.25rem;
+            margin-top: 1.75rem;
             padding: 1.5rem;
         }
 
@@ -177,12 +178,17 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             border-bottom: 1px solid var(--border);
         }
         .cell{
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255,255,255,0.14);
             border-radius: 12px;
             padding: .65rem .65rem .75rem;
-            background: rgba(0,0,0,0.18); /* was too transparent */
+            background: rgba(0,0,0,0.26);
             min-height: 86px;
-            backdrop-filter: blur(1.5px);
+            backdrop-filter: blur(2px);
+        }
+
+        .cell:hover{
+            background: rgba(0,0,0,0.32);
+            border-color: rgba(255,255,255,0.22);
         }
 
         .dayNum{
@@ -206,7 +212,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
         }
 
         .rules {
-            margin-top: 2rem;
+            margin-top: 2.5rem;
             padding: 1.5rem 1.75rem;
             border-radius: 14px;
             background: rgba(255,255,255,0.03);
