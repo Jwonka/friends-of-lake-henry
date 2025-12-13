@@ -12,14 +12,29 @@ import "../styles/global.css";
 					Friends of Lake Henry is a community nonprofit raising funds and organizing
 					support for long-term lake restoration.
 				</p>
-				<div class="actions">
-					<a class="btn" href="/donate">Donate</a>
-					<a class="btn" href="/events">View events</a>
-				</div>
 			</div>
 		</section>
 
-		<section class="contactSection card enter-block delay-2">
+		<section class="highlights enter-block delay-2">
+			<div class="highlightGrid">
+				<a class="card highlight" href="/donate">
+					<h2>Donate</h2>
+					<p class="muted">Support lake restoration efforts with a one-time or recurring gift.</p>
+				</a>
+
+				<a class="card highlight" href="/raffle">
+					<h2>Raffle</h2>
+					<p class="muted">See this month’s calendar raffle and prize schedule.</p>
+				</a>
+
+				<a class="card highlight" href="/events">
+					<h2>Events</h2>
+					<p class="muted">View upcoming fundraisers and community updates.</p>
+				</a>
+			</div>
+		</section>
+
+		<section class="contactSection card enter-block delay-3">
 			<div class="pad">
 				<h2>Contact</h2>
 				<p>
@@ -67,11 +82,9 @@ import "../styles/global.css";
 			line-height: 1.6;
 			color: var(--text-strong);
 		}
-
+		.hero p { margin-bottom: 0; }
 		p.fine { margin-top: 0.75rem; }
 		p.fine.muted { color: var(--text-soft); }
-
-		.actions { display:flex; gap: 0.75rem; flex-wrap: wrap; }
 
 		h2 { margin: 0 0 0.75rem; font-size: 1.4rem; }
 		.muted { color: var(--muted); }
@@ -89,9 +102,38 @@ import "../styles/global.css";
 			color: var(--text);
 		}
 		textarea { resize: vertical; }
+		.highlights{ margin-top: 1.75rem; }
+
+		.highlightGrid{
+			display: grid;
+			gap: 1rem;
+			grid-template-columns: 1fr;
+		}
+
+		.highlight{
+			padding: 1.5rem;
+			text-decoration: none;
+			transition: transform 140ms ease, border-color 160ms ease, background-color 160ms ease;
+		}
+
+		.highlight h2{
+			margin: 0 0 .5rem;
+			font-size: 1.2rem;
+		}
+
+		.highlight p{
+			margin: 0;
+		}
+
+		.highlight:hover,
+		.highlight:focus-visible{
+			transform: translateY(-2px);
+			border-color: rgba(255,255,255,0.22);
+		}
 
 		@media (min-width: 860px){
 			.row { grid-template-columns: 1fr 1fr; }
+			.highlightGrid{ grid-template-columns: repeat(3, 1fr); }
 		}
 	</style>
 </BaseLayout>
