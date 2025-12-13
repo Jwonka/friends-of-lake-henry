@@ -11,6 +11,7 @@
     --maxw: 1100px;
     --text-strong: rgba(255, 255, 255, 0.96);
     --text-soft: rgba(255, 255, 255, 0.78);
+    --text-large: 1.1rem;
     --section-gap: 2.25rem;
 
     --btn-bg: #8bbcff;
@@ -244,6 +245,8 @@ p { color: var(--text-strong); }
 .delay-1 { animation-delay: 150ms; }
 .delay-2 { animation-delay: 320ms; }
 .delay-3 { animation-delay: 490ms; }
+.delay-4 { animation-delay: 660ms; }
+.delay-5 { animation-delay: 780ms; }
 
 @keyframes bgLift {
     from { filter: blur(10px); opacity: 0.6; transform: scale(1.03); }
