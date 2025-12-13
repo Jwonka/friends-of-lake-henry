@@ -21,7 +21,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { height: 100%; overflow-x: hidden; }
+html, body { height: 100%; overflow-x: clip; }
 body {
     margin: 0;
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -137,6 +137,17 @@ a:hover { text-decoration: none; }
 p {
     color: rgba(255,255,255,0.88);
 }
+
+.btn:focus-visible,
+.navLink:focus-visible,
+.social:focus-visible,
+.bar:focus-visible {
+    outline: 3px solid rgba(255,255,255,0.55);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(59,130,246,0.18); /* optional glow */
+}
+
+.header, .footer, .bar { width: 100%;}
 
 /* Block motion: noticeable slide from right */
 @keyframes enterFromRight {

@@ -45,6 +45,7 @@ const { title = "Friends of Lake Henry" } = Astro.props;
         min-height: calc(100vh - 160px);
         padding: 2rem 0 3rem;
         overflow-x: hidden;
+        z-index: 0;
     }
 
     /* This is the “page-wide” image background (main only) */
@@ -54,7 +55,7 @@ const { title = "Friends of Lake Henry" } = Astro.props;
         background-image: url("/images/hero.jpg");
         background-size: cover;
         background-position: center;
-        transform: scale(1.02);
+        transform: none;
         z-index: 0;
         pointer-events: none;
     }
@@ -62,7 +63,7 @@ const { title = "Friends of Lake Henry" } = Astro.props;
     /* Darken the image for readability (main only) */
     .pageBg::after{
         content: "";
-        position: fixed;
+        position: absolute;
         inset: 0;
         background: rgba(0,0,0,0.22);
     }

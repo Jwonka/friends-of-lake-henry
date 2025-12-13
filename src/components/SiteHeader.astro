@@ -40,10 +40,10 @@ const nav = [
 
 <style>
     .header{
-        position: static;
+        position: relative;
         padding: 1.25rem 0;
         top: auto;
-        z-index: 50;
+        z-index: 200;
         background: rgba(11,18,32,0.85);
         backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--border);
@@ -89,11 +89,6 @@ const nav = [
         transform: translateY(-1px);
     }
 
-    .navLink:focus-visible{
-        outline: 3px solid rgba(255,255,255,0.55);
-        outline-offset: 3px;
-    }
-
     .navLink[aria-current="page"]{
         color: #fff;
         background: rgba(59,130,246,0.22); /* subtle “active” */
@@ -114,10 +109,5 @@ const nav = [
     .social:focus-visible{
         background: rgba(24,119,242,0.18);
         transform: translateY(-1px);
-    }
-
-    .social:focus-visible{
-        outline: 3px solid rgba(255,255,255,0.55);
-        outline-offset: 3px;
     }
 </style>
