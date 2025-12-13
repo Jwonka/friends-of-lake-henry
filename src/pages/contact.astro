@@ -1,0 +1,74 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="About / Mission | Friends of Lake Henry">
+    <div class="container">
+        <section id="contact" class="contactSection card enter-block">
+            <div class="pad">
+                <h2>Contact</h2>
+                <p>
+                    Have a question, want to volunteer, or need raffle information? Send us a
+                    message and we’ll get back to you.
+                </p>
+
+                <form class="form" method="post" action="/api/contact">
+                    <div class="row">
+                        <label>
+                            Name
+                            <input name="name" autocomplete="name" required />
+                        </label>
+                        <label>
+                            Email
+                            <input name="email" type="email" autocomplete="email" required />
+                        </label>
+                    </div>
+
+                    <label>
+                        Message
+                        <textarea name="message" rows="6" required></textarea>
+                    </label>
+
+                    <button class="btn" type="submit">Send message</button>
+
+                    <p class="fine muted">
+                        By submitting, you agree we may contact you back about your request.
+                    </p>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .contactSection{ margin-top: var(--section-gap); margin-bottom: calc(var(--section-gap) * 1.25); }
+        .contactSection p {
+            margin: 0 0 1.25rem;
+            max-width: 65ch;
+            line-height: 1.6;
+            color: var(--text-strong);
+        }
+        .pad { padding: 2rem; }
+        p.fine { margin-top: 0.75rem; }
+        p.fine.muted { color: var(--text-soft); }
+
+        h2 { margin: 0 0 0.75rem; font-size: 1.4rem; }
+        .muted { color: var(--muted); }
+        .fine { font-size: 0.95rem; margin-top: 0.75rem; }
+
+        .form { margin-top: 1rem; display: grid; gap: 1rem; }
+        .row { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+        label { display: grid; gap: 0.4rem; color: var(--text); font-weight: 700; }
+
+        input, textarea{
+            padding: 0.75rem 0.85rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(0,0,0,0.12);
+            color: var(--text);
+        }
+        textarea { resize: vertical; }
+        @media (min-width: 860px){
+            .row { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</BaseLayout>

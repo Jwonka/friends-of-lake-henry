@@ -169,6 +169,57 @@ p { color: var(--text-strong); }
 
 .header, .footer, .bar { width: 100%;}
 
+.highlight{
+    display: block;
+    padding: 1.25rem 1.25rem;
+    border-radius: 16px;
+
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.14);
+
+    background: rgba(11, 18, 32, 0.55); /* darker = readable */
+    backdrop-filter: blur(6px);
+
+    transition:
+            transform 140ms ease,
+            background-color 160ms ease,
+            border-color 160ms ease,
+            box-shadow 160ms ease;
+}
+
+.highlight h2{
+    margin: 0 0 .45rem;
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: rgba(255,255,255,0.96);
+}
+
+.highlight p{
+    margin: 0;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.45;
+}
+
+.highlight:hover,
+.highlight:focus-visible{
+    transform: translateY(-2px);
+    background: rgba(37, 99, 235, 0.35);
+    border-color: rgba(255,255,255,0.26);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+}
+
+.highlight:active{
+    transform: translateY(0) scale(0.99);
+    background: rgba(11, 18, 32, 0.74);
+}
+
+/* Optional: tiny icon-like cue without adding icons */
+.highlight h2::after{
+    content: " →";
+    opacity: 0.85;
+    font-weight: 900;
+}
+
 /* Block motion: noticeable slide from right */
 @keyframes enterFromRight {
     from { transform: translateX(var(--enter-x)); opacity: 0; }

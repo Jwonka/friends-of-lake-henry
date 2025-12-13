@@ -15,155 +15,71 @@ import "../styles/global.css";
 			</div>
 		</section>
 
-		<section class="highlights enter-block delay-1">
-			<div class="highlightGrid">
-				<a class="card highlight" href="/donate">
-					<h2>Donate</h2>
-					<p>Support lake restoration efforts with a one-time or recurring gift.</p>
-				</a>
+		<section class="card pad enter-block delay-1">
+			<h1>About / Mission</h1>
+			<p class="lead">
+				Friends of Lake Henry is a community nonprofit dedicated to supporting long-term restoration of Lake Henry
+				through fundraising, education, and local involvement.
+			</p>
 
-				<a class="card highlight" href="/raffle">
-					<h2>Raffle</h2>
-					<p>See this month’s calendar raffle and prize schedule.</p>
-				</a>
-
-				<a class="card highlight" href="/events">
-					<h2>Events</h2>
-					<p>View upcoming fundraisers and community updates.</p>
-				</a>
-			</div>
-		</section>
-
-		<section id="contact" class="contactSection card enter-block delay-2">
-			<div class="pad">
-				<h2>Contact</h2>
-				<p>
-					Have a question, want to volunteer, or need raffle information? Send us a
-					message and we’ll get back to you.
-				</p>
-
-				<form class="form" method="post" action="/api/contact">
-					<div class="row">
-						<label>
-							Name
-							<input name="name" autocomplete="name" required />
-						</label>
-						<label>
-							Email
-							<input name="email" type="email" autocomplete="email" required />
-						</label>
-					</div>
-
-					<label>
-						Message
-						<textarea name="message" rows="6" required></textarea>
-					</label>
-
-					<button class="btn" type="submit">Send message</button>
-
-					<p class="fine muted">
-						By submitting, you agree we may contact you back about your request.
+			<div class="grid">
+				<div class="panel enter-block delay-2">
+					<h2>Our mission</h2>
+					<p>
+						Protect and restore Lake Henry by funding meaningful projects and building community support around the lake.
 					</p>
-				</form>
+				</div>
+
+				<div class="panel enter-block delay-2">
+					<h2>What we do</h2>
+					<ul>
+						<li>Raise funds for lake restoration efforts</li>
+						<li>Share updates and information with the community</li>
+						<li>Organize events and fundraising opportunities</li>
+					</ul>
+				</div>
+
+				<div class="panel enter-block delay-3">
+					<h2>How you can help</h2>
+					<ul>
+						<li>Donate to support restoration work</li>
+						<li>Buy raffle tickets during fundraisers</li>
+						<li>Volunteer or help spread the word</li>
+					</ul>
+				</div>
+
+				<div class="panel enter-block delay-3">
+					<h2>Transparency</h2>
+					<p>
+						We aim to be clear about where funds go and what they support. As details are finalized, we’ll post updates
+						here and on our Facebook page.
+					</p>
+				</div>
 			</div>
 		</section>
 	</div>
 
 	<style>
 		.hero{ margin-top: var(--section-gap); }
-		.contactSection{ margin-top: var(--section-gap); margin-bottom: calc(var(--section-gap) * 1.25); }
-
-		.pad { padding: 2rem; }
+		.pad { padding: 2rem; margin-top: var(--section-gap); }
 		h1 { margin: 0 0 0.75rem; font-size: 2rem; }
-		.hero p,
-		.contactSection p {
+		.hero p {
 			margin: 0 0 1.25rem;
 			max-width: 65ch;
 			line-height: 1.6;
 			color: var(--text-strong);
 		}
+		p { color: var(--text); }
 		.hero p { margin-bottom: 0; }
-		p.fine { margin-top: 0.75rem; }
-		p.fine.muted { color: var(--text-soft); }
-
+		.panel p { margin: 0.5rem 0 0; color: var(--text); }
 		h2 { margin: 0 0 0.75rem; font-size: 1.4rem; }
 		.muted { color: var(--muted); }
-		.fine { font-size: 0.95rem; margin-top: 0.75rem; }
-
-		.form { margin-top: 1rem; display: grid; gap: 1rem; }
-		.row { display: grid; gap: 1rem; grid-template-columns: 1fr; }
-		label { display: grid; gap: 0.4rem; color: var(--text); font-weight: 700; }
-
-		input, textarea{
-			padding: 0.75rem 0.85rem;
-			border-radius: 12px;
-			border: 1px solid rgba(255,255,255,0.10);
-			background: rgba(0,0,0,0.12);
-			color: var(--text);
-		}
-		textarea { resize: vertical; }
-		.highlights { margin-top: var(--section-gap); }
-
-		.highlightGrid{
-			display: grid;
-			gap: 1rem;
-			grid-template-columns: 1fr;
-		}
-
-		.highlight{
-			display: block;
-			padding: 1.25rem 1.25rem;
-			border-radius: 16px;
-
-			text-decoration: none;
-			border: 1px solid rgba(255,255,255,0.14);
-
-			background: rgba(11, 18, 32, 0.55); /* darker = readable */
-			backdrop-filter: blur(6px);
-
-			transition:
-				transform 140ms ease,
-				background-color 160ms ease,
-				border-color 160ms ease,
-				box-shadow 160ms ease;
-		}
-
-		.highlight h2{
-			margin: 0 0 .45rem;
-			font-size: 1.15rem;
-			font-weight: 900;
-			color: rgba(255,255,255,0.96);
-		}
-
-		.highlight p{
-			margin: 0;
-			color: rgba(255,255,255,0.88);
-			line-height: 1.45;
-		}
-
-		.highlight:hover,
-		.highlight:focus-visible{
-			transform: translateY(-2px);
-			background: rgba(37, 99, 235, 0.35);
-			border-color: rgba(255,255,255,0.26);
-			box-shadow: 0 10px 24px rgba(0,0,0,0.28);
-		}
-
-		.highlight:active{
-			transform: translateY(0) scale(0.99);
-			background: rgba(11, 18, 32, 0.74);
-		}
-
-		/* Optional: tiny icon-like cue without adding icons */
-		.highlight h2::after{
-			content: " →";
-			opacity: 0.85;
-			font-weight: 900;
-		}
-
+		.grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+		.lead { margin: 0 0 1.5rem; max-width: 80ch; }
+		ul { margin: 0; padding-left: 1.1rem; color: var(--text-soft); }
 		@media (min-width: 860px){
 			.row { grid-template-columns: 1fr 1fr; }
-			.highlightGrid{ grid-template-columns: repeat(3, 1fr); }
+			.grid { grid-template-columns: 1fr 1fr; }
 		}
 	</style>
 </BaseLayout>
