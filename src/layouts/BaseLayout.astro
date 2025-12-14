@@ -66,7 +66,7 @@ const { title = "Friends of Lake Henry", description = "Friends of Lake Henry is
         content: "";
         position: absolute;
         inset: 0;
-        background: rgba(0,0,0,0.22);
+        background: var(--page-overlay);
     }
 
     .pageContent{
@@ -79,8 +79,7 @@ const { title = "Friends of Lake Henry", description = "Friends of Lake Henry is
         border-top: 1px solid var(--border);
         padding: 2rem 0;
         color: var(--muted);
-        /* keep footer dark/solid like header */
-        background: rgba(11,18,32,0.92);
+        background: var(--surface-veil);
         backdrop-filter: blur(10px);
     }
     .footInner{

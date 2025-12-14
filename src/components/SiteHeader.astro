@@ -44,7 +44,7 @@ const nav = [
         padding: 1.25rem 0;
         top: auto;
         z-index: 200;
-        background: rgba(11,18,32,0.85);
+        background: var(--surface-veil);
         backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--border);
     }
@@ -83,15 +83,15 @@ const nav = [
 
     .navLink:hover,
     .navLink:focus-visible{
-        color: #fff;
+        color: var(--text-on-dark);
         opacity: 0.9;
-        background: rgba(255,255,255,0.08);
+        background: var(--surface-glow-soft);
         transform: translateY(-1px);
     }
 
     .navLink[aria-current="page"]{
-        color: #fff;
-        background: rgba(59,130,246,0.22); /* subtle “active” */
+        color: var(--text-on-dark);
+        background: var(--brand-tint);
     }
 
     /* Facebook icon: keep FB blue, give it a clear hover */
@@ -99,7 +99,7 @@ const nav = [
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        color: #1877F2; /* Facebook blue */
+        color: var(--brand-facebook);
         padding: 0.35rem 0.45rem;
         border-radius: 10px;
         transition: background-color 160ms ease, transform 120ms ease, filter 160ms ease;
@@ -107,7 +107,7 @@ const nav = [
 
     .social:hover,
     .social:focus-visible{
-        background: rgba(24,119,242,0.18);
+        background: var(--brand-facebook-hover);
         transform: translateY(-1px);
     }
 </style>

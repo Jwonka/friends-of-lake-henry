@@ -7,6 +7,7 @@
     --brand: #3b82f6;
     --brand-dark: #2563eb;
     --border: rgba(255, 255, 255, 0.12);
+    --banner-bg: #2f302b;
 
     --maxw: 1100px;
     --section-gap: 2.25rem;
@@ -50,6 +51,12 @@
     --panel-bg-dense: rgba(0,0,0,0.34);
     --card-shadow-strong: 0 12px 40px rgba(0,0,0,0.30);
     --shadow-lift: 0 10px 24px rgba(0,0,0,0.28);
+    --surface-veil: rgba(11,18,32,0.85);
+    --surface-glow-soft: rgba(255,255,255,0.08);
+    --shine-light: rgba(255,255,255,0.15);
+    --page-overlay: rgba(0,0,0,0.22);
+    --focus-outline: rgba(255,255,255,0.55);
+    --focus-glow: rgba(59,130,246,0.18);
 
     /* brand accents */
     --brand-tint: rgba(59,130,246,0.22);
@@ -193,9 +200,9 @@ p { color: var(--text-strong); }
 .navLink:focus-visible,
 .social:focus-visible,
 .bar:focus-visible {
-    outline: 3px solid rgba(255,255,255,0.55);
+    outline: 3px solid var(--focus-outline);
     outline-offset: 3px;
-    box-shadow: 0 0 0 6px rgba(59,130,246,0.18);
+    box-shadow: 0 0 0 6px var(--focus-glow);
 }
 
 .header, .footer, .bar { width: 100%;}

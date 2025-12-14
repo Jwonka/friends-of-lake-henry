@@ -79,10 +79,19 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             text-align:center;
         }
 
+        .filters .pill.filter{
+            font: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            -webkit-appearance: none;
+            appearance: none;
+            line-height: 1.2;
+        }
+
         .filter.active{
-            background: rgba(37, 99, 235, 0.35);
-            border-color: rgba(255,255,255,0.30);
-            color: #fff;
+            background: var(--brand-tint-strong);
+            border-color: var(--border-bright-strong);
+            color: var(--text-on-dark);
         }
 
         .galleryPanel{
@@ -103,7 +112,7 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             position: relative;
             border-radius: 16px;
             overflow:hidden;
-            background: rgba(11,18,32,0.55);
+            background: var(--glass-dark);
             backdrop-filter: blur(6px);
             border: 1px solid var(--border-strong);
             box-shadow: var(--card-shadow-strong);
