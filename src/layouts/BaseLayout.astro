@@ -48,14 +48,19 @@ const canonical = Astro.site
 <footer class="footer">
     <div class="container">
         <div class="footInner">
-            <div>
-                <strong>Friends of Lake Henry</strong>
-                <div class="muted">A community nonprofit supporting lake restoration.</div>
-                <div class="adminFoot">
-                    <a href="/admin" class="adminLink">Admin</a>
+            <div class="footLeft" aria-hidden="true"></div>
+
+            <div class="footCenter">
+                <div class="footBrandLine">
+                    <strong class="footBrand">Friends of Lake Henry</strong>
+                    <span class="footCopy">© {new Date().getFullYear()}</span>
                 </div>
+                <div class="muted footTag">A community nonprofit supporting lake restoration.</div>
             </div>
-            <div class="muted">© {new Date().getFullYear()}</div>
+
+            <div class="footRight">
+                <a href="/admin" class="pill adminLink">Admin</a>
+            </div>
         </div>
     </div>
 </footer>
@@ -101,16 +106,37 @@ const canonical = Astro.site
     .footer{
         border-top: 1px solid var(--border);
         padding: 2rem 0;
-        color: var(--muted);
         background: var(--surface-veil);
         backdrop-filter: blur(10px);
     }
+
     .footInner{
-        display:flex;
-        justify-content:space-between;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
         gap: 1rem;
-        flex-wrap: wrap;
     }
+
+    .footCenter{
+        text-align: center;
+    }
+
+    .footBrandLine{
+        display: inline-flex;
+        align-items: baseline;
+        gap: .5rem;
+    }
+
+    .footBrand{ color: var(--text); }
+    .footCopy{ color: var(--text-soft); font-size: .95rem; }
+
+    .footTag{ margin-top: .25rem; }
+
+    .footRight{
+        display: flex;
+        justify-content: flex-end;
+    }
+
     .muted{ color: var(--muted); }
     .adminFoot{
         margin-top: .35rem;
@@ -130,5 +156,14 @@ const canonical = Astro.site
     }
     @media (max-width: 900px){
         .pageBg{ position: fixed; }
+    }
+    @media (max-width: 680px){
+        .footInner{
+            grid-template-columns: 1fr;
+            justify-items: center;
+            text-align: center;
+        }
+        .footRight{ justify-content: center; width: 100%; }
+        .adminLink{ width: 100%; justify-content: center; }
     }
 </style>

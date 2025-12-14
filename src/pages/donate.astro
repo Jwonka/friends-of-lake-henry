@@ -27,13 +27,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
 
     <style>
-        .pad { padding: 2rem; margin-top: var(--section-gap); }
-        h1 { margin: 0 0 0.75rem; font-size: 2rem; }
+        .pad { margin-top: var(--section-gap); }
         .lead { max-width: 75ch; margin: 0 0 1.25rem; }
-        h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
         ul { margin: 0; padding-left: 1.1rem; color: var(--text-bright); }
         .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
-        .muted { color: var(--text-soft); margin: 0.75rem 0 0; }
         .small { font-size: 0.95rem; }
+        /* Mobile: full-width primary action */
+        @media (max-width: 520px){
+            .ctaRow{ flex-direction: column; align-items: stretch; }
+            .ctaRow .btn{ width: 100%; justify-content: center; }
+        }
     </style>
 </BaseLayout>

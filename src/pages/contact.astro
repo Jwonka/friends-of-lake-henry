@@ -2,11 +2,11 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="About / Mission | Friends of Lake Henry">
+<BaseLayout title="Contact | Friends of Lake Henry">
     <div class="container">
         <section id="contact" class="contactSection card enter-block">
-            <div class="pad">
-                <h2>Contact</h2>
+            <div>
+                <h1>Contact</h1>
                 <p>
                     Have a question, want to volunteer, or need raffle information? Send us a
                     message and we’ll get back to you.
@@ -47,12 +47,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             line-height: 1.6;
             color: var(--text-strong);
         }
-        .pad { padding: 2rem; }
         p.fine { margin-top: 0.75rem; }
         p.fine.muted { color: var(--text-soft); }
-
-        h2 { margin: 0 0 0.75rem; font-size: 1.4rem; }
-        .muted { color: var(--muted); }
         .fine { font-size: 0.95rem; margin-top: 0.75rem; }
 
         .form { margin-top: 1rem; display: grid; gap: 1rem; }
@@ -68,7 +64,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         }
         textarea { resize: vertical; }
         @media (min-width: 860px){
-            .row { grid-template-columns: 1fr 1fr; }
+            .row{ grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Mobile: make submit feel intentional */
+        @media (max-width: 520px){
+            .form .btn{ width: 100%; justify-content: center; }
         }
     </style>
 </BaseLayout>

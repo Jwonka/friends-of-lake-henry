@@ -12,7 +12,7 @@ const total = pendingPhotos.length;
                 <div class="adminTitle">
                     <div>
                         <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
-                        <h1 class="enter-block delay-2" style="margin: 0;">Pending Photos</h1>
+                        <h1 class="enter-block delay-2 h1-tight">Pending Photos</h1>
                     </div>
                     <p class="lead enter-block delay-3" style="margin: .25rem 0 0;">Review submissions before publishing to the public gallery.</p>
                 </div>
@@ -71,6 +71,7 @@ const total = pendingPhotos.length;
             color: var(--text);
             overflow: hidden;
             transition: transform 140ms ease, border-color 160ms ease, background-color 160ms ease;
+            -webkit-tap-highlight-color: transparent;
         }
         .tile:hover,
         .tile:focus-visible{
@@ -79,7 +80,7 @@ const total = pendingPhotos.length;
             background: var(--glass-dark-strong);
             outline: none;
         }
-
+        .tile:active{ transform: translateY(0); }
         .thumb{
             margin:0;
             aspect-ratio: 4 / 3;
@@ -112,8 +113,18 @@ const total = pendingPhotos.length;
             padding: .35rem .7rem;
         }
 
-        @media (max-width: 900px){
+        /* Tablet */
+        @media (max-width: 1024px){
+            .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        /* Phones */
+        @media (max-width: 680px){
             .grid{ grid-template-columns: 1fr; }
+            .adminHeader{ align-items: flex-start; }
+            .adminHeaderActions{ width: 100%; }
+            .adminHeaderActions .btn,
+            .adminHeaderActions .pill{ width: 100%; justify-content: center; }
         }
     </style>
 </BaseLayout>

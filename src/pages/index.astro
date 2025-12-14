@@ -60,21 +60,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 	<style>
 		.hero{ margin-top: var(--section-gap); }
-		.pad { padding: 2rem; margin-top: var(--section-gap); }
-		h1 { margin: 0 0 0.75rem; font-size: 2rem; }
+		.pad {margin-top: var(--section-gap); }
 		.hero p {
-			margin: 0 0 1.25rem;
+			margin: 0;
 			max-width: 65ch;
 			line-height: 1.6;
 			color: var(--text-strong);
 		}
-		p { color: var(--text); }
-		.hero p { margin-bottom: 0; }
-		.panel p { margin: 0.5rem 0 0; color: var(--text); }
-		h2 { margin: 0 0 0.75rem; font-size: 1.4rem; }
+		.panel p { margin: 0.5rem 0 0; }
 		.grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 		.lead { margin: 0 0 1.5rem; max-width: 80ch; }
-		ul { margin: 0; padding-left: 1.1rem; color: var(--text-soft); }
+		ul { margin: 0; padding-left: 1.1rem; }
 		@media (min-width: 860px){
 			.grid { grid-template-columns: 1fr 1fr; }
 		}

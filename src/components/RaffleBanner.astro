@@ -60,4 +60,22 @@ const cta = "Click here";
         font-weight: 800;
         white-space: nowrap;
     }
+
+    @media (max-width: 760px){
+        .inner{
+            flex-direction: column;
+            gap: .35rem;
+            padding: .65rem 0;
+        }
+
+        .msg, .cta{
+            font-size: 1rem;
+            line-height: 1.2;
+        }
+
+        .cta{
+            white-space: normal;
+            font-weight: 800;
+        }
+    }
 </style>

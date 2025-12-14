@@ -4,16 +4,16 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 <BaseLayout title="Admin | Friends of Lake Henry">
     <div class="container" style="--maxw: 1100px;">
-        <section class="card enter-block" style="margin-top: var(--section-gap);">
-            <div style="display:flex; align-items:flex-end; justify-content:space-between; gap: 1rem; flex-wrap: wrap;">
+        <section class="card adminCard enter-block">
+            <div class="adminHeader">
                 <div>
                     <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
-                    <h1 class="enter-block delay-2" style="margin:0 0 .25rem;">Admin Dashboard</h1>
-                    <p class="lead enter-block delay-3" style="margin:0;">Moderate photos and manage site content.</p>
+                    <h1 class="enter-block delay-2 h1-tight">Admin Dashboard</h1>
+                    <p class="lead adminLead enter-block delay-3">Moderate photos and manage site content.</p>
                 </div>
             </div>
 
-            <div class="panel enter-block delay-4" style="margin-top: 1rem;">
+            <div class="panel adminPanel enter-block delay-4">
                 <div class="adminGrid enter-block delay-5">
                     <a class="adminTile" href="/admin/photos/pending">
                         <strong>Photos</strong>
@@ -30,6 +30,16 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     </div>
 
     <style>
+        .adminCard{ margin-top: var(--section-gap); }
+        .adminPanel{ margin-top: 1rem; }
+        .adminLead{ margin: 0; }
+        .adminHeader{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
         .adminGrid{
             display:grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -53,8 +63,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             background: var(--glass-dark-strong);
             outline: none;
         }
+        /* Tablet */
         @media (max-width: 900px){
             .adminGrid{ grid-template-columns: 1fr; }
+        }
+
+        /* Phones: make tiles feel tappable */
+        @media (max-width: 680px){
+            .adminTile{ padding: 1.1rem; }
         }
     </style>
 </BaseLayout>

@@ -23,7 +23,7 @@ if (!photo) {
             <div class="adminHeader">
                 <div>
                     <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
-                    <h1 class="enter-block delay-2" style="margin: 0 0 .25rem;">Review Submission</h1>
+                    <h1 class="enter-block delay-2 h1-tight">Review Submission</h1>
                     <p class="lead enter-block delay-3" style="margin: 0;">Confirm category and alt text before publishing.</p>
                 </div>
                 <a class="pill" href="/admin/photos/pending">← Back to queue</a>
@@ -88,6 +88,7 @@ if (!photo) {
             width:100%;
             height:auto;
             display:block;
+            aspect-ratio: 4 / 3;
             object-fit: cover;
         }
 
@@ -113,6 +114,7 @@ if (!photo) {
             background: rgba(0,0,0,0.12);
             color: var(--text);
             font: inherit;
+            font-size: 16px;
         }
 
         .actions{
@@ -131,6 +133,13 @@ if (!photo) {
         @media (max-width: 900px){
             .formGrid{ grid-template-columns: 1fr; }
             .span2{ grid-column: span 1; }
+        }
+        /* Phones */
+        @media (max-width: 680px){
+            .adminHeader{ align-items: flex-start; }
+            .actions{ flex-direction: column; align-items: stretch; }
+            .actions .btn,
+            .actions .pill{ width: 100%; justify-content: center; }
         }
     </style>
 </BaseLayout>

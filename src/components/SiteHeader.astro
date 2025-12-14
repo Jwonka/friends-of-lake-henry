@@ -9,9 +9,19 @@ const nav = [
 ---
 <header class="header">
     <div class="container inner">
-        <a class="brand" href="/">FRIENDS OF LAKE HENRY</a>
+        <div class="brand" aria-label="Friends of Lake Henry">FRIENDS OF LAKE HENRY</div>
 
-        <nav class="nav" aria-label="Primary">
+        <button
+            class="menuBtn"
+            type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="siteNav"
+        >
+            <span class="menuIcon" aria-hidden="true"></span>
+        </button>
+
+        <nav id="siteNav" class="nav" aria-label="Primary" data-open="false">
             {nav.map((i) => (
                     <a href={i.href} class="navLink">{i.label}</a>
             ))}
@@ -36,8 +46,38 @@ const nav = [
         </nav>
     </div>
 </header>
+<script>
+    const btn = document.querySelector('.menuBtn');
+    const nav = document.querySelector('#siteNav');
 
+    if (btn && nav) {
+        btn.addEventListener('click', () => {
+            const open = nav.getAttribute('data-open') === 'true';
+            nav.setAttribute('data-open', String(!open));
+            btn.setAttribute('aria-expanded', String(!open));
+        });
+        nav.addEventListener('click', (e) => {
+            const target = e.target;
+            if (a) {
+                nav.setAttribute('data-open', 'false');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+    /* Global click handler — outside */
+    document.addEventListener('click', (e) => {
+        if (!btn || !nav) return;
 
+        const open = nav.getAttribute('data-open') === 'true';
+        if (!open) return;
+
+        const clickedInside = nav.contains(e.target) || btn.contains(e.target);
+        if (!clickedInside) {
+            nav.setAttribute('data-open', 'false');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+    });
+</script>
 <style>
     .header{
         position: relative;
@@ -68,7 +108,6 @@ const nav = [
     .brand:hover,
     .brand:focus-visible{
         opacity: 0.9;
-        transform: translateY(-1px);
     }
     .nav{ display:flex; align-items:center; gap: 1rem; flex-wrap: wrap; }
     .navLink{
@@ -93,6 +132,9 @@ const nav = [
         color: var(--text-on-dark);
         background: var(--brand-tint);
     }
+    .nav[data-open="true"]{
+        display: flex;
+    }
 
     /* Facebook icon: keep FB blue, give it a clear hover */
     .social{
@@ -109,5 +151,107 @@ const nav = [
     .social:focus-visible{
         background: var(--brand-facebook-hover);
         transform: translateY(-1px);
+    }
+    .menuBtn{
+        display: none;
+        border: 1px solid var(--border-strong);
+        background: rgba(0,0,0,0.12);
+        color: var(--text);
+        border-radius: 12px;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .menuIcon{
+        width: 18px;
+        height: 2px;
+        background: currentColor;
+        position: relative;
+        display: block;
+    }
+    .menuIcon::before,
+    .menuIcon::after{
+        content:"";
+        position:absolute;
+        left:0;
+        width: 18px;
+        height: 2px;
+        background: currentColor;
+    }
+    .menuIcon::before{ top: -6px; }
+    .menuIcon::after{ top: 6px; }
+
+    /* Mobile nav behavior */
+    @media (max-width: 1035px){
+        .inner{
+            position: relative; /* anchor for absolute nav */
+            align-items: center;
+        }
+
+        .brand{
+            font-size: 1.35rem;
+            line-height: 1.1;
+            max-width: calc(100% - 60px); /* prevents overlap with button */
+        }
+
+        .menuBtn{
+            display: inline-flex;
+            flex: 0 0 auto;
+        }
+
+        /* Overlay menu: does NOT push content */
+        .nav{
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + .5rem);
+            width: min(260px, 92vw);
+
+            padding: .75rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--surface-veil);
+            backdrop-filter: blur(12px);
+            box-shadow: var(--card-shadow-strong);
+
+            flex-direction: column;
+            gap: .5rem;
+            z-index: 999;
+        }
+
+        .nav[data-open="true"]{
+            display: flex;
+        }
+
+        .navLink{
+            width: 100%;
+            padding: .75rem 1rem;
+            border-radius: 14px;
+            text-align: center;
+        }
+
+        .social{
+            width: 100%;
+            justify-content: center;
+            padding: .75rem 1rem;
+            border-radius: 14px;
+        }
+        .menuBtn[aria-expanded="true"] .menuIcon{
+            background: transparent;
+        }
+        .menuBtn[aria-expanded="true"] .menuIcon::before{
+            top: 0;
+            transform: rotate(45deg);
+        }
+        .menuBtn[aria-expanded="true"] .menuIcon::after{
+            top: 0;
+            transform: rotate(-45deg);
+        }
+        .menuIcon::before,
+        .menuIcon::after{
+            transition: transform 160ms ease, top 160ms ease;
+        }
     }
 </style>

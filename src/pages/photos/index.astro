@@ -66,8 +66,7 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
 
     <style>
         .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}
-        h1 { margin: 0 0 0.5rem; font-size: 2rem; }
-        .lead { max-width: 75ch; margin: 0 0 1.25rem; }
+        .lead { max-width: 75ch; margin: 0 0 1.25rem; color: var(--text-strong);line-height: 1.6;}
 
         /* Center the tabs */
         .filters{
@@ -76,7 +75,6 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             gap: 0.6rem;
             flex-wrap:wrap;
             margin: 2rem 0 1rem;
-            text-align:center;
         }
 
         .filters .pill.filter{
@@ -103,7 +101,7 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
         .grid{
             display:grid;
             gap: var(--gallery-space);
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: 1fr;
         }
 
         .photoLink { display: block; }
@@ -112,6 +110,7 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             position: relative;
             border-radius: 16px;
             overflow:hidden;
+            padding: 0;
             background: var(--glass-dark);
             backdrop-filter: blur(6px);
             border: 1px solid var(--border-strong);
@@ -153,8 +152,60 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             opacity: 0;
         }
 
-        @media (max-width: 760px){
-            .grid{ grid-template-columns: 1fr; }
+        /* Breakpoints */
+        @media (min-width: 640px){
+            .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (min-width: 980px){
+            .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+
+        /* Mobile: stack category pills, full-width for easy tapping */
+        @media (max-width: 520px){
+            /* Give the grid more room */
+            .galleryPanel{
+                padding: 1rem;
+            }
+
+            .photoLink{
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+
+            /* Make photos taller and more immersive */
+            .photo{
+                aspect-ratio: 3 / 4;
+                border-radius: 18px;
+                width: 100%;
+                margin: 0;
+            }
+
+            .photo img{
+                object-fit: cover;
+                width: 100%;
+            }
+            .filters{
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: flex-start;
+                gap: .5rem;
+                margin: 1.25rem 0 1.25rem;
+            }
+
+            .filters .pill.filter{
+                display: flex;
+                width: 100%;
+                justify-content: center;
+                align-items: center;
+
+                padding: .85rem 1rem;
+                border-radius: 14px;
+
+                background: var(--panel-bg-dense);
+                backdrop-filter: none;
+            }
         }
     </style>
 </BaseLayout>

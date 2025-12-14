@@ -4,7 +4,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout title="Page not found | Friends of Lake Henry">
     <div class="container">
-        <section class="card pad enter-block">
+        <section class="card enter-block">
             <h1>Page not found</h1>
             <p class="lead">
                 Sorry—there’s nothing at this address. Use one of the links below to get back on track.
@@ -24,19 +24,20 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
 
     <style>
-        .pad { padding: 2rem; margin-top: var(--section-gap); }
-        h1 { margin: 0 0 0.75rem; font-size: 2rem; }
         .lead { max-width: 75ch; margin: 0 0 1.25rem; }
         .actions { display:flex; gap: 0.75rem; flex-wrap: wrap; }
-        .muted { color: var(--text-soft); margin: 1.25rem 0 0; }
         .small { font-size: 0.95rem; }
         .error {
-            color: rgba(11,18,32,0.85);
+            color: var(--surface-veil);
             font-weight: bold;
             font-size: var(--text-large);
         }
         .error:hover {
             color: #2f302b;;
+        }
+        @media (max-width: 520px){
+            .actions{ flex-direction: column; align-items: stretch; }
+            .actions .btn{ width: 100%; justify-content: center; }
         }
     </style>
 </BaseLayout>

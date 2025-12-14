@@ -38,12 +38,23 @@ const events = [
 
     <style>
         .pad { margin-top: var(--section-gap); }
-        h1 { margin: 0 0 0.5rem; font-size: 2rem; }
         .lead { margin: 0 0 1.25rem; max-width: 70ch; }
         .list { display: grid; gap: var(--section-gap); }
         .item { padding: 1.25rem; }
         .title { font-weight: 900; color: var(--text); font-size: 1.15rem; }
         .sub { color: var(--text); font-size: 0.95rem; margin-top: 0.35rem; }
         .summary { margin: 0.75rem 0 0; color: var(--text-soft); max-width: 80ch; }
+        /* Small screens */
+        @media (max-width: 520px){
+            .item{ padding: 1rem; }
+            .title{ font-size: 1.05rem; }
+            .sub{ font-size: .9rem; }
+            .summary{ margin-top: .6rem; }
+        }
+
+        /* Larger screens: a little more breathing room */
+        @media (min-width: 860px){
+            .list{ gap: var(--section-gap); }
+        }
     </style>
 </BaseLayout>
