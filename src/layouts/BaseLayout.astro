@@ -3,7 +3,7 @@ import "../styles/global.css";
 import SiteHeader from "../components/SiteHeader.astro";
 import RaffleBanner from "../components/RaffleBanner.astro";
 
-const { title = "Friends of Lake Henry" } = Astro.props;
+const { title = "Friends of Lake Henry", description = "Friends of Lake Henry is a community nonprofit supporting lake restoration, fundraising, and local engagement." } = Astro.props;
 ---
 
 <!doctype html>
@@ -11,6 +11,7 @@ const { title = "Friends of Lake Henry" } = Astro.props;
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
     <title>{title}</title>
 </head>
 <body>

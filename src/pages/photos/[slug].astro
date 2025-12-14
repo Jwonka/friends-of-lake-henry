@@ -13,11 +13,15 @@ const { photo } = Astro.props;
     <div class="container" style="--maxw: 1100px;">
         <section class="card detailCard enter-block">
             <h1 style="margin-top: 1rem;">{photo.category}</h1>
-            <a class="pillLink enter-block delay-1" href="/photos" style="margin-top: .5rem;">← Back to Photos</a>
+            <div class="enter-block delay-1" style="margin-top: .5rem;">
+                <a class="pill" href="/photos">← Back to Photos</a>
+            </div>
             <div class="panel detailPanel enter-block delay-2">
                 <img class="detailImg enter-block delay-2" src={photo.src} alt={photo.alt}/>
                 <p style="margin-top: .75rem; opacity:.9">{photo.alt}</p>
-                <p><a class="pillLink enter-block delay-3" href={photo.src} target="_blank" rel="noopener">Open original image</a></p>
+                <p class="enter-block delay-3">
+                    <a class="pill" href={photo.src} target="_blank" rel="noopener">Open original image</a>
+                </p>
             </div>
         </section>
     </div>
@@ -36,36 +40,8 @@ const { photo } = Astro.props;
             height: auto;
             display: block;
             border-radius: 14px;
-
             object-fit: contain;
             background: rgba(0,0,0,0.18);
-        }
-
-        .pillLink{
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.55rem 1.05rem;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: rgba(11, 18, 32, 0.55);
-            backdrop-filter: blur(6px);
-            color: rgba(255,255,255,0.90);
-            font-weight: 800;
-            text-decoration: none;
-            cursor: pointer;
-            transition: transform 140ms ease, background-color 160ms ease, border-color 160ms ease;
-        }
-
-        .pillLink:hover,
-        .pillLink:focus-visible{
-            transform: translateY(-1px);
-            border-color: rgba(255,255,255,0.26);
-            background: rgba(11, 18, 32, 0.68);
-        }
-
-        .pillLink:active{
-            transform: translateY(0) scale(0.99);
         }
     </style>
 </BaseLayout>

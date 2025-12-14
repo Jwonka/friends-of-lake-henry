@@ -18,13 +18,13 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
                 Updates from restoration work, fundraising, community events, and life at Lake Henry.
             </p>
 
-            <div class="filters  enter-block delay-1" role="tablist" aria-label="Photo categories">
+            <div class="filters enter-block delay-1" role="tablist" aria-label="Photo categories">
                 {categories.map((cat, i) => (
                         <button
-                                class={`filter ${i === 0 ? "active" : ""}`}
-                                data-filter={cat}
-                                role="tab"
-                                type="button"
+                            class={`pill filter ${i === 0 ? "active" : ""}`}
+                            data-filter={cat}
+                            role="tab"
+                            type="button"
                         >
                             {cat}
                         </button>
@@ -79,25 +79,6 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             text-align:center;
         }
 
-        .filter{
-            padding: 0.55rem 1.05rem;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: rgba(11, 18, 32, 0.55);
-            backdrop-filter: blur(6px);
-            color: rgba(255,255,255,0.90);
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 140ms ease, background-color 160ms ease, border-color 160ms ease;
-        }
-
-        .filter:hover,
-        .filter:focus-visible{
-            transform: translateY(-1px);
-            border-color: rgba(255,255,255,0.26);
-            background: rgba(11, 18, 32, 0.68);
-        }
-
         .filter.active{
             background: rgba(37, 99, 235, 0.35);
             border-color: rgba(255,255,255,0.30);
@@ -106,7 +87,7 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
 
         .galleryPanel{
             padding: 1.75rem var(--gallery-space);
-            background: rgba(0,0,0,0.34);
+            background: var(--panel-bg-dense);
             border-color: rgba(255,255,255,0.14);
         }
 
@@ -124,8 +105,8 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             overflow:hidden;
             background: rgba(11,18,32,0.55);
             backdrop-filter: blur(6px);
-            border: 1px solid rgba(255,255,255,0.14);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.30);
+            border: 1px solid var(--border-strong);
+            box-shadow: var(--card-shadow-strong);
             transition: transform 140ms ease, box-shadow 160ms ease, border-color 160ms ease;
             aspect-ratio: 4 / 3;
         }
@@ -148,7 +129,7 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             content: "";
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,0.08);
+            background: var(--overlay-soft);
             opacity: 1;
             pointer-events: none;
             transition: opacity 160ms ease;
