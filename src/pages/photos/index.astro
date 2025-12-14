@@ -1,0 +1,170 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { photos } from "../../data/photos";
+
+/**
+ * Nonprofit-first ordering:
+ * Restoration -> Donations -> Community Events -> Raffle -> Scenery
+ */
+const categories = ["All", "Restoration", "Donations", "Community Events", "Raffle", "Scenery"];
+
+---
+
+<BaseLayout title="Photos | Friends of Lake Henry">
+    <div class="container" style="--maxw: 1400px;">
+        <section class="card photosCard enter-block">
+            <h1>Photos</h1>
+            <p class="lead">
+                Updates from restoration work, fundraising, community events, and life at Lake Henry.
+            </p>
+
+            <div class="filters  enter-block delay-1" role="tablist" aria-label="Photo categories">
+                {categories.map((cat, i) => (
+                        <button
+                                class={`filter ${i === 0 ? "active" : ""}`}
+                                data-filter={cat}
+                                role="tab"
+                                type="button"
+                        >
+                            {cat}
+                        </button>
+                ))}
+            </div>
+            <div class="panel galleryPanel enter-block delay-2">
+                <div class="grid enter-block delay-2" id="photoGrid">
+                    {photos.map((p) => (
+                        <a class="photoLink" href={`/photos/${p.slug}`} data-category={p.category}>
+                            <figure class="photo">
+                                <img src={p.src} alt={p.alt} loading="lazy" />
+                            </figure>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const buttons = document.querySelectorAll<HTMLButtonElement>(".filter");
+        const items = document.querySelectorAll<HTMLElement>(".photoLink");
+
+        buttons.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                buttons.forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+
+                const filter = btn.dataset.filter ?? "All";
+
+                items.forEach((item) => {
+                    const category = item.dataset.category ?? "";
+                    const match = filter === "All" || item.dataset.category === filter;
+                    item.style.display = match ? "block" : "none";
+                });
+            });
+        });
+    </script>
+
+    <style>
+        .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}
+        h1 { margin: 0 0 0.5rem; font-size: 2rem; }
+        .lead { max-width: 75ch; margin: 0 0 1.25rem; }
+
+        /* Center the tabs */
+        .filters{
+            display:flex;
+            justify-content:center;
+            gap: 0.6rem;
+            flex-wrap:wrap;
+            margin: 2rem 0 1rem;
+            text-align:center;
+        }
+
+        .filter{
+            padding: 0.55rem 1.05rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(11, 18, 32, 0.55);
+            backdrop-filter: blur(6px);
+            color: rgba(255,255,255,0.90);
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 140ms ease, background-color 160ms ease, border-color 160ms ease;
+        }
+
+        .filter:hover,
+        .filter:focus-visible{
+            transform: translateY(-1px);
+            border-color: rgba(255,255,255,0.26);
+            background: rgba(11, 18, 32, 0.68);
+        }
+
+        .filter.active{
+            background: rgba(37, 99, 235, 0.35);
+            border-color: rgba(255,255,255,0.30);
+            color: #fff;
+        }
+
+        .galleryPanel{
+            padding: 1.75rem var(--gallery-space);
+            background: rgba(0,0,0,0.34);
+            border-color: rgba(255,255,255,0.14);
+        }
+
+        .grid{
+            display:grid;
+            gap: var(--gallery-space);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .photoLink { display: block; }
+
+        .photo{
+            position: relative;
+            border-radius: 16px;
+            overflow:hidden;
+            background: rgba(11,18,32,0.55);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.30);
+            transition: transform 140ms ease, box-shadow 160ms ease, border-color 160ms ease;
+            aspect-ratio: 4 / 3;
+        }
+
+        .photo img{
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+
+            /* “softness” at rest without blur-shimmer */
+            filter: contrast(0.98) saturate(0.98);
+            transform: translateZ(0);            /* reduces shimmer */
+            will-change: filter, transform;
+            transition: filter 160ms ease;
+        }
+
+        /* subtle darkening overlay at rest */
+        .photo::after{
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.08);
+            opacity: 1;
+            pointer-events: none;
+            transition: opacity 160ms ease;
+        }
+
+        /* hover: brighten 3–5% + slight contrast, remove overlay */
+        .photo:hover img{
+            filter: brightness(1.04) contrast(1.05) saturate(1.02);
+        }
+
+        .photo:hover::after{
+            opacity: 0;
+        }
+
+        @media (max-width: 760px){
+            .grid{ grid-template-columns: 1fr; }
+        }
+    </style>
+</BaseLayout>

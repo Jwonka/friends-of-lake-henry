@@ -26,6 +26,7 @@
 
     /* Readability helpers */
     --text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+    --gallery-space: 0.5rem;
 }
 
 * { box-sizing: border-box; }
