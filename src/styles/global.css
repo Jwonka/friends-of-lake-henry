@@ -118,42 +118,42 @@ a:hover { text-decoration: none; }
     justify-content: center;
     gap: .5rem;
     padding: 0.75rem 1.1rem;
-    border-radius: 12px;
+    border-radius: 14px;
+
     font: inherit;
     font-weight: 700;
     font-size: 1rem;
     line-height: 1.2;
-    background: var(--btn-bg);
-    color: var(--btn-text);
-    border: 1px solid transparent;
+
+    background: rgba(11, 18, 32, 0.55);
+    color: rgba(255,255,255,0.92);
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(6px);
+
     text-decoration: none;
     cursor: pointer;
+
     transition:
+            transform 140ms ease,
             background-color 160ms ease,
-            color 160ms ease,
-            transform 120ms ease,
+            border-color 160ms ease,
             box-shadow 160ms ease;
 }
 
 .btn:hover,
 .btn:focus-visible {
-    background: var(--btn-bg-hover);
-    color: var(--btn-text-hover);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    background: rgba(37, 99, 235, 0.35);
+    border-color: rgba(255,255,255,0.26);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+    color: #fff;
 }
 
 .btn:active {
-    background: var(--btn-bg-active);
-    color: var(--btn-text-hover);
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0) scale(0.99);
+    background: rgba(11, 18, 32, 0.74);
 }
 
-.btn:focus-visible {
-    outline: 3px solid rgba(255,255,255,0.55);
-    outline-offset: 3px;
-}
-
-/* optional: disabled look for anchors/buttons */
 .btn[aria-disabled="true"],
 .btn:disabled {
     opacity: 0.6;
@@ -172,57 +172,6 @@ p { color: var(--text-strong); }
 }
 
 .header, .footer, .bar { width: 100%;}
-
-.highlight{
-    display: block;
-    padding: 1.25rem 1.25rem;
-    border-radius: 16px;
-
-    text-decoration: none;
-    border: 1px solid rgba(255,255,255,0.14);
-
-    background: rgba(11, 18, 32, 0.55); /* darker = readable */
-    backdrop-filter: blur(6px);
-
-    transition:
-            transform 140ms ease,
-            background-color 160ms ease,
-            border-color 160ms ease,
-            box-shadow 160ms ease;
-}
-
-.highlight h2{
-    margin: 0 0 .45rem;
-    font-size: 1.15rem;
-    font-weight: 900;
-    color: rgba(255,255,255,0.96);
-}
-
-.highlight p{
-    margin: 0;
-    color: rgba(255,255,255,0.88);
-    line-height: 1.45;
-}
-
-.highlight:hover,
-.highlight:focus-visible{
-    transform: translateY(-2px);
-    background: rgba(37, 99, 235, 0.35);
-    border-color: rgba(255,255,255,0.26);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.28);
-}
-
-.highlight:active{
-    transform: translateY(0) scale(0.99);
-    background: rgba(11, 18, 32, 0.74);
-}
-
-/* Optional: tiny icon-like cue without adding icons */
-.highlight h2::after{
-    content: " →";
-    opacity: 0.85;
-    font-weight: 900;
-}
 
 /* Block motion: noticeable slide from right */
 @keyframes enterFromRight {
