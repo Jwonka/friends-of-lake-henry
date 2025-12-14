@@ -15,9 +15,9 @@ const { photo } = Astro.props;
             <h1 style="margin-top: 1rem;">{photo.category}</h1>
             <a class="pillLink enter-block delay-1" href="/photos" style="margin-top: .5rem;">← Back to Photos</a>
             <div class="panel detailPanel enter-block delay-2">
-                <img class="detailImg" src={photo.src} alt={photo.alt}/>
+                <img class="detailImg enter-block delay-2" src={photo.src} alt={photo.alt}/>
                 <p style="margin-top: .75rem; opacity:.9">{photo.alt}</p>
-                <p><a class="pillLink enter-block delay-2" href={photo.src} target="_blank" rel="noopener">Open original image</a></p>
+                <p><a class="pillLink enter-block delay-3" href={photo.src} target="_blank" rel="noopener">Open original image</a></p>
             </div>
         </section>
     </div>
