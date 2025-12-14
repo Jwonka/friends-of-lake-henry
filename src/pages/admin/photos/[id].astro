@@ -1,0 +1,137 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { pendingPhotos } from "../../../lib/adminMockPhotos";
+
+export async function getStaticPaths() {
+    return pendingPhotos.map((p) => ({
+        params: { id: p.id },
+    }));
+}
+
+const { id } = Astro.params;
+const photo = pendingPhotos.find((p) => p.id === id);
+
+// Simple 404 if not found (mock phase)
+if (!photo) {
+    return Astro.redirect("/admin/photos/pending");
+}
+---
+
+<BaseLayout title={`Admin | Review Photo | Friends of Lake Henry`}>
+    <div class="container" style="--maxw: 1100px;">
+        <section class="card enter-block" style="margin-top: var(--section-gap);">
+            <div class="adminHeader">
+                <div>
+                    <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
+                    <h1 class="enter-block delay-2" style="margin: 0 0 .25rem;">Review Submission</h1>
+                    <p class="lead enter-block delay-3" style="margin: 0;">Confirm category and alt text before publishing.</p>
+                </div>
+                <a class="pill" href="/admin/photos/pending">← Back to queue</a>
+            </div>
+
+            <div class="panel enter-block delay-1" style="margin-top: 1rem;">
+                <figure class="preview enter-block delay-2">
+                    <img src={photo.previewSrc} alt={photo.altSuggestion ?? photo.title} />
+                </figure>
+
+                <div class="formGrid">
+                    <div class="field">
+                        <label class="label" for="category">Category</label>
+                        <select id="category" class="input">
+                            {["restoration","community","events","raffle","scenery"].map((c) => (
+                                    <option value={c} selected={c === photo.category}>{c}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label class="label" for="title">Title</label>
+                        <input id="title" class="input" value={photo.title} />
+                    </div>
+
+                    <div class="field span2">
+                        <label class="label" for="alt">Alt text (required)</label>
+                        <textarea id="alt" class="input" rows="3">{photo.altSuggestion ?? ""}</textarea>
+                        <div class="muted small">Describe what’s in the photo for screen readers and SEO.</div>
+                    </div>
+
+                    <div class="field span2">
+                        <label class="label" for="caption">Caption (optional)</label>
+                        <input id="caption" class="input" value={photo.caption ?? ""} />
+                    </div>
+
+                    <div class="actions span2">
+                        <button class="btn enter-block delay-1" type="button">Publish</button>
+                        <button class="pill danger enter-block delay-2" type="button">Reject</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .adminHeader{
+            display:flex;
+            justify-content:space-between;
+            gap:1rem;
+            align-items:flex-end;
+            flex-wrap:wrap;
+        }
+
+        .preview{
+            margin:0 0 1rem;
+            border-radius: 14px;
+            overflow:hidden;
+            background: rgba(0,0,0,0.18);
+        }
+        .preview img{
+            width:100%;
+            height:auto;
+            display:block;
+            object-fit: cover;
+        }
+
+        .formGrid{
+            display:grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.9rem;
+            align-items:start;
+        }
+        .span2{ grid-column: span 2; }
+
+        .label{
+            display:block;
+            font-weight: 700;
+            margin-bottom: .35rem;
+            color: var(--text-strong);
+        }
+        .input{
+            width:100%;
+            padding: .75rem .85rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.12);
+            color: var(--text);
+            font: inherit;
+        }
+
+        .actions{
+            display:flex;
+            gap: .75rem;
+            flex-wrap: wrap;
+            margin-top: .25rem;
+        }
+
+        .pill.danger{
+            border-color: rgba(255,255,255,0.22);
+            background: rgba(11,18,32,0.68);
+            color: var(--text);
+        }
+
+        @media (max-width: 900px){
+            .formGrid{ grid-template-columns: 1fr; }
+            .span2{ grid-column: span 1; }
+        }
+    </style>
+</BaseLayout>
+

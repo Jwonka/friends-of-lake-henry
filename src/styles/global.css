@@ -262,6 +262,7 @@ p { color: var(--text-strong); }
 .delay-3 { animation-delay: 490ms; }
 .delay-4 { animation-delay: 660ms; }
 .delay-5 { animation-delay: 780ms; }
+.delay-6 { animation-delay: 900ms; }
 
 @keyframes bgLift {
     from { filter: blur(10px); opacity: 0.6; transform: scale(1.03); }

@@ -3,7 +3,15 @@ import "../styles/global.css";
 import SiteHeader from "../components/SiteHeader.astro";
 import RaffleBanner from "../components/RaffleBanner.astro";
 
-const { title = "Friends of Lake Henry", description = "Friends of Lake Henry is a community nonprofit supporting lake restoration, fundraising, and local engagement." } = Astro.props;
+const {
+    title = "Friends of Lake Henry",
+    description = "Friends of Lake Henry is a community nonprofit supporting lake restoration, fundraising, and local engagement.",
+    image = "/images/lakeHenry.jpg"
+} = Astro.props;
+
+const canonical = Astro.site
+    ? new URL(Astro.url.pathname, Astro.site).toString()
+    : undefined;
 ---
 
 <!doctype html>
@@ -13,6 +21,18 @@ const { title = "Friends of Lake Henry", description = "Friends of Lake Henry is
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    {canonical && <meta property="og:url" content={canonical} />}
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
 </head>
 <body>
 <SiteHeader />
@@ -31,6 +51,9 @@ const { title = "Friends of Lake Henry", description = "Friends of Lake Henry is
             <div>
                 <strong>Friends of Lake Henry</strong>
                 <div class="muted">A community nonprofit supporting lake restoration.</div>
+                <div class="adminFoot">
+                    <a href="/admin" class="adminLink">Admin</a>
+                </div>
             </div>
             <div class="muted">© {new Date().getFullYear()}</div>
         </div>
@@ -89,6 +112,22 @@ const { title = "Friends of Lake Henry", description = "Friends of Lake Henry is
         flex-wrap: wrap;
     }
     .muted{ color: var(--muted); }
+    .adminFoot{
+        margin-top: .35rem;
+    }
+
+    .adminLink{
+        font-size: .85rem;
+        opacity: .01;
+        color: var(--text-soft);
+        text-decoration: none;
+    }
+
+    .adminLink:hover,
+    .adminLink:focus-visible{
+        opacity: .1;
+        color: var(--text);
+    }
     @media (max-width: 900px){
         .pageBg{ position: fixed; }
     }

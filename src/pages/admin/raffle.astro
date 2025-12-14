@@ -1,0 +1,131 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const raffle = {
+    isActive: true,
+    ctaText: "Raffle tickets available — support Lake Henry restoration.",
+    ctaUrl: "/raffle",
+    drawDate: "2026-02-01",
+    winners: [
+        { name: "Jane D.", prize: "Kayak", date: "2025-11-10" },
+        { name: "Mike R.", prize: "Gift basket", date: "2025-10-02" },
+    ],
+};
+---
+
+<BaseLayout title="Admin | Raffle | Friends of Lake Henry">
+    <div class="container" style="--maxw: 1100px;">
+        <section class="card enter-block" style="margin-top: var(--section-gap);">
+            <div class="adminHeader">
+                <div class="adminTitle">
+                    <div>
+                        <a class="pill enter-block delay-1" href="/admin" aria-disabled="true">ADMIN</a>
+                        <h1 class="enter-block delay-2" style="margin:0;">Raffle</h1>
+                    </div>
+                    <p class="lead enter-block delay-3" style="margin:.25rem 0 0;">Update raffle banner copy and record winners.</p>
+                </div>
+            </div>
+
+            <div class="panel enter-block delay-4" style="margin-top: 1rem;">
+                <div class="formGrid">
+                    <div class="field span2">
+                        <label class="label" for="active">Raffle active</label>
+                        <div class="toggleRow">
+                            <input id="active" type="checkbox" checked={raffle.isActive} />
+                            <span class="muted">Show the raffle banner on the site</span>
+                        </div>
+                    </div>
+
+                    <div class="field span2">
+                        <label class="label" for="ctaText">Banner text</label>
+                        <input id="ctaText" class="input" value={raffle.ctaText} />
+                    </div>
+
+                    <div class="field">
+                        <label class="label" for="ctaUrl">Banner link</label>
+                        <input id="ctaUrl" class="input" value={raffle.ctaUrl} />
+                    </div>
+
+                    <div class="field">
+                        <label class="label" for="drawDate">Draw date</label>
+                        <input id="drawDate" class="input" type="date" value={raffle.drawDate} />
+                    </div>
+
+                    <div class="actions span2 enter-block delay-6">
+                        <button class="btn" type="button">Save (mock)</button>
+                        <a class="pill" href="/raffle">View public raffle page</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel enter-block delay-5" style="margin-top: 1rem;">
+                <div class="winnersHead">
+                    <h2 style="margin:0;">Winners</h2>
+                    <button class="pill" type="button">Add winner (mock)</button>
+                </div>
+
+                <div class="winnersList">
+                    {raffle.winners.map((w) => (
+                            <div class="winnerRow enter-block delay-6">
+                                <div>
+                                    <strong>{w.name}</strong>
+                                    <div class="muted">{w.prize}</div>
+                                </div>
+                                <div class="muted">{w.date}</div>
+                            </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .adminHeader{ display:flex; justify-content:space-between; gap:1rem; align-items:flex-end; flex-wrap:wrap; }
+        .adminTitle{ display:flex; flex-direction:column; gap:.15rem; }
+        .formGrid{
+            display:grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .9rem;
+        }
+        .span2{ grid-column: span 2; }
+
+        .label{
+            display:block;
+            font-weight: 700;
+            margin-bottom: .35rem;
+            color: var(--text-strong);
+        }
+        .input{
+            width:100%;
+            padding: .75rem .85rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.12);
+            color: var(--text);
+            font: inherit;
+        }
+
+        .toggleRow{ display:flex; gap:.6rem; align-items:center; }
+
+        .actions{ display:flex; gap:.75rem; flex-wrap:wrap; margin-top:.25rem; }
+
+        .winnersHead{ display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:.75rem; }
+        .winnersList{ display:flex; flex-direction:column; gap:.6rem; }
+        .winnerRow{
+            display:flex;
+            justify-content:space-between;
+            gap:1rem;
+            padding:.75rem .85rem;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--glass-dark);
+            backdrop-filter: blur(6px);
+        }
+
+        @media (max-width: 900px){
+            .formGrid{ grid-template-columns: 1fr; }
+            .span2{ grid-column: span 1; }
+        }
+    </style>
+</BaseLayout>
+

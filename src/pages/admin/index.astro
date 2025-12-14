@@ -1,0 +1,60 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Admin | Friends of Lake Henry">
+    <div class="container" style="--maxw: 1100px;">
+        <section class="card enter-block" style="margin-top: var(--section-gap);">
+            <div style="display:flex; align-items:flex-end; justify-content:space-between; gap: 1rem; flex-wrap: wrap;">
+                <div>
+                    <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
+                    <h1 class="enter-block delay-2" style="margin:0 0 .25rem;">Admin Dashboard</h1>
+                    <p class="lead enter-block delay-3" style="margin:0;">Moderate photos and manage site content.</p>
+                </div>
+            </div>
+
+            <div class="panel enter-block delay-4" style="margin-top: 1rem;">
+                <div class="adminGrid enter-block delay-5">
+                    <a class="adminTile" href="/admin/photos/pending">
+                        <strong>Photos</strong>
+                        <div class="muted">Review submissions and publish to the gallery.</div>
+                    </a>
+
+                    <a class="adminTile" href="/admin/raffle">
+                        <strong>Raffle</strong>
+                        <div class="muted">Update raffle messaging, dates, and winners.</div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .adminGrid{
+            display:grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .75rem;
+        }
+        .adminTile{
+            display:block;
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--glass-dark);
+            backdrop-filter: blur(6px);
+            color: var(--text);
+            text-decoration: none;
+            transition: transform 140ms ease, border-color 160ms ease, background-color 160ms ease;
+        }
+        .adminTile:hover,
+        .adminTile:focus-visible{
+            transform: translateY(-2px);
+            border-color: var(--border-bright);
+            background: var(--glass-dark-strong);
+            outline: none;
+        }
+        @media (max-width: 900px){
+            .adminGrid{ grid-template-columns: 1fr; }
+        }
+    </style>
+</BaseLayout>

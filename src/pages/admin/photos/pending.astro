@@ -1,0 +1,119 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { pendingPhotos } from "../../../lib/adminMockPhotos";
+
+const total = pendingPhotos.length;
+---
+
+<BaseLayout title={`Admin | Pending Photos (${total}) | Friends of Lake Henry`}>
+    <div class="container" style="--maxw: 1200px;">
+        <section class="card enter-block" style="margin-top: var(--section-gap);">
+            <div class="adminHeader">
+                <div class="adminTitle">
+                    <div>
+                        <a class="pill enter-block delay-1" href="/admin" aria-disabled="true">ADMIN</a>
+                        <h1 class="enter-block delay-2" style="margin: 0;">Pending Photos</h1>
+                    </div>
+                    <p class="lead enter-block delay-3" style="margin: .25rem 0 0;">Review submissions before publishing to the public gallery.</p>
+                </div>
+                <div class="adminHeaderActions">
+                  <span class="pill enter-block delay-4" aria-disabled="true" style="opacity:.85; cursor: default;">
+                    {total} pending
+                  </span>
+                </div>
+            </div>
+            <div class="panel enter-block delay-1" style="margin-top: 1rem;">
+                <div class="grid">
+                    {pendingPhotos.map((p) => (
+                        <a class="tile enter-block delay-2" href={`/admin/photos/${p.id}`}>
+                            <figure class="thumb">
+                                <img src={p.previewSrc} alt={p.altSuggestion ?? p.title} loading="lazy" />
+                            </figure>
+
+                            <div class="meta">
+                                <div class="topLine">
+                                    <span class="pill tag">{p.category}</span>
+                                    <span class="muted small">{new Date(p.submittedAt).toLocaleString()}</span>
+                                </div>
+                                <strong class="title">{p.title}</strong>
+                                {p.caption && <div class="muted">{p.caption}</div>}
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .adminHeader{
+            display:flex;
+            justify-content:space-between;
+            gap: 1rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .adminHeaderActions{ display:flex; gap:.5rem; align-items:center; }
+
+        .grid{
+            display:grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+
+        .tile{
+            display:block;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--glass-dark);
+            backdrop-filter: blur(6px);
+            text-decoration: none;
+            color: var(--text);
+            overflow: hidden;
+            transition: transform 140ms ease, border-color 160ms ease, background-color 160ms ease;
+        }
+        .tile:hover,
+        .tile:focus-visible{
+            transform: translateY(-2px);
+            border-color: var(--border-bright);
+            background: var(--glass-dark-strong);
+            outline: none;
+        }
+
+        .thumb{
+            margin:0;
+            aspect-ratio: 4 / 3;
+            overflow:hidden;
+            background: rgba(0,0,0,0.18);
+        }
+        .thumb img{
+            width:100%;
+            height:100%;
+            display:block;
+            object-fit: cover;
+        }
+
+        .meta{
+            padding: 0.85rem 0.9rem;
+        }
+        .topLine{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap: .5rem;
+            margin-bottom: .5rem;
+        }
+        .title{ display:block; margin-bottom: .35rem; }
+
+        .small{ font-size: .9rem; }
+        .tag{
+            font-size: .9rem;
+            font-weight: 600;
+            padding: .35rem .7rem;
+        }
+
+        @media (max-width: 900px){
+            .grid{ grid-template-columns: 1fr; }
+        }
+    </style>
+</BaseLayout>
