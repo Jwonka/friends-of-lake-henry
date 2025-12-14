@@ -37,6 +37,7 @@ body {
     color: var(--text);
     line-height: 1.5;
 }
+h1 { color: var(--text); }
 a { color: var(--brand); text-decoration: none; }
 a:hover { text-decoration: none; }
 
@@ -92,7 +93,8 @@ a:hover { text-decoration: none; }
     border: 1px solid var(--panel-border);
     border-radius: 14px;
     padding: 1.25rem;
-    backdrop-filter: blur(var(--panel-blur));
+    background: rgba(0,0,0,0.28);
+    backdrop-filter: blur(1px);
 }
 
 .panel,

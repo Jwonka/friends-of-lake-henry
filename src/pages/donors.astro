@@ -1,3 +1,69 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
 
+const donors = [
+    { name: "Community donors", note: "Thank you for supporting the lake." },
+    { name: "Local sponsors", note: "Businesses and organizations backing restoration." },
+    { name: "In-kind support", note: "Volunteers, supplies, and services donated to the project." },
+];
 ---
+
+<BaseLayout title="Donors | Friends of Lake Henry">
+    <div class="container">
+        <section class="card pad enter-block">
+            <h1>Donors</h1>
+            <p class="lead">
+                Friends of Lake Henry is grateful for everyone who contributes time, funding, and support.
+                This page will highlight sponsors and supporters as we receive permission to list names.
+            </p>
+
+            <div class="panel enter-block delay-1">
+                <h2>Support the project</h2>
+                <p class="muted">
+                    Want to help? Donations fund restoration efforts, community outreach, and fundraising operations.
+                </p>
+                <div class="ctaRow">
+                    <a class="btn" href="/donate">Go to Donate</a>
+                </div>
+            </div>
+
+            <div class="grid enter-block delay-2">
+                {donors.map((d) => (
+                        <div class="panel">
+                            <h2>{d.name}</h2>
+                            <p class="muted">{d.note}</p>
+                            <div class="ctaRow">
+                                <a class="btn" href="/donate">Donate</a>
+                            </div>
+                        </div>
+                ))}
+            </div>
+
+            <p class="muted small">
+                If you’re a sponsor and want to be listed here, please contact us.
+            </p>
+        </section>
+    </div>
+
+    <style>
+        .pad { padding: 2rem; margin-top: var(--section-gap); }
+        h1 { margin: 0 0 0.75rem; font-size: 2rem; }
+        .lead { max-width: 80ch; margin: 0 0 1.25rem; }
+
+        h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+        .muted { color: var(--text-soft); margin: 0.5rem 0 0; }
+        .small { font-size: 0.95rem; }
+
+        .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+
+        .grid{
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.25rem;
+        }
+
+        @media (min-width: 900px){
+            .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+    </style>
+</BaseLayout>
