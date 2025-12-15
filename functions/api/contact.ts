@@ -1,3 +1,6 @@
+import type { PagesFunction } from "@cloudflare/workers-types/experimental";
+type WorkerResponse = import("@cloudflare/workers-types/experimental").Response;
+
 type TurnstileVerify = {
     success: boolean;
     "error-codes"?: string[];
@@ -20,8 +23,8 @@ const SECURITY_HEADERS: Record<string, string> = {
     "X-Frame-Options": "DENY",
 };
 
-function redirectBack(request: Request, suffix = "") {
-    const url = new URL(request.url);
+function redirectBack(requestUrl: string, suffix = ""): WorkerResponse {
+    const url = new URL(requestUrl);
     const location = `${url.origin}/contact${suffix || "?sent=1"}`;
 
     return new Response(null, {
@@ -31,7 +34,7 @@ function redirectBack(request: Request, suffix = "") {
             "cache-control": "no-store",
             ...SECURITY_HEADERS,
         },
-    });
+    }) as unknown as WorkerResponse;
 }
 
 function esc(s: string) {
@@ -50,7 +53,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             !ct.includes("application/x-www-form-urlencoded") &&
             !ct.includes("multipart/form-data")
         ) {
-            return redirectBack(request, "?err=input");
+            return redirectBack(request.url, "?err=input");
         }
 
         const form = await request.formData();
@@ -61,47 +64,47 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
         // Honeypot
         const company = (form.get("company") || "").toString().trim();
-        if (company) return redirectBack(request);
+        if (company) return redirectBack(request.url);
 
         const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         if (name.length < 2 || !emailOk || message.length < 10) {
-            return redirectBack(request, "?err=input");
+            return redirectBack(request.url, "?err=input");
         }
 
         // ---- Turnstile verification ----
         const token = (form.get("cf-turnstile-response") || "").toString();
-        if (!token) return redirectBack(request, "?err=captcha");
+        if (!token) return redirectBack(request.url, "?err=captcha");
 
-        const verifyResp = await fetch(
-            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-            {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({
-                    secret: env.TURNSTILE_SECRET,
-                    response: token,
-                    remoteip: request.headers.get("CF-Connecting-IP") || undefined,
-                }),
-            }
-        );
+        const ip = request.headers.get("CF-Connecting-IP");
+
+        const body = new URLSearchParams();
+        body.set("secret", env.TURNSTILE_SECRET);
+        body.set("response", token);
+        if (ip) body.set("remoteip", ip);
+
+        const verifyResp = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+            method: "POST",
+            headers: { "content-type": "application/x-www-form-urlencoded" },
+            body,
+        });
 
         if (!verifyResp.ok) {
-            return redirectBack(request, "?err=captcha");
+            return redirectBack(request.url, "?err=captcha");
         }
 
         let verify: TurnstileVerify;
         try {
             verify = (await verifyResp.json()) as TurnstileVerify;
         } catch {
-            return redirectBack(request, "?err=captcha");
+            return redirectBack(request.url, "?err=captcha");
         }
 
         if (!verify.success) {
-            return redirectBack(request, "?err=captcha");
+            return redirectBack(request.url, "?err=captcha");
         }
 
         if (!env.RESEND_API_KEY || !env.FROM_EMAIL || !env.TO_EMAIL) {
-            return redirectBack(request, "?err=server");
+            return redirectBack(request.url, "?err=server");
         }
 
         const html = `
@@ -130,15 +133,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             }),
         });
 
-        if (!r.ok) return redirectBack(request, "?err=server");
+        if (!r.ok) return redirectBack(request.url, "?err=server");
 
-        return redirectBack(request);
+        return redirectBack(request.url);
     } catch {
-        return redirectBack(request, "?err=server");
+        return redirectBack(request.url, "?err=server");
     }
 };
 
-export const onRequestOptions: PagesFunction = async () => {
+export const onRequestOptions: PagesFunction<Env> = async () => {
     return new Response(null, {
         status: 204,
         headers: {
@@ -147,5 +150,5 @@ export const onRequestOptions: PagesFunction = async () => {
             "cache-control": "no-store",
             ...SECURITY_HEADERS,
         },
-    });
+    }) as unknown as WorkerResponse;
 };
