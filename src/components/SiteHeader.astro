@@ -6,10 +6,13 @@ const nav = [
     { href: "/contact", label: "CONTACT US" },
     { href: "/photos", label: "PHOTOS" },
 ];
+
+const pathname = Astro.url?.pathname ?? "/";
+const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 ---
 <header class="header">
     <div class="container inner">
-        <div class="brand" aria-label="Friends of Lake Henry">FRIENDS OF LAKE HENRY</div>
+        <a class="brand" href="/">FRIENDS OF LAKE HENRY</a>
 
         <button
             class="menuBtn"
@@ -23,7 +26,7 @@ const nav = [
 
         <nav id="siteNav" class="nav" aria-label="Primary" data-open="false">
             {nav.map((i) => (
-                    <a href={i.href} class="navLink">{i.label}</a>
+                    <a href={i.href} class="navLink" aria-current={isActive(i.href) ? "page" : undefined} >{i.label}</a>
             ))}
 
             <a
@@ -47,36 +50,52 @@ const nav = [
     </div>
 </header>
 <script>
-    const btn = document.querySelector('.menuBtn');
-    const nav = document.querySelector('#siteNav');
+    const btn = document.querySelector<HTMLButtonElement>('.menuBtn');
+    const navEl = document.querySelector<HTMLElement>('#siteNav');
 
-    if (btn && nav) {
+    function setOpen(nextOpen: boolean) {
+        if (!btn || !navEl) return;
+        navEl.setAttribute('data-open', String(nextOpen));
+        btn.setAttribute('aria-expanded', String(nextOpen));
+        if (!nextOpen) btn.focus();
+    }
+
+    if (btn && navEl) {
         btn.addEventListener('click', () => {
-            const open = nav.getAttribute('data-open') === 'true';
-            nav.setAttribute('data-open', String(!open));
-            btn.setAttribute('aria-expanded', String(!open));
+            const open = navEl.getAttribute('data-open') === 'true';
+            setOpen(!open);
         });
-        nav.addEventListener('click', (e) => {
+
+        // Close when clicking a nav link (or the FB link)
+        navEl.addEventListener('click', (e: MouseEvent) => {
             const target = e.target;
-            if (a) {
-                nav.setAttribute('data-open', 'false');
-                btn.setAttribute('aria-expanded', 'false');
-            }
+            if (!(target instanceof Element)) return;
+
+            const link = target.closest('a');
+            if (!link) return;
+
+            setOpen(false);
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key !== 'Escape') return;
+            const open = navEl.getAttribute('data-open') === 'true';
+            if (open) setOpen(false);
+        });
+
+        // Outside click close
+        document.addEventListener('click', (e: MouseEvent) => {
+            const open = navEl.getAttribute('data-open') === 'true';
+            if (!open) return;
+
+            const target = e.target;
+            if (!(target instanceof Node)) return;
+
+            const clickedInside = navEl.contains(target) || btn.contains(target);
+            if (!clickedInside) setOpen(false);
         });
     }
-    /* Global click handler — outside */
-    document.addEventListener('click', (e) => {
-        if (!btn || !nav) return;
-
-        const open = nav.getAttribute('data-open') === 'true';
-        if (!open) return;
-
-        const clickedInside = nav.contains(e.target) || btn.contains(e.target);
-        if (!clickedInside) {
-            nav.setAttribute('data-open', 'false');
-            btn.setAttribute('aria-expanded', 'false');
-        }
-    });
 </script>
 <style>
     .header{
@@ -186,7 +205,7 @@ const nav = [
     /* Mobile nav behavior */
     @media (max-width: 1035px){
         .inner{
-            position: relative; /* anchor for absolute nav */
+            position: relative;
             align-items: center;
         }
 
@@ -201,7 +220,6 @@ const nav = [
             flex: 0 0 auto;
         }
 
-        /* Overlay menu: does NOT push content */
         .nav{
             display: none;
             position: absolute;
