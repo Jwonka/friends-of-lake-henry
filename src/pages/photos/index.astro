@@ -24,13 +24,17 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
                             class={`pill filter ${i === 0 ? "active" : ""}`}
                             data-filter={cat}
                             role="tab"
+                            id={`tab-${i}`}
+                            aria-selected={i === 0 ? "true" : "false"}
+                            tabindex={i === 0 ? 0 : -1}
                             type="button"
                         >
                             {cat}
                         </button>
                 ))}
             </div>
-            <div class="panel galleryPanel enter-block delay-2">
+            <p id="filterStatus" class="srOnly" role="status" aria-live="polite" aria-atomic="true"></p>
+            <div class="panel galleryPanel enter-block delay-2" role="tabpanel" aria-labelledby="tab-0">
                 <div class="grid enter-block delay-2" id="photoGrid">
                     {photos.map((p) => (
                         <a class="photoLink" href={`/photos/${p.slug}`} data-category={p.category}>
@@ -45,21 +49,59 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
     </div>
 
     <script>
-        const buttons = document.querySelectorAll<HTMLButtonElement>(".filter");
-        const items = document.querySelectorAll<HTMLElement>(".photoLink");
+        const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(".filter"));
+        const items = Array.from(document.querySelectorAll<HTMLElement>(".photoLink"));
+        const statusEl = document.getElementById("filterStatus");
+        const panel = document.querySelector<HTMLElement>('[role="tabpanel"]');
+
+        function setActiveTab(activeBtn: HTMLButtonElement) {
+            buttons.forEach((b) => {
+                const isActive = b === activeBtn;
+                b.classList.toggle("active", isActive);
+                b.setAttribute("aria-selected", String(isActive));
+                b.tabIndex = isActive ? 0 : -1;
+            });
+
+            if (panel) panel.setAttribute("aria-labelledby", activeBtn.id);
+        }
+
+        function applyFilter(filter: string) {
+            let visible = 0;
+
+            items.forEach((item) => {
+                const category = item.dataset.category ?? "";
+                const match = filter === "All" || category === filter;
+                item.style.display = match ? "" : "none";
+                if (match) visible += 1;
+            });
+
+            if (statusEl) {
+                statusEl.textContent = `Showing ${visible} photo${visible === 1 ? "" : "s"} in ${filter}.`;
+            }
+        }
+
+        function activate(btn: HTMLButtonElement) {
+            const filter = btn.dataset.filter ?? "All";
+            setActiveTab(btn);
+            applyFilter(filter);
+            btn.focus(); // keep focus on the active tab
+        }
+
+        // initial announce
+        if (buttons[0]) activate(buttons[0]);
 
         buttons.forEach((btn) => {
-            btn.addEventListener("click", () => {
-                buttons.forEach((b) => b.classList.remove("active"));
-                btn.classList.add("active");
+            btn.addEventListener("click", () => activate(btn));
 
-                const filter = btn.dataset.filter ?? "All";
+            // Arrow key navigation for tabs
+            btn.addEventListener("keydown", (e: KeyboardEvent) => {
+                if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+                e.preventDefault();
 
-                items.forEach((item) => {
-                    const category = item.dataset.category ?? "";
-                    const match = filter === "All" || item.dataset.category === filter;
-                    item.style.display = match ? "block" : "none";
-                });
+                const idx = buttons.indexOf(btn);
+                const dir = e.key === "ArrowRight" ? 1 : -1;
+                const next = buttons[(idx + dir + buttons.length) % buttons.length];
+                if (next) activate(next);
             });
         });
     </script>
