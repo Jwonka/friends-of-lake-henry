@@ -12,14 +12,14 @@ const { photo } = Astro.props;
 <BaseLayout title={`${photo.category} Photo | Friends of Lake Henry`}>
     <div class="container" style="--maxw: 1100px;">
         <section class="card detailCard enter-block">
-            <h1 class="detailTitle enter-block delay-1">{photo.category}</h1>
-            <div class="detailBack enter-block delay-2">
+            <h1 class="detailTitle">{photo.category}</h1>
+            <div class="detailBack enter-block delay-1">
                 <a class="pill" href="/photos">← Back to Photos</a>
             </div>
-            <div class="panel detailPanel enter-block delay-3">
-                <img class="detailImg enter-block delay-4" src={photo.src} alt={photo.alt} loading="eager" decoding="async"/>
-                <p class="detailCaption enter-block delay-5" >{photo.alt}</p>
-                <p class="enter-block delay-6">
+            <div class="panel detailPanel enter-block delay-2">
+                <img class="detailImg enter-block delay-3" src={photo.src} alt={photo.alt} loading="eager" decoding="async"/>
+                <p class="detailCaption" >{photo.alt}</p>
+                <p class="enter-block delay-4">
                     <a class="pill" href={photo.src} target="_blank" rel="noopener">Open original image</a>
                 </p>
             </div>
