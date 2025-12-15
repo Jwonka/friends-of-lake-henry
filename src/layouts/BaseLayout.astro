@@ -51,17 +51,15 @@ const canonical = Astro.site
     <div class="container">
         <div class="footInner">
             <div class="footLeft" aria-hidden="true"></div>
-
             <div class="footCenter">
                 <div class="footBrandLine">
                     <strong class="footBrand">Friends of Lake Henry</strong>
                     <span class="footCopy">© {new Date().getFullYear()}</span>
                 </div>
                 <div class="muted footTag">A community nonprofit supporting lake restoration.</div>
-            </div>
-
-            <div class="footRight">
-                <a href="/admin" class="pill adminLink">Admin</a>
+                <div class="adminFoot">
+                    <a href="/admin" class="adminLink">Admin</a>
+                </div>
             </div>
         </div>
     </div>
@@ -143,29 +141,28 @@ const canonical = Astro.site
 
     .footBrand{ color: var(--text); }
     .footCopy{ color: var(--text-soft); font-size: .95rem; }
-
     .footTag{ margin-top: .25rem; }
 
-    .footRight{
-        display: flex;
-        justify-content: flex-end;
-    }
-
     .muted{ color: var(--muted); }
+
     .adminFoot{
         margin-top: .35rem;
+        text-align: center;
     }
 
     .adminLink{
         font-size: .85rem;
-        opacity: .01;
+        font-weight: 600;
+        letter-spacing: .2px;
+        opacity: .45;
         color: var(--text-soft);
         text-decoration: none;
+        transition: color 160ms ease, opacity 160ms ease;
     }
 
     .adminLink:hover,
     .adminLink:focus-visible{
-        opacity: .1;
+        opacity: 0.85;
         color: var(--text);
     }
 
@@ -187,7 +184,6 @@ const canonical = Astro.site
             justify-items: center;
             text-align: center;
         }
-        .footRight{ justify-content: center; width: 100%; }
         .adminLink{ width: 100%; justify-content: center; }
     }
 </style>

@@ -108,7 +108,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         }
 
         const html = `
-      <h2>New Friends of Lake Henry Message</h2>
+      <h2>Friends of Lake Henry</h2>
       <p><strong>Name:</strong> ${esc(name)}</p>
       <p><strong>Email:</strong> ${esc(email)}</p>
       <p><strong>Message:</strong><br>
