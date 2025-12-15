@@ -64,23 +64,17 @@ const canonical = Astro.site
         </div>
     </div>
 </footer>
-<script>
-    const setVh = () => {
-        document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-    };
-    setVh();
-
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', setVh);
-    } else {
-        window.addEventListener('resize', setVh);
-    }
-    window.addEventListener('orientationchange', setVh);
-</script>
 </body>
 </html>
-
 <style>
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        overscroll-behavior-y: none;
+    }
+
     /* Prevent sideways scroll when content starts offscreen */
     .siteMain {
         position: relative;
@@ -175,7 +169,10 @@ const canonical = Astro.site
 
     @supports not (height: 100svh) {
         .siteMain {
-            min-height: calc((var(--vh) * 100) - 160px);
+            min-height: calc(100vh - 160px);
+        }
+        .pageBg {
+            height: 100vh;
         }
     }
 

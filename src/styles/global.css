@@ -67,9 +67,6 @@
     /* special */
     --brand-facebook: #1877F2;
     --brand-facebook-hover: rgba(24,119,242,0.18);
-
-    /* mobile scroll hack */
-    --vh: 1vh;
 }
 
 * { box-sizing: border-box; }
