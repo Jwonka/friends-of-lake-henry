@@ -1,59 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { raffleConfig } from "../data/raffle";
 
-const monthName = "November";
-const year = 2025;
-const monthIndex = 10; // 0=Jan ... 10=Nov
-const ticketPrice = 100;
+const { monthName, year, monthIndex, ticketPrice, flyerMeta, rules, prizesByDay } = raffleConfig;
 
-const flyerMeta = {
-    title: `${monthName} ${year} — Calendar Raffle`,
-    subtitle: "30 Day Giveaway",
-    orgLine: "Friends of Lake Henry",
-    address: "P.O. Box 142, Blair, WI 54616",
-    phone: "608-484-9241",
-};
-
-const rules = [
-    "Drawing at 6pm EVERYDAY in November.",
-    "All proceeds go to Lake Henry Project.",
-    "If drawn, name goes in for remaining drawings.",
-    "Every firearm has a minimum value of $1000; $800 cash option if you do not choose the firearm.",
-    "All State & Federal laws apply; MUST be 21 or older to purchase a ticket.",
-];
-
-const prizeByDay = new Map<number, string>([
-    [1,  "Ruger SR1911 Commander .45 Auto Semi-Automatic Pistol"],
-    [2,  "Browning X-Bolt Stalker 7mm Rem Mag Bolt Action Rifle"],
-    [3,  "Savage 110 High Country 30-06 Bolt Action Rifle"],
-    [4,  "Bergara HMR 300 Win Mag Bolt Action Rifle"],
-    [5,  "Tikka T3X Hunter 7mm Rem Mag Bolt Action Rifle"],
-    [6,  "Ruger SR1911 Commander .45 Auto Semi-Automatic Pistol"],
-    [7,  "Metro Arms 1911 American Classic Trophy .45 Auto Pistol"],
-    [8,  "Henry Big Boy Steel All Weather Side Gate .44 Mag Lever Action Rifle"],
-    [9,  "Browning X-Bolt Western Hunter LR (6.8mm Western) Rifle"],
-    [10, "Weatherby Vanguard First Lite Specter 7mm Rem Mag Rifle"],
-    [11, "Henry Side Gate 45-70 Govt Rifle"],
-    [12, "Bergara HMR 6.5 Creedmoor Rifle"],
-    [13, "Auto-Ordnance 1911 A1 Tanker .45 ACP Pistol"],
-    [14, "Browning X-Bolt Stalker .270 Win Rifle"],
-    [15, "Springfield Armory 1911 Emissary 9mm Pistol"],
-    [16, "Winchester 1892 Carbine .357 Mag Lever Action Rifle"],
-    [17, "Browning X-Bolt Hunter .243 Win Bolt Action Rifle"],
-    [18, "Kimber Stainless II 1911 .38 Super Auto +P Pistol"],
-    [19, "Cimarron 1892 Short Rifle .357 Mag 20\" Lever Action Rifle"],
-    [20, "Savage 110 Long Range Hunter .338 Lapua Mag 26\" Bolt Action Rifle"],
-    [21, "Kimber Camp Guard 10 1911 10mm Semi-Auto Pistol"],
-    [22, "Ruger Hawkeye Predator 22-250 Bolt Action Rifle"],
-    [23, "Henry .410 Side Gate Lever Action Shotgun"],
-    [24, "Smith & Wesson 500 Mag 8.375\" 5-Round Revolver"],
-    [25, "Ruger New Vaquero .45 Colt Revolver"],
-    [26, "Auto-Ordnance M1 Carbine .30 Carbine Semi-Auto Rifle"],
-    [27, "EAA Girsan MC 1911 Match LUX .45 Auto Pistol"],
-    [28, "Christensen Arms Mesa FFT 7mm Rem Mag Bolt Action Rifle"],
-    [29, "Winchester M94 Sporter 38-55 Win 24\" Lever Action Rifle"],
-    [30, "Charles Daly Triple Threat .410 Triple Barrel Shotgun"],
-]);
+const prizeByDay = new Map<number, string>(prizesByDay.map((p) => [p.day, p.prize]));
+const flyerTitle = `${monthName} ${year} — Calendar Raffle`;
 
 function daysInMonth(y: number, m: number) {
     return new Date(y, m + 1, 0).getDate();
@@ -100,7 +52,7 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
         </section>
 
         <section class="card calendarCard enter-block delay-1">
-            <h2 class="sectionTitle">{flyerMeta.title}</h2>
+            <h2 class="sectionTitle">{flyerTitle}</h2>
 
             <div class="calendar" role="grid" aria-label={`${monthName} ${year} raffle calendar`}>
                 {dowLabels.map((d) => (

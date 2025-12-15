@@ -1,16 +1,8 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { raffleConfig } from "../../data/raffle";
 
-const raffle = {
-    isActive: true,
-    ctaText: "Raffle tickets available — support Lake Henry restoration.",
-    ctaUrl: "/raffle",
-    drawDate: "2026-02-01",
-    winners: [
-        { name: "Jane D.", prize: "Kayak", date: "2025-11-10" },
-        { name: "Mike R.", prize: "Gift basket", date: "2025-10-02" },
-    ],
-};
+const raffle = raffleConfig.banner;
 ---
 
 <BaseLayout title="Admin | Raffle | Friends of Lake Henry">

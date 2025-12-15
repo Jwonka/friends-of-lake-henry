@@ -1,16 +1,17 @@
 ---
-const raffleUrl = "/raffle";
-const message = "Raffle tickets available — support Lake Henry restoration.";
-const cta = "Click here";
+import { raffleConfig } from "../data/raffle";
+
+
+const { url: raffleUrl, message, cta, isActive } = raffleConfig.banner;
 ---
-
-<a href={raffleUrl} class="bar" aria-label="View raffle details">
-    <div class="container inner">
-        <span class="msg">{message}</span>
-        <span class="cta">{cta}</span>
-    </div>
-</a>
-
+{isActive && (
+    <a href={raffleUrl} class="bar" aria-label="View raffle details">
+        <div class="container inner">
+            <span class="msg">{message}</span>
+            <span class="cta">{cta}</span>
+        </div>
+    </a>
+)}
 <style>
     .bar{
         position: relative;
