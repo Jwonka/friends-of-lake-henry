@@ -69,36 +69,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             </div>
         </section>
     </div>
-    <script is:inline>
-        (function () {
-            const el = document.getElementById("status");
-            if (!el) return;
-
-            const url = new URL(window.location.href);
-            const sent = url.searchParams.get("sent");
-            const err = url.searchParams.get("err");
-
-            function show(kind, msg) {
-                el.textContent = msg;
-                el.classList.remove("status--empty", "status--success", "status--error");
-                el.classList.add(kind === "ok" ? "status--success" : "status--error");
-                el.focus();
-            }
-
-            if (sent === "1") {
-                show("ok", "Thanks! We’ll be in touch shortly.");
-                url.searchParams.delete("sent");
-                window.history.replaceState({}, "", url.pathname + url.search);
-            } else if (err) {
-                show("err",
-                    err === "captcha" ? "Verification failed. Please try again."
-                        : err === "input" ? "Please check your details and try again."
-                            : "Sorry, something went wrong. Please try again."
-                );
-                url.searchParams.delete("err");
-                window.history.replaceState({}, "", url.pathname + url.search);
-            }
-        })();
+    <script>
+        import { initContactStatus } from "../scripts/contact-status";
+        initContactStatus();
     </script>
     <style>
         .contactSection{ margin-top: var(--section-gap); margin-bottom: calc(var(--section-gap) * 1.25); }

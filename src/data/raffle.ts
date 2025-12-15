@@ -59,13 +59,13 @@ export const raffleConfig = {
     // Banner + admin settings (mock for now)
     banner: {
         isActive: true,
-        message: "Raffle tickets available — support Lake Henry restoration.",
+        ctaText: "Raffle tickets available — support Lake Henry restoration.",
+        ctaUrl: "/raffle",
         cta: "Click here",
-        url: "/raffle",
         drawDate: "2026-02-01",
         winners: [
             { name: "Jane D.", prize: "Kayak", date: "2025-11-10" },
             { name: "Mike R.", prize: "Gift basket", date: "2025-10-02" },
-        ] satisfies RaffleWinner[],
+        ],
     },
 } as const;

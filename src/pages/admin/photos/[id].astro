@@ -12,9 +12,7 @@ const { id } = Astro.params;
 const photo = pendingPhotos.find((p) => p.id === id);
 
 // Simple 404 if not found (mock phase)
-if (!photo) {
-    return Astro.redirect("/admin/photos/pending");
-}
+if (!photo) throw new Error("Not found");
 ---
 
 <BaseLayout title={`Admin | Review Photo | Friends of Lake Henry`}>

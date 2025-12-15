@@ -50,52 +50,8 @@ const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.s
     </div>
 </header>
 <script>
-    const btn = document.querySelector<HTMLButtonElement>('.menuBtn');
-    const navEl = document.querySelector<HTMLElement>('#siteNav');
-
-    function setOpen(nextOpen: boolean) {
-        if (!btn || !navEl) return;
-        navEl.setAttribute('data-open', String(nextOpen));
-        btn.setAttribute('aria-expanded', String(nextOpen));
-        if (!nextOpen) btn.focus();
-    }
-
-    if (btn && navEl) {
-        btn.addEventListener('click', () => {
-            const open = navEl.getAttribute('data-open') === 'true';
-            setOpen(!open);
-        });
-
-        // Close when clicking a nav link (or the FB link)
-        navEl.addEventListener('click', (e: MouseEvent) => {
-            const target = e.target;
-            if (!(target instanceof Element)) return;
-
-            const link = target.closest('a');
-            if (!link) return;
-
-            setOpen(false);
-        });
-
-        // Close on Escape
-        document.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key !== 'Escape') return;
-            const open = navEl.getAttribute('data-open') === 'true';
-            if (open) setOpen(false);
-        });
-
-        // Outside click close
-        document.addEventListener('click', (e: MouseEvent) => {
-            const open = navEl.getAttribute('data-open') === 'true';
-            if (!open) return;
-
-            const target = e.target;
-            if (!(target instanceof Node)) return;
-
-            const clickedInside = navEl.contains(target) || btn.contains(target);
-            if (!clickedInside) setOpen(false);
-        });
-    }
+    import { initNavToggle } from "../scripts/nav";
+    initNavToggle();
 </script>
 <style>
     .header{
