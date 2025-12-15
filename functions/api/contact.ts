@@ -127,7 +127,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             body: JSON.stringify({
                 from: env.FROM_EMAIL,
                 to: [env.TO_EMAIL],
-                subject: `New inquiry from ${name}`,
+                subject: `Inquiry from ${name}`,
                 html,
                 reply_to: email,
             }),
