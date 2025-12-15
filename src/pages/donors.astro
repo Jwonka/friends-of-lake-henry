@@ -1,6 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { donors } from "../data/donors";
+
+const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+
+const sorted = [...donors].sort((a, b) => b.amount - a.amount);
+const total = sorted.reduce((sum, d) => sum + d.amount, 0);
 ---
 
 <BaseLayout title="Donors | Friends of Lake Henry">
@@ -9,34 +14,48 @@ import { donors } from "../data/donors";
             <h1>Donors</h1>
             <p class="lead">
                 Friends of Lake Henry is grateful for everyone who contributes time, funding, and support.
-                This page will highlight sponsors and supporters as we receive permission to list names.
             </p>
 
-            <div class="panel enter-block delay-1">
-                <h2>Support the project</h2>
-                <p class="muted">
-                    Want to help? Donations fund restoration efforts, community outreach, and fundraising operations.
-                </p>
-                <div class="ctaRow">
-                    <a class="btn" href="/donate">Go to Donate</a>
+            <div class="summaryRow enter-block delay-1">
+                <div class="pillStat">
+                    <div class="statNum">{sorted.length}</div>
+                    <div class="statLbl">Donations listed</div>
+                </div>
+                <div class="pillStat">
+                    <div class="statNum">{fmt.format(total)}</div>
+                    <div class="statLbl">Total (from current list)</div>
                 </div>
             </div>
 
             <div class="grid enter-block delay-2">
-                {donors.map((d) => (
-                        <div class="panel">
-                            <h2>{d.name}</h2>
-                            <p class="muted">{d.note}</p>
-                            <div class="ctaRow">
-                                <a class="btn" href="/donate">Donate</a>
+                {sorted.map((d) => (
+                        <article class="panel donor">
+                            <div class="topRow">
+                                <h2 class="name">{d.name}</h2>
+                                <div class="amt">{fmt.format(d.amount)}</div>
                             </div>
-                        </div>
+
+                            {d.inMemoryOf && (
+                                    <p class="muted imo">In memory of <span class="imoName">{d.inMemoryOf}</span></p>
+                            )}
+                        </article>
                 ))}
             </div>
 
             <p class="muted small">
                 If you’re a sponsor and want to be listed here, please contact us.
             </p>
+
+            <!-- moved to bottom -->
+            <div class="panel support enter-block delay-3">
+                <h2>Support Lake Henry restoration</h2>
+                <p class="muted">
+                    Donations fund restoration efforts, community outreach, and fundraising operations.
+                </p>
+                <div class="ctaRow">
+                    <a class="btn" href="/donate">Donate</a>
+                </div>
+            </div>
         </section>
     </div>
 
@@ -44,27 +63,65 @@ import { donors } from "../data/donors";
         .pad { margin-top: var(--section-gap); }
         .lead { max-width: 80ch; margin: 0 0 1.25rem; }
         .small { font-size: 0.95rem; }
-        .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+
+        .summaryRow{
+            display:flex;
+            gap: .75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .pillStat{
+            border: 1px solid var(--border);
+            background: var(--glass-dark);
+            border-radius: 999px;
+            padding: .55rem .95rem;
+            backdrop-filter: blur(6px);
+            display:flex;
+            align-items: baseline;
+            gap: .6rem;
+        }
+        .statNum{ font-weight: 900; }
+        .statLbl{ color: var(--text-soft); font-weight: 600; font-size: .95rem; }
+
         .grid{
             display: grid;
             gap: 1rem;
             margin-top: 1.25rem;
         }
 
-        /* Tablet: 2 columns */
+        .donor { padding: 1.15rem; }
+        .topRow{
+            display:flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .name{
+            margin: 0;
+            font-size: 1.15rem;
+            line-height: 1.2;
+        }
+        .amt{
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .imo{ margin: .5rem 0 0; }
+        .imoName{ font-weight: 800; }
+
+        .support{ margin-top: 1.25rem; }
+        .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+
         @media (min-width: 720px){
             .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
-
-        /* Desktop: 3 columns */
         @media (min-width: 1024px){
             .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
-
-        /* Small phones: make CTAs nicer */
         @media (max-width: 520px){
             .ctaRow{ flex-direction: column; align-items: stretch; }
             .ctaRow .btn{ width: 100%; justify-content: center; }
+            .topRow{ align-items: flex-start; }
+            .amt{ font-size: 1.05rem; }
         }
     </style>
 </BaseLayout>
