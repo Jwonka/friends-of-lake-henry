@@ -1,11 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-
-const donors = [
-    { name: "Community donors", note: "Thank you for supporting the lake." },
-    { name: "Local sponsors", note: "Businesses and organizations backing restoration." },
-    { name: "In-kind support", note: "Volunteers, supplies, and services donated to the project." },
-];
+import { donors } from "../data/donors";
 ---
 
 <BaseLayout title="Donors | Friends of Lake Henry">
