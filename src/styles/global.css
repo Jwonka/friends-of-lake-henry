@@ -69,10 +69,13 @@
     --brand-facebook-hover: rgba(24,119,242,0.18);
 
     /* success/error messages */
-    --status-success-brdr: rgba(34, 197, 94, 0.45);
-    --status-success-bck: rgba(34, 197, 94, 0.12);
-    --status-error-brdr: rgba(239, 68, 68, 0.45);
-    --status-error-bck: rgba(239, 68, 68, 0.12);
+    --status-success-brdr: rgba(34, 197, 94, 0.65);
+    --status-success-bck: rgba(34, 197, 94, 0.22);
+    --status-success-txt: rgba(187, 255, 214, 0.95);
+
+    --status-error-brdr: rgba(239, 68, 68, 0.70);
+    --status-error-bck: rgba(239, 68, 68, 0.24);
+    --status-error-txt: rgba(255, 212, 212, 0.95);
 }
 
 * { box-sizing: border-box; }
@@ -281,12 +284,22 @@ p { color: var(--text-strong); }
     display: block;
     border-color: var(--status-success-brdr);
     background: var(--status-success-bck);
+    color: var(--status-success-txt);
 }
 
 .status--error {
     display: block;
     border-color: var(--status-error-brdr);
     background: var(--status-error-bck);
+    color: var(--status-error-txt);
+}
+
+.status--success,
+.status--error{
+    border: 1px solid;
+    border-radius: 12px;
+    padding: .75rem .9rem;
+    backdrop-filter: blur(6px);
 }
 
 /* required fields and screen readers */
