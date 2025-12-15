@@ -21,14 +21,14 @@ if (!photo) throw new Error("Not found");
             <div class="adminHeader">
                 <div>
                     <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
-                    <h1 class="enter-block delay-2 h1-tight">Review Submission</h1>
-                    <p class="lead enter-block delay-3" style="margin: 0;">Confirm category and alt text before publishing.</p>
+                    <h1 class="h1-tight">Review Submission</h1>
+                    <p class="lead" style="margin: 0;">Confirm category and alt text before publishing.</p>
                 </div>
-                <a class="pill" href="/admin/photos/pending">← Back to queue</a>
+                <a class="pill  enter-block delay-2" href="/admin/photos/pending">← Back to queue</a>
             </div>
 
-            <div class="panel enter-block delay-1" style="margin-top: 1rem;">
-                <figure class="preview enter-block delay-2">
+            <div class="panel enter-block delay-2" style="margin-top: 1rem;">
+                <figure class="preview enter-block delay-3">
                     <img src={photo.previewSrc} alt={photo.altSuggestion ?? photo.title} />
                 </figure>
 
@@ -59,8 +59,8 @@ if (!photo) throw new Error("Not found");
                     </div>
 
                     <div class="actions span2">
-                        <button class="btn enter-block delay-1" type="button">Publish</button>
-                        <button class="pill danger enter-block delay-2" type="button">Reject</button>
+                        <button class="btn enter-block delay-3" type="button">Publish</button>
+                        <button class="pill danger enter-block delay-4" type="button">Reject</button>
                     </div>
                 </div>
             </div>

@@ -12,20 +12,20 @@ const total = pendingPhotos.length;
                 <div class="adminTitle">
                     <div>
                         <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
-                        <h1 class="enter-block delay-2 h1-tight">Pending Photos</h1>
+                        <h1 class="h1-tight">Pending Photos</h1>
                     </div>
-                    <p class="lead enter-block delay-3" style="margin: .25rem 0 0;">Review submissions before publishing to the public gallery.</p>
+                    <p class="lead" style="margin: .25rem 0 0;">Review submissions before publishing to the public gallery.</p>
                 </div>
                 <div class="adminHeaderActions">
-                  <span class="pill enter-block delay-4" aria-disabled="true" style="opacity:.85; cursor: default;">
+                  <span class="pill enter-block delay-2" aria-disabled="true" style="opacity:.85; cursor: default;">
                     {total} pending
                   </span>
                 </div>
             </div>
-            <div class="panel enter-block delay-1" style="margin-top: 1rem;">
+            <div class="panel enter-block delay-2" style="margin-top: 1rem;">
                 <div class="grid">
                     {pendingPhotos.map((p) => (
-                        <a class="tile enter-block delay-2" href={`/admin/photos/${p.id}`}>
+                        <a class="tile enter-block delay-3" href={`/admin/photos/${p.id}`}>
                             <figure class="thumb">
                                 <img src={p.previewSrc} alt={p.altSuggestion ?? p.title} loading="lazy" />
                             </figure>
