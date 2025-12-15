@@ -17,7 +17,7 @@ const { photo } = Astro.props;
                 <a class="pill" href="/photos">← Back to Photos</a>
             </div>
             <div class="panel detailPanel enter-block delay-3">
-                <img class="detailImg enter-block delay-4" src={photo.src} alt={photo.alt}/>
+                <img class="detailImg enter-block delay-4" src={photo.src} alt={photo.alt} loading="eager" decoding="async"/>
                 <p class="detailCaption enter-block delay-5" >{photo.alt}</p>
                 <p class="enter-block delay-6">
                     <a class="pill" href={photo.src} target="_blank" rel="noopener">Open original image</a>
