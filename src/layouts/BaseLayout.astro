@@ -64,6 +64,19 @@ const canonical = Astro.site
         </div>
     </div>
 </footer>
+<script>
+    const setVh = () => {
+        document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+    };
+    setVh();
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setVh);
+    } else {
+        window.addEventListener('resize', setVh);
+    }
+    window.addEventListener('orientationchange', setVh);
+</script>
 </body>
 </html>
 
@@ -71,7 +84,7 @@ const canonical = Astro.site
     /* Prevent sideways scroll when content starts offscreen */
     .siteMain {
         position: relative;
-        min-height: calc(100vh - 160px);
+        min-height: calc(100svh - 160px);
         padding: 2rem 0 3rem;
         overflow-x: hidden;
         z-index: 0;
@@ -80,13 +93,18 @@ const canonical = Astro.site
     /* This is the “page-wide” image background (main only) */
     .pageBg{
         position: fixed;
-        inset: 0;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100svh;
         background-image: url("/images/hero.jpg");
         background-size: cover;
         background-position: center;
-        transform: none;
         z-index: 0;
         pointer-events: none;
+        /* compositor hints that often reduce visible jitter */
+        transform: translateZ(0);
+        will-change: transform;
     }
 
     /* Darken the image for readability (main only) */
@@ -154,6 +172,13 @@ const canonical = Astro.site
         opacity: .1;
         color: var(--text);
     }
+
+    @supports not (height: 100svh) {
+        .siteMain {
+            min-height: calc((var(--vh) * 100) - 160px);
+        }
+    }
+
     @media (max-width: 900px){
         .pageBg{ position: fixed; }
     }
