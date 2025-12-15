@@ -12,27 +12,41 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                     message and we’ll get back to you.
                 </p>
 
-                <div id="status" class="status status--empty" aria-live="polite"></div>
+                <div id="status" class="status status--empty" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></div>
 
                 <form class="form" method="post" action="/api/contact">
                     <div class="row">
-                        <label>
-                            Name
+                        <label  class="field">
+                            <span class="labelRow">
+                                Name<span class="req" aria-hidden="true">*</span>
+                                <span class="srOnly">(required)</span>
+                            </span>
                             <input name="name" autocomplete="name" required />
                         </label>
-                        <label>
-                            Email
+                        <label  class="field">
+                            <span class="labelRow">
+                                Email<span class="req" aria-hidden="true">*</span>
+                                <span class="srOnly">(required)</span>
+                            </span>
                             <input name="email" type="email" autocomplete="email" required />
                         </label>
                     </div>
 
-                    <label>
-                        Message
+                    <label  class="field">
+                        <span class="labelRow">
+                            Message<span class="req" aria-hidden="true">*</span>
+                            <span class="srOnly">(required)</span>
+                        </span>
                         <textarea name="message" rows="6" required minlength="10"></textarea>
                     </label>
 
                     <!-- Honeypot -->
-                    <input type="text" name="company" tabindex="-1" autocomplete="off" hidden />
+                    <div class="hp" aria-hidden="true">
+                        <label>
+                            Company
+                            <input type="text" name="company" tabindex="-1" autocomplete="off" />
+                        </label>
+                    </div>
 
                     <!-- Turnstile widget -->
                     <div
@@ -68,6 +82,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                 el.textContent = msg;
                 el.classList.remove("status--empty", "status--success", "status--error");
                 el.classList.add(kind === "ok" ? "status--success" : "status--error");
+                el.focus();
             }
 
             if (sent === "1") {
@@ -99,7 +114,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
         .form { margin-top: 1rem; display: grid; gap: 1rem; }
         .row { display: grid; gap: 1rem; grid-template-columns: 1fr; }
-        label { display: grid; gap: 0.4rem; color: var(--text); font-weight: 700; }
+        label { color: var(--text); font-weight: 700; }
 
         input, textarea{
             padding: 0.75rem 0.85rem;
@@ -109,6 +124,43 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             color: var(--text);
         }
         textarea { resize: vertical; }
+        .hp {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .field {
+            display: grid;
+            gap: 0.4rem;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .labelRow {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.25rem;
+        }
+        .req {
+            color: var(--text-soft-strong);
+            margin-left: 0.25rem;
+            font-size: 0.75em;
+            line-height: 1;
+            opacity: 0.7;
+            position: relative;
+            top: -0.1em;
+        }
+        .srOnly {
+            position: absolute;
+            width: 1px; height: 1px;
+            padding: 0; margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
         @media (min-width: 860px){
             .row{ grid-template-columns: 1fr 1fr; }
         }
