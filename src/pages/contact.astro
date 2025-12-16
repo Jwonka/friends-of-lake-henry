@@ -5,11 +5,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <BaseLayout title="Contact | Friends of Lake Henry">
     <div class="container">
         <section id="contact" class="contactSection card enter-block">
-            <div>
-                <h1>Contact</h1>
-                <p>
-                    Have a question, want to volunteer, or need raffle information? Send us a
-                    message and we’ll get back to you.
+            <h1>Contact</h1>
+            <div class="panel enter-block delay-1">
+                <h2 class="subhead">Get in touch</h2>
+                <p class="intro">
+                    <span class="line1">Have a question, want to volunteer, or need raffle information?</span>
+                    <span class="line2">Send us a message and we’ll get back to you.</span>
                 </p>
 
                 <div id="status" class="status status--empty" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></div>
@@ -55,7 +56,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                         data-size="invisible">
                     </div>
 
-                    <button class="btn" type="submit">Send message</button>
+                    <div class="ctaRow enter-block delay-2">
+                        <button class="btn" type="submit">Send message</button>
+                    </div>
 
                     <p class="fine muted">
                         By submitting, you agree we may contact you back about your request.
@@ -105,28 +108,50 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </script>
     <style>
         .contactSection{ margin-top: var(--section-gap); margin-bottom: calc(var(--section-gap) * 1.25); }
-        .contactSection p {
-            margin: 0 0 1.25rem;
-            max-width: 65ch;
+        .intro{
+            margin: 0 0 1rem;
+            color: var(--text-soft);
             line-height: 1.6;
+        }
+        .subhead{
+            margin: 0 0 .4rem;
+            font-size: 1.25rem;
             color: var(--text-strong);
         }
-        p.fine { margin-top: 0.75rem; }
-        p.fine.muted { color: var(--text-soft); }
-        .fine { font-size: 0.95rem; margin-top: 0.75rem; }
+        /* Desktop: two clean lines */
+        .intro .line1,
+        .intro .line2{
+            display: block;
+        }
+
+        /* Small screens: treat as one sentence (no weird two-line look) */
+        @media (max-width: 720px){
+            .intro .line1,
+            .intro .line2{
+                display: inline;
+            }
+            .intro .line1::after{
+                content: " ";
+            }
+        }
 
         .form { margin-top: 1rem; display: grid; gap: 1rem; }
         .row { display: grid; gap: 1rem; grid-template-columns: 1fr; }
-        label { color: var(--text); font-weight: 700; }
+        .field { display: grid; gap: 0.4rem; }
 
-        input, textarea{
-            padding: 0.75rem 0.85rem;
-            border-radius: 12px;
-            border: 1px solid var(--border-strong);
-            background: rgba(0,0,0,0.12);
-            color: var(--text);
+        .labelRow{
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.25rem;
+            font-weight: 750;
         }
-        textarea { resize: vertical; }
+        .ctaRow{
+            display:flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: .35rem;
+        }
+        /* Honeypot */
         .hp {
             position: absolute;
             left: -9999px;
@@ -134,26 +159,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             height: 1px;
             overflow: hidden;
         }
-        .field {
-            display: grid;
-            gap: 0.4rem;
-            color: var(--text);
-            font-weight: 700;
-        }
-
-        .labelRow {
-            display: inline-flex;
-            align-items: baseline;
-            gap: 0.25rem;
-        }
 
         @media (min-width: 860px){
             .row{ grid-template-columns: 1fr 1fr; }
+        }
+
+        .fine{
+            margin: .65rem 0 0;
+            font-size: .95rem;
+            color: var(--text-soft);
+            opacity: .9;
         }
 
         /* Mobile: make submit feel intentional */
         @media (max-width: 520px){
             .form .btn{ width: 100%; justify-content: center; }
         }
+
     </style>
 </BaseLayout>

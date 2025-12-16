@@ -1,41 +1,155 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+const url = new URL(Astro.request.url);
+const sent = url.searchParams.get("sent") === "1";
+const error = url.searchParams.get("error") === "1";
 ---
+
 <BaseLayout title="Donate | Friends of Lake Henry">
     <div class="container">
         <section class="card pad enter-block">
             <h1>Donate</h1>
-            <p class="lead">
-                Your donation supports lake restoration efforts, community outreach, and fundraising operations.
-            </p>
+            {sent && (
+                    <div class="status status--success" role="status">
+                        Thanks — we received your donation request.
+                    </div>
+            )}
+
+            {error && (
+                    <div class="status status--error" role="status">
+                        Sorry — something went wrong. Please try again.
+                    </div>
+            )}
 
             <div class="panel enter-block delay-1">
-                <h2>Donation options</h2>
-                <ul>
-                    <li>One-time donation</li>
-                    <li>Monthly support (optional)</li>
-                    <li>Sponsorship opportunities (optional)</li>
-                </ul>
-                <div class="ctaRow">
-                    <a class="btn" href="#" aria-disabled="true">Donate (placeholder)</a>
-                </div>
-                <p class="muted small">
-                    We’ll link this button to your chosen donation processor (Square, Stripe, PayPal, etc.) once confirmed.
+                <h2 class="subhead">Support Lake Henry’s restoration</h2>
+                <p class="muted intro">
+                    Submit this form and we’ll reply with next steps.
                 </p>
+
+                <form class="donateForm" method="post" action="/api/donate">
+                    <div class="grid2">
+                        <label class="field">
+                            <span class="lbl">Full name <span class="req">*</span></span>
+                            <input name="name" autocomplete="name" required />
+                        </label>
+
+                        <label class="field">
+                            <span class="lbl">Email <span class="req">*</span></span>
+                            <input name="email" type="email" autocomplete="email" required />
+                        </label>
+                    </div>
+
+                    <div class="grid2">
+                        <label class="field">
+                            <span class="lbl">Amount<span class="req">*</span></span>
+                            <input
+                                name="amount"
+                                type="number"
+                                inputmode="decimal"
+                                min="1"
+                                step="1"
+                                placeholder="50"
+                                required
+                            />
+                        </label>
+
+                        <label class="field">
+                            <span class="lbl">Donor name to display (optional)</span>
+                            <input name="displayName" placeholder="Company / Name" />
+                        </label>
+                    </div>
+
+                    <div class="grid2">
+                        <label class="field">
+                            <span class="lbl">In memory of (optional)</span>
+                            <input name="inMemoryOf" />
+                        </label>
+
+                        <div class="field">
+                            <span class="lbl"> </span>
+                            <span class="muted small"> </span>
+                        </div>
+                    </div>
+
+                    <label class="field">
+                        <span class="lbl">Message (optional)</span>
+                        <textarea name="message" rows="4" placeholder="Any notes"></textarea>
+                    </label>
+
+                    <div class="turnstile">
+                        <div
+                                class="cf-turnstile"
+                                data-sitekey={import.meta.env.PUBLIC_TURNSTILE_SITE_KEY}
+                        ></div>
+                    </div>
+
+                    <div class="ctaRow  enter-block delay-2">
+                        <button class="btn" type="submit">Submit donation</button>
+                    </div>
+
+                    <div class="donationNotes">
+                        <p class="muted small impact">
+                            Your donation supports restoration work, community outreach, and fundraising.
+                        </p>
+
+                        <p class="muted small footnote">
+                            ** Payments are not processed on the website yet. **
+                        </p>
+                    </div>
+                </form>
             </div>
         </section>
     </div>
 
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script is:inline>
+        document.addEventListener("wheel", (e) => {
+            const el = e.target;
+            if (el instanceof HTMLInputElement && el.type === "number" && document.activeElement === el) {
+                el.blur(); // stops wheel from changing amount
+            }
+        }, { passive: true });
+    </script>
     <style>
         .pad { margin-top: var(--section-gap); }
         .lead { max-width: 75ch; margin: 0 0 1.25rem; }
-        ul { margin: 0; padding-left: 1.1rem; color: var(--text-bright); }
-        .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
         .small { font-size: 0.95rem; }
-        /* Mobile: full-width primary action */
+
+        .donateForm { margin-top: 1rem; display: grid; gap: .9rem; }
+        .grid2 { display: grid; gap: .9rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .field { display: grid; gap: .35rem; }
+        .lbl { font-weight: 750; }
+
+        .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: .35rem; }
+        .subhead{
+            margin: 0 0 .4rem;
+            font-size: 1.25rem;
+            color: var(--text-strong);
+        }
+        /* Group bottom notes tightly */
+        .donationNotes{
+            display: grid;
+            gap: .2rem;
+            margin-top: .65rem;
+        }
+        .donationNotes p{
+            margin: 0;
+        }
+        .intro{ margin: 0 0 1rem; }
+        .impact{ margin-top: .75rem; opacity: .95; }
+        .footnote{
+            opacity: .85;
+            letter-spacing: .01em;
+        }
+        @media (max-width: 720px){
+            .grid2 { grid-template-columns: 1fr; }
+        }
         @media (max-width: 520px){
             .ctaRow{ flex-direction: column; align-items: stretch; }
             .ctaRow .btn{ width: 100%; justify-content: center; }
         }
     </style>
 </BaseLayout>
+

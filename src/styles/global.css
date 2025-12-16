@@ -27,6 +27,7 @@
     --text-shadow: 0 1px 6px rgba(0,0,0,0.35);
 
     /* glass surfaces */
+    --glass-light: rgba(11,18,32,0.4);
     --glass-dark: rgba(11,18,32,0.55);
     --glass-dark-strong: rgba(11,18,32,0.68);
     --glass-dark-pressed: rgba(11,18,32,0.74);
@@ -176,7 +177,7 @@ a:hover { text-decoration: none; }
 
 .muted { color: var(--text-soft); }
 .panel .muted{
-    color: rgba(255,255,255,0.86);
+    color: var(--text-soft);
 }
 /* lead text readability */
 .lead {color: var(--text-soft);}
@@ -320,6 +321,59 @@ p { color: var(--text-strong); }
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+}
+
+/* Form controls (site-wide) */
+label { display: block; }
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 0.9rem;
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    background: var(--glass-light);
+    color: var(--text-bright);
+    font: inherit;
+    font-size: 1.08rem;
+    line-height: 48px;
+    outline: none;
+}
+
+textarea { resize: vertical; height: auto; min-height: 140px; padding: .85rem .9rem; line-height: 1.35;}
+input { display: block; }
+input::placeholder,
+textarea::placeholder {
+    color: var(--focus-outline);
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 3px solid var(--focus-outline);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px var(--focus-glow);
+}
+
+/* Checkbox/radio sizing so they don't inherit full-width input rules */
+input[type="checkbox"],
+input[type="radio"]{
+    width: auto;
+    padding: 0;
+    border-radius: 6px;
+    accent-color: var(--brand);
+}
+
+/* Chrome autofill: prevent white/yellow background + keep text readable */
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+    -webkit-text-fill-color: var(--text-bright) !important;
+    transition: background-color 9999s ease-out 0s;
+    box-shadow: 0 0 0px 1000px var(--glass-light) inset !important;
+    border: 1px solid var(--border-strong) !important;
 }
 
 /* Block motion: noticeable slide from right */
