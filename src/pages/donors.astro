@@ -47,7 +47,7 @@ const totalDollars = totalCents / 100;
                     <div class="statLbl">Donations listed</div>
                 </div>
                 <div class="pillStat">
-                    <div class="statNum">{fmt.format(totalCents / 100)}</div>
+                    <div class="statNum">{fmt.format(totalDollars)}</div>
                     <div class="statLbl">Total (from current list)</div>
                 </div>
             </div>
@@ -57,7 +57,7 @@ const totalDollars = totalCents / 100;
                         <article class="panel donor">
                             <div class="topRow">
                                 <h2 class="name">{d.display_name ?? d.name}</h2>
-                                <div class="amt">{fmt.format(totalDollars)}</div>
+                                <div class="amt">{fmt.format(d.amount_cents / 100)}</div>
                             </div>
 
                             {d.in_memory_of && (

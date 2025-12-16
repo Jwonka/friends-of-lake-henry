@@ -1,5 +1,4 @@
-import type { PagesFunction } from "@cloudflare/workers-types/experimental";
-type WorkerResponse = import("@cloudflare/workers-types/experimental").Response;
+import type { APIRoute } from "astro";
 
 type TurnstileVerify = {
     success: boolean;
@@ -10,12 +9,12 @@ type TurnstileVerify = {
     cdata?: string;
 };
 
-export interface Env {
+type Env = {
     RESEND_API_KEY: string;
     FROM_EMAIL: string;
     TO_EMAIL: string;
     TURNSTILE_SECRET: string;
-}
+};
 
 const SECURITY_HEADERS: Record<string, string> = {
     "X-Content-Type-Options": "nosniff",
@@ -23,7 +22,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "X-Frame-Options": "DENY",
 };
 
-function redirectBack(requestUrl: string, suffix = ""): WorkerResponse {
+function redirectBack(requestUrl: string, suffix = ""): Response {
     const url = new URL(requestUrl);
     const location = `${url.origin}/contact${suffix || "?sent=1"}`;
 
@@ -34,7 +33,7 @@ function redirectBack(requestUrl: string, suffix = ""): WorkerResponse {
             "cache-control": "no-store",
             ...SECURITY_HEADERS,
         },
-    }) as unknown as WorkerResponse;
+    });
 }
 
 function esc(s: string) {
@@ -46,8 +45,13 @@ function esc(s: string) {
         .replaceAll("'", "&#39;");
 }
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const POST: APIRoute = async (context) => {
     try {
+        const { request } = context;
+
+        // Env bindings are available directly on locals (per your env.d.ts)
+        const env = context.locals as unknown as Env;
+
         const ct = request.headers.get("content-type") || "";
         if (
             !ct.includes("application/x-www-form-urlencoded") &&
@@ -77,20 +81,23 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
         const ip = request.headers.get("CF-Connecting-IP");
 
+        if (!env.TURNSTILE_SECRET) return redirectBack(request.url, "?err=server");
+
         const body = new URLSearchParams();
         body.set("secret", env.TURNSTILE_SECRET);
         body.set("response", token);
         if (ip) body.set("remoteip", ip);
 
-        const verifyResp = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-            method: "POST",
-            headers: { "content-type": "application/x-www-form-urlencoded" },
-            body,
-        });
+        const verifyResp = await fetch(
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+            {
+                method: "POST",
+                headers: { "content-type": "application/x-www-form-urlencoded" },
+                body,
+            }
+        );
 
-        if (!verifyResp.ok) {
-            return redirectBack(request.url, "?err=captcha");
-        }
+        if (!verifyResp.ok) return redirectBack(request.url, "?err=captcha");
 
         let verify: TurnstileVerify;
         try {
@@ -99,9 +106,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
             return redirectBack(request.url, "?err=captcha");
         }
 
-        if (!verify.success) {
-            return redirectBack(request.url, "?err=captcha");
-        }
+        if (!verify.success) return redirectBack(request.url, "?err=captcha");
 
         if (!env.RESEND_API_KEY || !env.FROM_EMAIL || !env.TO_EMAIL) {
             return redirectBack(request.url, "?err=server");
@@ -137,11 +142,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
         return redirectBack(request.url);
     } catch {
-        return redirectBack(request.url, "?err=server");
+        return redirectBack(context.request.url, "?err=server");
     }
 };
 
-export const onRequestOptions: PagesFunction<Env> = async () => {
+export const OPTIONS: APIRoute = async () => {
     return new Response(null, {
         status: 204,
         headers: {
@@ -150,5 +155,5 @@ export const onRequestOptions: PagesFunction<Env> = async () => {
             "cache-control": "no-store",
             ...SECURITY_HEADERS,
         },
-    }) as unknown as WorkerResponse;
+    });
 };
