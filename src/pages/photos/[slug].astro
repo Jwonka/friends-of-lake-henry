@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { photos, type Photo } from "../../data/photos";
-
+export const prerender = true;
 export function getStaticPaths() {
     return photos.map((p) => ({ params: { slug: p.slug }, props: { photo: p } }));
 }

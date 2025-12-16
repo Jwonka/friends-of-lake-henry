@@ -31,6 +31,7 @@ const totalRow = await DB.prepare(`
 `).first<{ total_cents: number }>();
 
 const totalCents = Number(totalRow?.total_cents ?? 0);
+const totalDollars = totalCents / 100;
 ---
 <BaseLayout title="Donors | Friends of Lake Henry">
     <div class="container">
@@ -56,7 +57,7 @@ const totalCents = Number(totalRow?.total_cents ?? 0);
                         <article class="panel donor">
                             <div class="topRow">
                                 <h2 class="name">{d.display_name ?? d.name}</h2>
-                                <div class="amt">{fmt.format(d.amount_cents / 100)}</div>
+                                <div class="amt">{fmt.format(totalDollars)}</div>
                             </div>
 
                             {d.in_memory_of && (
