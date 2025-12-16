@@ -1,5 +1,9 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const url = new URL(Astro.request.url);
+const ok = url.searchParams.get("ok");
+const err = url.searchParams.get("err");
 ---
 
 <BaseLayout title="Admin Donors | Friends of Lake Henry">
@@ -19,7 +23,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
             <div class="panel adminPanel enter-block delay-2">
                 <h2 class="subhead">Add donor</h2>
+                {ok === "1" && (
+                        <div class="status status--success" role="status">
+                            Donor added.
+                        </div>
+                )}
 
+                {err === "input" && (
+                        <div class="status status--error" role="status">
+                            Please check the fields and try again.
+                        </div>
+                )}
+
+                {err === "server" && (
+                        <div class="status status--error" role="status">
+                            Something went wrong. Please try again.
+                        </div>
+                )}
                 <form class="form" method="post" action="/api/admin/donors">
                     <div class="grid2">
                         <label class="field">
@@ -29,7 +49,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
                         <label class="field">
                             <span class="labelRow">Amount (USD)<span class="req">*</span></span>
-                            <input name="amount" type="number" min="1" step="1" required />
+                            <input name="amount" type="number" min="0.01" step="0.01" placeholder="50.00" required />
                         </label>
                     </div>
 
@@ -55,7 +75,16 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </div>
         </section>
     </div>
-
+    <script is:inline>
+        (function () {
+            const url = new URL(window.location.href);
+            if (url.searchParams.has("ok") || url.searchParams.has("err")) {
+                url.searchParams.delete("ok");
+                url.searchParams.delete("err");
+                window.history.replaceState({}, "", url.pathname + url.search);
+            }
+        })();
+    </script>
     <style>
         .adminCard{ margin-top: var(--section-gap); }
         .adminPanel{ margin-top: 1rem; }
