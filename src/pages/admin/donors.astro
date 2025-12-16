@@ -56,7 +56,7 @@ const err = url.searchParams.get("err");
                     <div class="grid2">
                         <label class="field">
                             <span class="labelRow">In memory of (optional)</span>
-                            <input name="inMemoryOf" />
+                            <input name="inMemoryOf" placeholder="John Doe" />
                         </label>
 
                         <label class="field">
@@ -76,13 +76,26 @@ const err = url.searchParams.get("err");
         </section>
     </div>
     <script is:inline>
-        (function () {
+        (() => {
+            // Clean ok/err from URL after render
             const url = new URL(window.location.href);
             if (url.searchParams.has("ok") || url.searchParams.has("err")) {
                 url.searchParams.delete("ok");
                 url.searchParams.delete("err");
                 window.history.replaceState({}, "", url.pathname + url.search);
             }
+
+            // Prevent mousewheel changing number inputs
+            document.addEventListener(
+                "wheel",
+                (e) => {
+                    const el = e.target;
+                    if (el instanceof HTMLInputElement && el.type === "number" && document.activeElement === el) {
+                        el.blur();
+                    }
+                },
+                { passive: true }
+            );
         })();
     </script>
     <style>

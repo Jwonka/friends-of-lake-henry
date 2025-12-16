@@ -1,11 +1,32 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { donors } from "../data/donors";
+import type { D1Database } from "@cloudflare/workers-types";
+
+type DonorRow = {
+    id: number;
+    name: string;
+    amount_cents: number;
+    display_name: string | null;
+    in_memory_of: string | null;
+};
 
 const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
-const sorted = [...donors].sort((a, b) => b.amount - a.amount);
-const total = sorted.reduce((sum, d) => sum + d.amount, 0);
+const DB = Astro.locals.DB as D1Database;
+
+const listRes = await DB.prepare(
+    `SELECT id, name, amount_cents, display_name, in_memory_of
+     FROM donors
+     ORDER BY amount_cents DESC, id DESC`
+).all<DonorRow>();
+
+const donors = (listRes.results ?? []) as DonorRow[];
+
+const totalRow = await DB.prepare(
+    `SELECT COALESCE(SUM(amount_cents), 0) AS total_cents FROM donors`
+).first<{ total_cents: number }>();
+
+const totalCents = Number(totalRow?.total_cents ?? 0);
 ---
 
 <BaseLayout title="Donors | Friends of Lake Henry">
@@ -18,25 +39,27 @@ const total = sorted.reduce((sum, d) => sum + d.amount, 0);
 
             <div class="summaryRow enter-block delay-1">
                 <div class="pillStat">
-                    <div class="statNum">{sorted.length}</div>
+                    <div class="statNum">{donors.length}</div>
                     <div class="statLbl">Donations listed</div>
                 </div>
                 <div class="pillStat">
-                    <div class="statNum">{fmt.format(total)}</div>
+                    <div class="statNum">{fmt.format(totalCents / 100)}</div>
                     <div class="statLbl">Total (from current list)</div>
                 </div>
             </div>
 
             <div class="grid enter-block delay-2">
-                {sorted.map((d) => (
+                {donors.map((d) => (
                         <article class="panel donor">
                             <div class="topRow">
-                                <h2 class="name">{d.name}</h2>
-                                <div class="amt">{fmt.format(d.amount)}</div>
+                                <h2 class="name">{d.display_name ?? d.name}</h2>
+                                <div class="amt">{fmt.format(d.amount_cents / 100)}</div>
                             </div>
 
-                            {d.inMemoryOf && (
-                                    <p class="muted imo">In memory of <span class="imoName">{d.inMemoryOf}</span></p>
+                            {d.in_memory_of && (
+                                <p class="muted imo">
+                                    In memory of <span class="imoName">{d.in_memory_of}</span>
+                                </p>
                             )}
                         </article>
                 ))}
@@ -46,9 +69,8 @@ const total = sorted.reduce((sum, d) => sum + d.amount, 0);
                 If you’re a sponsor and want to be listed here, please contact us.
             </p>
 
-            <!-- moved to bottom -->
             <div class="panel support enter-block delay-3">
-                <h2>Support Lake Henry's Restoration</h2>
+                <h2>Support Lake Henry&apos;s restoration</h2>
                 <p class="muted">
                     Donations fund restoration efforts, community outreach, and fundraising operations.
                 </p>
