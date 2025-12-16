@@ -40,40 +40,40 @@ const totalDollars = totalCents / 100;
             <p class="lead">
                 Friends of Lake Henry is grateful for everyone who contributes time, funding, and support.
             </p>
-
-            <div class="summaryRow enter-block delay-1">
-                <div class="pillStat">
-                    <div class="statNum">{donors.length}</div>
-                    <div class="statLbl">Donations listed</div>
+            <div class="panel donorsInner enter-block delay-1">
+                <div class="summaryRow enter-block delay-2">
+                    <div class="pillStat">
+                        <div class="statNum">{donors.length}</div>
+                        <div class="statLbl">Donations listed</div>
+                    </div>
+                    <div class="pillStat">
+                        <div class="statNum">{fmt.format(totalDollars)}</div>
+                        <div class="statLbl">Total (from current list)</div>
+                    </div>
                 </div>
-                <div class="pillStat">
-                    <div class="statNum">{fmt.format(totalDollars)}</div>
-                    <div class="statLbl">Total (from current list)</div>
+
+                <div class="grid enter-block delay-3">
+                    {donors.map((d) => (
+                            <article class="panel donor">
+                                <div class="topRow">
+                                    <h2 class="name">{d.display_name ?? d.name}</h2>
+                                    <div class="amt">{fmt.format(d.amount_cents / 100)}</div>
+                                </div>
+
+                                {d.in_memory_of && (
+                                    <p class="muted imo">
+                                        In memory of <span class="imoName">{d.in_memory_of}</span>
+                                    </p>
+                                )}
+                            </article>
+                    ))}
                 </div>
+
+                <p class="muted small">
+                    If you’re a sponsor and want to be listed here, please contact us.
+                </p>
             </div>
-
-            <div class="grid enter-block delay-2">
-                {donors.map((d) => (
-                        <article class="panel donor">
-                            <div class="topRow">
-                                <h2 class="name">{d.display_name ?? d.name}</h2>
-                                <div class="amt">{fmt.format(d.amount_cents / 100)}</div>
-                            </div>
-
-                            {d.in_memory_of && (
-                                <p class="muted imo">
-                                    In memory of <span class="imoName">{d.in_memory_of}</span>
-                                </p>
-                            )}
-                        </article>
-                ))}
-            </div>
-
-            <p class="muted small">
-                If you’re a sponsor and want to be listed here, please contact us.
-            </p>
-
-            <div class="panel support enter-block delay-3">
+            <div class="panel support enter-block delay-4">
                 <h2>Support Lake Henry&apos;s restoration</h2>
                 <p class="muted">
                     Donations fund restoration efforts, community outreach, and fundraising operations.
@@ -136,7 +136,12 @@ const totalDollars = totalCents / 100;
 
         .support{ margin-top: 1.25rem; }
         .ctaRow { display:flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
-
+        .donorsInner{
+            padding: 1rem;
+            background: var(--glass-dark-strong);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(6px);
+        }
         @media (min-width: 720px){
             .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
@@ -144,6 +149,7 @@ const totalDollars = totalCents / 100;
             .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
         @media (max-width: 520px){
+            .donorsInner{ padding: .85rem; }
             .ctaRow{ flex-direction: column; align-items: stretch; }
             .ctaRow .btn{ width: 100%; justify-content: center; }
             .topRow{ align-items: flex-start; }
