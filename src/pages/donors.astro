@@ -40,7 +40,7 @@ const totalDollars = totalCents / 100;
             <p class="lead">
                 Friends of Lake Henry is grateful for everyone who contributes time, funding, and support.
             </p>
-            <div class="panel donorsInner enter-block delay-1">
+            <div class="donorsInner enter-block delay-1">
                 <div class="summaryRow enter-block delay-2">
                     <div class="pillStat">
                         <div class="statNum">{donors.length}</div>
@@ -54,7 +54,7 @@ const totalDollars = totalCents / 100;
 
                 <div class="grid enter-block delay-3">
                     {donors.map((d) => (
-                            <article class="panel donor">
+                            <article class="donorField">
                                 <div class="topRow">
                                     <h2 class="name">{d.display_name ?? d.name}</h2>
                                     <div class="amt">{fmt.format(d.amount_cents / 100)}</div>
@@ -73,12 +73,12 @@ const totalDollars = totalCents / 100;
                     If you’re a sponsor and want to be listed here, please contact us.
                 </p>
             </div>
-            <div class="panel support enter-block delay-4">
+            <div class="support enter-block delay-4">
                 <h2>Support Lake Henry&apos;s restoration</h2>
                 <p class="muted">
                     Donations fund restoration efforts, community outreach, and fundraising operations.
                 </p>
-                <div class="ctaRow">
+                <div class="ctaRow enter-block delay-5">
                     <a class="btn" href="/donate">Donate</a>
                 </div>
             </div>
@@ -141,6 +141,42 @@ const totalDollars = totalCents / 100;
             background: var(--glass-dark-strong);
             border: 1px solid var(--border);
             backdrop-filter: blur(6px);
+        }
+        .donorsPanel{
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            backdrop-filter: blur(var(--panel-blur));
+        }
+
+        /* Donor entries should look like light-blue form fields */
+        .donorField{
+            padding: 1rem 1.1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-strong);
+            background: var(--glass-light); /* SAME as inputs */
+            color: var(--text-bright);
+        }
+        .donorField .topRow{
+            display:flex;
+            justify-content:space-between;
+            gap:1rem;
+        }
+
+        .donorField .name{
+            margin:0;
+            font-size:1.05rem;
+            font-weight:700;
+        }
+
+        .donorField .amt{
+            font-weight:900;
+            white-space:nowrap;
+        }
+
+        .donorField .imo{
+            margin:.45rem 0 0;
         }
         @media (min-width: 720px){
             .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
