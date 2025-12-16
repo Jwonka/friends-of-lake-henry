@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
-const url = new URL(Astro.request.url);
+const url = Astro.url;
 const err = url.searchParams.get("err");
 const next = url.searchParams.get("next") ?? "/admin/";
 ---
