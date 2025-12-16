@@ -1,0 +1,87 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Admin Donors | Friends of Lake Henry">
+    <div class="container" style="--maxw: 1100px;">
+        <section class="card adminCard enter-block">
+            <div class="adminHeader">
+                <div>
+                    <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
+                    <h1 class="h1-tight">Donors</h1>
+                    <p class="lead adminLead">Add a donor to the public donors list.</p>
+                </div>
+
+                <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                    <button class="pill" type="submit">Log out</button>
+                </form>
+            </div>
+
+            <div class="panel adminPanel enter-block delay-2">
+                <h2 class="subhead">Add donor</h2>
+
+                <form class="form" method="post" action="/api/admin/donors">
+                    <div class="grid2">
+                        <label class="field">
+                            <span class="labelRow">Name / Company<span class="req">*</span></span>
+                            <input name="name" required />
+                        </label>
+
+                        <label class="field">
+                            <span class="labelRow">Amount (USD)<span class="req">*</span></span>
+                            <input name="amount" type="number" min="1" step="1" required />
+                        </label>
+                    </div>
+
+                    <div class="grid2">
+                        <label class="field">
+                            <span class="labelRow">In memory of (optional)</span>
+                            <input name="inMemoryOf" />
+                        </label>
+
+                        <label class="field">
+                            <span class="labelRow">Display name (optional)</span>
+                            <input name="displayName" placeholder="Name as shown publicly" />
+                        </label>
+                    </div>
+
+                    <div class="ctaRow enter-block delay-3">
+                        <button class="btn" type="submit">Add donor</button>
+                        <a class="btn" href="/donors">View donors</a>
+                    </div>
+
+                    <p class="fine muted">Changes apply immediately after submission.</p>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .adminCard{ margin-top: var(--section-gap); }
+        .adminPanel{ margin-top: 1rem; }
+        .adminLead{ margin: 0; }
+        .adminHeader{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .logoutForm{ margin: 0; }
+
+        .subhead{ margin: 0 0 .4rem; font-size: 1.25rem; color: var(--text-strong); }
+        .form { margin-top: 1rem; display: grid; gap: 1rem; }
+        .grid2 { display:grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .field { display: grid; gap: .4rem; }
+        .labelRow{ display:inline-flex; gap:.25rem; font-weight: 750; }
+        .ctaRow{ display:flex; gap:.75rem; flex-wrap:wrap; margin-top:.35rem; }
+        .fine{ margin: .65rem 0 0; font-size: .95rem; color: var(--text-soft); opacity: .9; }
+
+        @media (max-width: 720px){ .grid2{ grid-template-columns: 1fr; } }
+        @media (max-width: 520px){
+            .ctaRow{ flex-direction: column; align-items: stretch; }
+            .ctaRow .btn{ width: 100%; justify-content: center; }
+        }
+    </style>
+</BaseLayout>
+

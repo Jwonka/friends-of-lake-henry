@@ -9,12 +9,20 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                 <div>
                     <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
                     <h1 class="h1-tight">Admin Dashboard</h1>
-                    <p class="lead adminLead">Moderate photos and manage site content.</p>
+                    <p class="lead adminLead">Manage site content and donor listings.</p>
                 </div>
+
+                <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                    <button class="pill" type="submit">Log out</button>
+                </form>
             </div>
 
             <div class="panel adminPanel enter-block delay-2">
                 <div class="adminGrid enter-block delay-3">
+                    <a class="adminTile" href="/admin/donors">
+                        <strong>Donors</strong>
+                        <div class="muted">Add and manage donors shown on the Donors page.</div>
+                    </a>
                     <a class="adminTile" href="/admin/photos/pending">
                         <strong>Photos</strong>
                         <div class="muted">Review submissions and publish to the gallery.</div>
@@ -63,6 +71,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             background: var(--glass-dark-strong);
             outline: none;
         }
+        .logoutForm{ margin: 0; }
+        .logoutForm .pill{ border: 1px solid var(--border); }
         /* Tablet */
         @media (max-width: 900px){
             .adminGrid{ grid-template-columns: 1fr; }
