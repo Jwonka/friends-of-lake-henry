@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const url = new URL(Astro.request.url);
+const err = url.searchParams.get("err");
+const next = url.searchParams.get("next") ?? "/admin/";
+---
+
+<BaseLayout title="Admin Login | Friends of Lake Henry">
+    <div class="container">
+        <section class="card pad enter-block">
+            <h1>Admin</h1>
+
+            <div class="panel enter-block delay-1">
+                <h2 class="subhead">Login</h2>
+
+                {err && (
+                        <div class="status status--error" role="status">
+                            Please log in to continue.
+                        </div>
+                )}
+
+                <form class="form" method="post" action="/api/admin/login">
+                    <input type="hidden" name="next" value={next} />
+
+                    <label class="field">
+                        <span class="labelRow">Username<span class="req">*</span></span>
+                        <input name="username" autocomplete="username" required />
+                    </label>
+
+                    <label class="field">
+                        <span class="labelRow">Password<span class="req">*</span></span>
+                        <input name="password" type="password" required />
+                    </label>
+
+                    <div class="ctaRow enter-block delay-2">
+                        <button class="btn" type="submit">Log in</button>
+                    </div>
+
+                    <p class="fine muted">Authorized admins only.</p>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .pad { margin-top: var(--section-gap); }
+        .subhead{ margin: 0 0 .4rem; font-size: 1.25rem; color: var(--text-strong); }
+        .form { margin-top: 1rem; display: grid; gap: 1rem; }
+        .field { display: grid; gap: .4rem; }
+        .labelRow{ display:inline-flex; gap:.25rem; font-weight: 750; }
+        .ctaRow{ display:flex; gap:.75rem; flex-wrap:wrap; margin-top:.35rem; }
+        .fine{ margin: .65rem 0 0; font-size: .95rem; color: var(--text-soft); opacity: .9; }
+        @media (max-width: 520px){ .form .btn{ width: 100%; justify-content: center; } }
+    </style>
+</BaseLayout>
