@@ -1,12 +1,12 @@
 /// <reference types="astro/client" />
+import type { Runtime } from "@astrojs/cloudflare/runtime";
 import type { D1Database } from "@cloudflare/workers-types";
 
-declare global {
-    namespace App {
-        interface Locals {
-            DB: D1Database;
-        }
+declare namespace App {
+    interface Locals {
+        runtime: Runtime;
+    }
+    interface Env {
+        DB: D1Database;
     }
 }
-
-export {};

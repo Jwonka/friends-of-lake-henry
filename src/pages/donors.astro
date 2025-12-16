@@ -1,4 +1,6 @@
 ---
+export const prerender = false;
+
 import BaseLayout from "../layouts/BaseLayout.astro";
 import type { D1Database } from "@cloudflare/workers-types";
 
@@ -12,23 +14,24 @@ type DonorRow = {
 
 const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
-const DB = Astro.locals.DB as D1Database;
+// Cloudflare adapter exposes bindings here:
+const DB = (Astro.locals as any).runtime.env.DB as D1Database;
 
-const listRes = await DB.prepare(
-    `SELECT id, name, amount_cents, display_name, in_memory_of
-     FROM donors
-     ORDER BY amount_cents DESC, id DESC`
-).all<DonorRow>();
+const listRes = await DB.prepare(`
+    SELECT id, name, amount_cents, display_name, in_memory_of
+    FROM donors
+    ORDER BY amount_cents DESC, id DESC
+`).all<DonorRow>();
 
-const donors = (listRes.results ?? []) as DonorRow[];
+const donors = listRes.results ?? [];
 
-const totalRow = await DB.prepare(
-    `SELECT COALESCE(SUM(amount_cents), 0) AS total_cents FROM donors`
-).first<{ total_cents: number }>();
+const totalRow = await DB.prepare(`
+    SELECT COALESCE(SUM(amount_cents), 0) AS total_cents
+    FROM donors
+`).first<{ total_cents: number }>();
 
 const totalCents = Number(totalRow?.total_cents ?? 0);
 ---
-
 <BaseLayout title="Donors | Friends of Lake Henry">
     <div class="container">
         <section class="card pad enter-block">
