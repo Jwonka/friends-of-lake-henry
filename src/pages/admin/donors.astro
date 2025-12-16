@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-
+export const prerender = false;
 const url = new URL(Astro.request.url);
 const ok = url.searchParams.get("ok");
 const err = url.searchParams.get("err");
