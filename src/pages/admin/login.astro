@@ -1,5 +1,4 @@
 ---
-export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 const url = Astro.url;
@@ -15,23 +14,7 @@ const next = url.searchParams.get("next") ?? "/admin/";
             <div class="panel enter-block delay-1">
                 <h2 class="subhead">Login</h2>
 
-                {err === "auth" && (
-                        <div class="status status--error" role="status">
-                            Please log in to continue.
-                        </div>
-                )}
-
-                {err === "1" && (
-                        <div class="status status--error" role="status">
-                            Invalid username or password.
-                        </div>
-                )}
-
-                {err === "server" && (
-                        <div class="status status--error" role="status">
-                            Login is temporarily unavailable. Please try again later.
-                        </div>
-                )}
+                <div id="status" class="status status--empty" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></div>
 
                 <form class="form" method="post" action="/api/admin/login">
                     <input type="hidden" name="next" value={next} />
@@ -55,7 +38,32 @@ const next = url.searchParams.get("next") ?? "/admin/";
             </div>
         </section>
     </div>
+    <script is:inline>
+        (function () {
+            const statusEl = document.getElementById("status");
+            if (!statusEl) return;
 
+            const url = new URL(window.location.href);
+            const err = url.searchParams.get("err");
+
+            function show(msg) {
+                statusEl.textContent = msg;
+                statusEl.classList.remove("status--empty");
+                statusEl.classList.add("status--error");
+                try { statusEl.focus(); } catch {}
+            }
+
+            if (err === "auth") show("Please log in to continue.");
+            else if (err === "1") show("Invalid username or password.");
+            else if (err === "server") show("Login is temporarily unavailable. Please try again later.");
+
+            // Optional: remove err from URL after showing message (cleaner)
+            if (err) {
+                url.searchParams.delete("err");
+                window.history.replaceState({}, "", url.pathname + url.search);
+            }
+        })();
+    </script>
     <style>
         .pad { margin-top: var(--section-gap); }
         .subhead{ margin: 0 0 .4rem; font-size: 1.25rem; color: var(--text-strong); }
