@@ -14,7 +14,12 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 function redirectToLogin(requestUrl: string, nextPath: string, err = "auth"): WorkerResponse {
     const url = new URL(requestUrl);
-    const next = encodeURIComponent(nextPath);
+
+    // Prevent redirect-loop: never set next to the login page itself
+    const safeNext =
+        nextPath.startsWith("/admin/login") ? "/admin" : nextPath;
+
+    const next = encodeURIComponent(safeNext);
     const location = `${url.origin}/admin/login?err=${encodeURIComponent(err)}&next=${next}`;
 
     return new Response(null, {
@@ -25,23 +30,29 @@ function redirectToLogin(requestUrl: string, nextPath: string, err = "auth"): Wo
 
 export const onRequest: PagesFunction<Env> = async ({ request, env, next }) => {
     const url = new URL(request.url);
+    const path = url.pathname;
 
     // Only guard /admin routes
-    if (!url.pathname.startsWith("/admin")) return next() as unknown as WorkerResponse;
+    if (!path.startsWith("/admin")) return next() as unknown as WorkerResponse;
 
-    // Allow login page and login API
-    if (url.pathname === "/admin/login" || url.pathname === "/api/admin/login") {
+    // Allow login page (with or without trailing slash)
+    if (path === "/admin/login" || path === "/admin/login/") {
+        return next() as unknown as WorkerResponse;
+    }
+
+    // Allow login API
+    if (path === "/api/admin/login") {
         return next() as unknown as WorkerResponse;
     }
 
     const cookie = request.headers.get("cookie") || "";
     const m = cookie.match(/(?:^|;\s*)admin_auth=([^;]+)/);
-    if (!m) return redirectToLogin(request.url, url.pathname + url.search);
+    if (!m) return redirectToLogin(request.url, path + url.search);
 
     const token = decodeURIComponent(m[1]);
     const [secret] = token.split(":");
     if (!secret || secret !== env.ADMIN_COOKIE_SECRET) {
-        return redirectToLogin(request.url, url.pathname + url.search);
+        return redirectToLogin(request.url, path + url.search);
     }
 
     return next() as unknown as WorkerResponse;
