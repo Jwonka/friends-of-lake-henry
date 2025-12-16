@@ -44,7 +44,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, next }) => {
     }
 
     // Allow login API (must be reachable without auth)
-    if (path === "/api/admin/login") {
+    if (path === "/api/admin/login" || path === "/api/admin/logout") {
         return next() as unknown as WorkerResponse;
     }
 

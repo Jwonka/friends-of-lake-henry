@@ -331,14 +331,15 @@ textarea,
 select {
     width: 100%;
     padding: 0.9rem;
-    height: 48px;
+    min-height: 48px;
+    height: auto;
     border-radius: 12px;
     border: 1px solid var(--border-strong);
     background: var(--glass-light);
     color: var(--text-bright);
     font: inherit;
     font-size: 1.08rem;
-    line-height: 48px;
+    line-height: 1.5;
     outline: none;
 }
 
@@ -374,6 +375,18 @@ select:-webkit-autofill {
     transition: background-color 9999s ease-out 0s;
     box-shadow: 0 0 0px 1000px var(--glass-light) inset !important;
     border: 1px solid var(--border-strong) !important;
+}
+
+/* Chrome, Edge, Safari disable spinner */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox disable spinner  */
+input[type="number"] {
+    -moz-appearance: textfield;
 }
 
 /* Block motion: noticeable slide from right */

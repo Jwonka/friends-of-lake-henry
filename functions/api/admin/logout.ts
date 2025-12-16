@@ -8,15 +8,19 @@ const SECURITY_HEADERS: Record<string, string> = {
     "cache-control": "no-store",
 };
 
-export const onRequestPost: PagesFunction = async ({ request }) => {
-    const url = new URL(request.url);
-    const location = `${url.origin}/`;
-
-    const res = new Response(null, {
+function redirect(urlStr: string, path: string): WorkerResponse {
+    const url = new URL(urlStr);
+    return new Response(null, {
         status: 303,
-        headers: { location, ...SECURITY_HEADERS },
+        headers: { location: `${url.origin}${path}`, ...SECURITY_HEADERS },
     }) as unknown as WorkerResponse;
+}
 
-    res.headers.set("Set-Cookie", "admin_auth=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
-    return res;
+export const onRequestPost: PagesFunction = async ({ request }) => {
+    const res = redirect(request.url, "/");
+    res.headers.set(
+        "Set-Cookie",
+        "admin_auth=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0"
+    );
+    return res as unknown as WorkerResponse;
 };
