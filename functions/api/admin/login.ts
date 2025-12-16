@@ -27,19 +27,21 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const form = await request.formData();
     const username = String(form.get("username") ?? "");
     const password = String(form.get("password") ?? "");
-    const next = String(form.get("next") ?? "/admin/donors");
+    const next = String(form.get("next") ?? "/admin");
 
-    if (username !== env.ADMIN_USERNAME || !env.ADMIN_PASSWORD || !env.ADMIN_COOKIE_SECRET) {
+    // 1) server misconfig
+    if (!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD || !env.ADMIN_COOKIE_SECRET) {
         return redirect(request.url, "/admin/login?err=server");
     }
 
-    if (password !== env.ADMIN_PASSWORD) {
+    // 2) invalid credentials (single generic outcome)
+    if (username !== env.ADMIN_USERNAME || password !== env.ADMIN_PASSWORD) {
         return redirect(request.url, `/admin/login?err=1&next=${encodeURIComponent(next)}`);
     }
 
     const token = `${env.ADMIN_COOKIE_SECRET}:${Date.now()}`;
 
-    const res = redirect(request.url, next.startsWith("/admin") ? next : "/admin/donors");
+    const res = redirect(request.url, next.startsWith("/admin") ? next : "/admin");
     res.headers.set(
         "Set-Cookie",
         `admin_auth=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${60 * 60 * 8}`

@@ -14,9 +14,21 @@ const next = url.searchParams.get("next") ?? "/admin/";
             <div class="panel enter-block delay-1">
                 <h2 class="subhead">Login</h2>
 
-                {err && (
+                {err === "auth" && (
                         <div class="status status--error" role="status">
                             Please log in to continue.
+                        </div>
+                )}
+
+                {err === "1" && (
+                        <div class="status status--error" role="status">
+                            Invalid username or password.
+                        </div>
+                )}
+
+                {err === "server" && (
+                        <div class="status status--error" role="status">
+                            Login is temporarily unavailable. Please try again later.
                         </div>
                 )}
 
