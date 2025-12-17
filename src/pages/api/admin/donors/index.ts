@@ -15,12 +15,16 @@ function redirect(origin: string, pathWithQuery: string) {
 }
 
 function toCents(amountStr: string): number | null {
-    const s = amountStr.trim();
-    if (!/^\d+(\.\d{1,2})?$/.test(s)) return null;
-    const n = Number(s);
+    // Allow "$50.00", "50", "50.0", "50.00", "1,234.56"
+    const cleaned = amountStr.trim().replace(/[$,\s]/g, "");
+    if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return null;
+
+    const n = Number(cleaned);
     if (!Number.isFinite(n) || n < 0.01 || n > 1_000_000) return null;
+
     return Math.round(n * 100);
 }
+
 
 export const POST: APIRoute = async (context) => {
     try {
@@ -31,10 +35,10 @@ export const POST: APIRoute = async (context) => {
         const displayName = String(form.get("displayName") ?? "").trim() || null;
         const inMemoryOf = String(form.get("inMemoryOf") ?? "").trim() || null;
 
-        if (name.length < 2) return redirect(context.url.origin, "/admin/donors?err=input");
+        if (name.length < 2) return redirect(context.url.origin, "/admin/donors?err=name");
 
         const amountCents = toCents(amountRaw);
-        if (amountCents === null) return redirect(context.url.origin, "/admin/donors?err=input");
+        if (amountCents === null) return redirect(context.url.origin, "/admin/donors?err=amount");
 
         const DB = context.locals.runtime.env.DB;
 

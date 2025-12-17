@@ -22,6 +22,18 @@ const error = url.searchParams.get("error") === "1";
                     </div>
             )}
 
+            {err === "name" && (
+                    <div class="status status--error" role="status">
+                        Please enter a Name / Company.
+                    </div>
+            )}
+
+            {err === "amount" && (
+                    <div class="status status--error" role="status">
+                        Please enter a valid amount (example: 50.00).
+                    </div>
+            )}
+
             <div class="panel enter-block delay-1">
                 <h2 class="subhead">Support Lake Henry’s restoration</h2>
                 <p class="muted intro">
