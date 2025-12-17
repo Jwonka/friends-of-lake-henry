@@ -47,9 +47,15 @@ const donors = (await DB
                         </div>
                 )}
 
-                {err === "input" && (
+                {err === "name" && (
                         <div class="status status--error" role="status">
-                            Please check the fields and try again.
+                            Name / Company must be at least 2 characters.
+                        </div>
+                )}
+
+                {err === "amount" && (
+                        <div class="status status--error" role="status">
+                            Please enter a valid amount (example: 50.00).
                         </div>
                 )}
 
