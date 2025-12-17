@@ -51,9 +51,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
                     <!-- Turnstile widget -->
                     <div
-                        class="cf-turnstile"
-                        data-sitekey={import.meta.env.PUBLIC_TURNSTILE_SITE_KEY}
-                        data-size="invisible">
+                        id="ts"
+                        data-sitekey={import.meta.env.PUBLIC_TURNSTILE_SITE_KEY}>
                     </div>
 
                     <div class="ctaRow enter-block delay-2">
@@ -64,14 +63,60 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                         By submitting, you agree we may contact you back about your request.
                     </p>
                 </form>
-                <script
-                    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-                    async
-                    defer>
-                </script>
+                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
             </div>
         </section>
     </div>
+    <script is:inline>
+        (function () {
+            const form = document.querySelector("form.form");
+            const container = document.getElementById("ts");
+            if (!form || !container) return;
+
+            let widgetId = null;
+
+            window.addEventListener("load", () => {
+                if (!window.turnstile) return;
+
+                widgetId = turnstile.render(container, {
+                    sitekey: container.getAttribute("data-sitekey"),
+                    execution: "execute",     // don’t auto-run
+                    appearance: "execute",    // stay invisible unless executing
+                    callback: (token) => {
+                        let input = form.querySelector('input[name="cf-turnstile-response"]');
+                        if (!input) {
+                            input = document.createElement("input");
+                            input.type = "hidden";
+                            input.name = "cf-turnstile-response";
+                            form.appendChild(input);
+                        }
+                        input.value = token;
+                        form.dataset.tsPending = "";
+                        form.submit();
+                    },
+                    "error-callback": () => {
+                        form.dataset.tsPending = "";
+                        alert("Verification failed. Please try again.");
+                    },
+                });
+            });
+
+            form.addEventListener("submit", (e) => {
+                if (form.dataset.tsPending === "1") return;
+
+                e.preventDefault();
+                form.dataset.tsPending = "1";
+
+                if (!window.turnstile || widgetId == null) {
+                    form.dataset.tsPending = "";
+                    alert("Verification is still loading. Please try again.");
+                    return;
+                }
+
+                turnstile.execute(widgetId);
+            });
+        })();
+    </script>
     <script is:inline>
         (function () {
             const statusEl = document.getElementById("status");

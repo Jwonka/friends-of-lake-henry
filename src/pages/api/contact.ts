@@ -49,8 +49,8 @@ export const POST: APIRoute = async (context) => {
     try {
         const { request } = context;
 
-        // Env bindings are available directly on locals (per your env.d.ts)
-        const env = context.locals as unknown as Env;
+        const env = (context.locals as any).runtime?.env as Env;
+        if (!env) return redirectBack(request.url, "?err=server");
 
         const ct = request.headers.get("content-type") || "";
         if (
@@ -134,6 +134,7 @@ export const POST: APIRoute = async (context) => {
                 to: [env.TO_EMAIL],
                 subject: `Inquiry from ${name}`,
                 html,
+                replyTo: email,
                 reply_to: email,
             }),
         });
