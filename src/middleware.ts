@@ -37,10 +37,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
 
     const token = decodeURIComponent(m[1]);
-    const [secret] = token.split(":");
+    const [secret, ts] = token.split(":");
 
     const cookieSecret = context.locals.runtime.env.ADMIN_COOKIE_SECRET;
-    if (!secret || secret !== cookieSecret) {
+    if (!secret || secret !== cookieSecret || !ts || !Number.isFinite(Number(ts))) {
         if (isAdminApi) return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS });
         return redirectToLogin(context.url.origin, pathname + search, "auth");
     }
