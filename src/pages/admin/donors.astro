@@ -91,11 +91,11 @@ const donors = (await DB
                     <p class="fine muted">Changes apply immediately after submission.</p>
                 </form>
             </div>
-            <div class="panel adminPanel enter-block delay-2" style="margin-top: 1rem;">
+            <div class="panel adminPanel enter-block delay-3" style="margin-top: 1rem;">
                 <h2 class="subhead">Manage donors</h2>
                 <p class="fine muted">Delete removes the donor from the public list immediately.</p>
 
-                <div class="donorList" role="list">
+                <div class="donorList  enter-block delay-4" role="list">
                     {donors.length === 0 ? (
                             <p class="muted">No donors yet.</p>
                     ) : (
@@ -114,9 +114,9 @@ const donors = (await DB
                                 <form method="post" action="/api/admin/donors/delete" class="donorActions">
                                     <input type="hidden" name="id" value={d.id} />
                                     <button
-                                            class="btn"
-                                            type="submit"
-                                            data-confirm={`Delete donor "${(d.display_name || d.name) ?? "this donor"}"? This cannot be undone.`}
+                                        class="btn"
+                                        type="submit"
+                                        data-confirm={`Delete donor "${(d.display_name || d.name) ?? "this donor"}"? This cannot be undone.`}
                                     >
                                         Delete
                                     </button>
