@@ -19,19 +19,22 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             </p>
 
             <div class="filters enter-block delay-1" role="tablist" aria-label="Photo categories">
-                {categories.map((cat, i) => (
-                        <button
-                            class={`pill filter ${i === 0 ? "active" : ""}`}
-                            data-filter={cat}
-                            role="tab"
-                            id={`tab-${i}`}
-                            aria-selected={i === 0 ? "true" : "false"}
-                            tabindex={i === 0 ? 0 : -1}
-                            type="button"
-                        >
-                            {cat}
-                        </button>
-                ))}
+                <div class="tabs" role="tablist" aria-label="Photo categories">
+                    {categories.map((cat, i) => (
+                            <button
+                                class={`pill filter ${i === 0 ? "active" : ""}`}
+                                data-filter={cat}
+                                role="tab"
+                                id={`tab-${i}`}
+                                aria-selected={i === 0 ? "true" : "false"}
+                                tabindex={i === 0 ? 0 : -1}
+                                type="button"
+                            >
+                                {cat}
+                            </button>
+                    ))}
+                </div>
+                <a class="pill submitPill" href="/photos/submit">Submit a photo</a>
             </div>
             <p id="filterStatus" class="srOnly" role="status" aria-live="polite" aria-atomic="true"></p>
             <div class="panel galleryPanel enter-block delay-2" role="tabpanel" aria-labelledby="tab-0">
@@ -57,13 +60,30 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
         .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}
         .lead { max-width: 75ch; margin: 0 0 1.25rem; color: var(--text-strong);line-height: 1.6;}
 
-        /* Center the tabs */
+        /* 3-column layout: left spacer | centered tabs | right CTA */
         .filters{
-            display:flex;
-            justify-content:center;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
             gap: 0.6rem;
-            flex-wrap:wrap;
             margin: 2rem 0 1rem;
+            padding: 0 var(--gallery-space);
+        }
+
+        /* keep the actual tabs centered as a unit */
+        .filters .tabs{
+            grid-column: 2;
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        /* anchor submit to the right edge of the panel bounds */
+        .filters .submitPill{
+            grid-column: 3;
+            justify-self: end;
+            white-space: nowrap;
         }
 
         .filters .pill.filter{
@@ -140,7 +160,33 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
         .photo:hover::after{
             opacity: 0;
         }
+        /* Submit pill should share the SAME material as the filter pills */
+        .filters .pill.submitPill{
+            /* use the same base as tabs */
+            background: var(--glass-dark);
+            border-color: var(--border-strong);
+            color: var(--text-on-dark);
 
+            /* subtle green tint, same “glass” feel */
+            box-shadow: var(--card-shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* green tint overlay (keeps the same glass underneath) */
+        .filters .pill.submitPill::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            background: rgba(34,197,94,0.22);
+            pointer-events:none;
+        }
+
+        /* hover: slightly stronger tint only */
+        .filters .pill.submitPill:hover::before,
+        .filters .pill.submitPill:focus-visible::before{
+            background: rgba(34,197,94,0.32);
+        }
         /* Breakpoints */
         @media (min-width: 640px){
             .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -148,6 +194,25 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
 
         @media (min-width: 980px){
             .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+
+        /* Mid widths: submit drops to its own line and centers */
+        @media (max-width: 1090px){
+            .filters{
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                row-gap: .6rem;
+            }
+
+            .filters .tabs{
+                grid-column: 1;
+                justify-content: center;
+            }
+
+            .filters .submitPill{
+                grid-column: 1;
+                justify-self: center; /* centered until mobile stack kicks in */
+            }
         }
 
         /* Mobile: stack category pills, full-width for easy tapping */
@@ -162,7 +227,6 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
                 margin-bottom: 0.5rem;
             }
 
-
             /* Make photos taller and more immersive */
             .photo{
                 aspect-ratio: 3 / 4;
@@ -175,15 +239,24 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
                 object-fit: cover;
                 width: 100%;
             }
+
             .filters{
+                display: flex;
                 flex-direction: column;
                 align-items: stretch;
-                justify-content: flex-start;
                 gap: .5rem;
                 margin: 1.25rem 0 1.25rem;
+                padding: 0;
             }
 
-            .filters .pill.filter{
+            .filters .tabs{
+                display: flex;
+                flex-direction: column;
+                gap: .5rem;
+            }
+
+            .filters .pill.filter,
+            .filters .pill.submitPill{
                 display: flex;
                 width: 100%;
                 justify-content: center;
@@ -195,6 +268,25 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
                 background: var(--panel-bg-dense);
                 backdrop-filter: none;
             }
+
+            .filters .pill.submitPill{
+                position: relative;
+                overflow: hidden;
+            }
+
+            .filters .pill.submitPill::before{
+                content:"";
+                position:absolute;
+                inset:0;
+                background: rgba(34,197,94,0.18);
+                pointer-events:none;
+            }
+
+            .filters .pill.submitPill:hover::before,
+            .filters .pill.submitPill:focus-visible::before{
+                background: rgba(34,197,94,0.28);
+            }
+
         }
     </style>
 </BaseLayout>
