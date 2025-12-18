@@ -15,25 +15,39 @@ function redirectToLogin(origin: string, nextPath: string, err = "auth") {
     return new Response(null, { status: 302, headers: { location, ...SECURITY_HEADERS } });
 }
 
+async function nextResponse(next: () => Promise<Response | unknown>) {
+    const result = await next();
+    return result instanceof Response ? result : new Response(String(result));
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
     const { pathname, search } = context.url;
 
     const isAdminUi = pathname.startsWith("/admin");
     const isAdminApi = pathname.startsWith("/api/admin");
 
-    if (!isAdminUi && !isAdminApi) return next();
+    // non-admin paths
+    if (!isAdminUi && !isAdminApi) {
+        return nextResponse(next);
+    }
 
     // allow login UI
-    if (pathname === "/admin/login" || pathname === "/admin/login/") return next();
+    if (pathname === "/admin/login" || pathname === "/admin/login/") {
+        return nextResponse(next);
+    }
 
-    // allow login API so you can actually log in
-    if (pathname === "/api/admin/login") return next();
+    // allow login API
+    if (pathname === "/api/admin/login") {
+        return nextResponse(next);
+    }
 
     const cookie = context.request.headers.get("cookie") ?? "";
     const m = cookie.match(/(?:^|;\s*)admin_auth=([^;]+)/);
 
     if (!m) {
-        if (isAdminApi) return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS });
+        if (isAdminApi) {
+            return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS });
+        }
         return redirectToLogin(context.url.origin, pathname + search, "auth");
     }
 
@@ -42,9 +56,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     const cookieSecret = context.locals.runtime.env.ADMIN_COOKIE_SECRET;
     if (!secret || secret !== cookieSecret || !ts || !Number.isFinite(Number(ts))) {
-        if (isAdminApi) return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS });
+        if (isAdminApi) {
+            return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS });
+        }
         return redirectToLogin(context.url.origin, pathname + search, "auth");
     }
 
-    return next();
+    // authenticated admin paths
+    return nextResponse(next);
 });
