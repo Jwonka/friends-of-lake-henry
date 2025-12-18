@@ -1,3 +1,4 @@
+throw new Error("MIDDLEWARE_EXECUTED_V1");
 import { defineMiddleware } from "astro/middleware";
 
 const SECURITY_HEADERS: Record<string, string> = {
