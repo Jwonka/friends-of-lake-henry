@@ -11,26 +11,39 @@ type PhotoRow = {
     alt: string | null;
 };
 
-const categories = ["All", "Restoration", "Donations", "Community Events", "Raffles", "Scenery"];
+
 const env = (Astro.locals as any).runtime?.env as { DB?: D1Database } | undefined;
 const DB = env?.DB;
 
+let categories: string[] = ["All"];
 let photos: PhotoRow[] = [];
 let dbMissing = false;
 let dbError: string | null = null;
 
 if (!DB) {
     dbMissing = true;
+    dbError = "DB binding missing";
 } else {
     try {
+        // Photos
         const res = await DB.prepare(`
-      SELECT id, category, title, caption, alt
-      FROM photos
-      WHERE status = 'approved'
-      ORDER BY approved_at DESC, submitted_at DESC
-    `).all();
+            SELECT id, category, title, caption, alt
+            FROM photos
+            WHERE status = 'approved'
+            ORDER BY approved_at DESC, submitted_at DESC
+        `).all();
 
         photos = (res.results ?? []) as PhotoRow[];
+
+        // Categories (DB is source of truth)
+        const catRes = await DB.prepare(`
+          SELECT DISTINCT category
+          FROM photos
+          WHERE status = 'approved'
+          ORDER BY category
+        `).all<{ category: string }>();
+
+        categories = ["All", ...(catRes.results ?? []).map(r => r.category)];
     } catch (e) {
         dbError = e instanceof Error ? e.message : String(e);
     }
@@ -109,9 +122,11 @@ const statusClass =
     </div>
     <script type="module">
         import { initPhotoFilters } from "../../scripts/photos-filter";
-        initPhotoFilters();
         import { cleanFlashParams } from "../../scripts/clean-flash";
-        cleanFlashParams(["submitted"]);
+        window.addEventListener("DOMContentLoaded", () => {
+            initPhotoFilters();
+            cleanFlashParams(["submitted"], 0);
+        });
     </script>
     <style>
         .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}

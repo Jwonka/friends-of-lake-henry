@@ -1,6 +1,7 @@
 export function initPhotoFilters() {
     const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(".filter"));
     const items = Array.from(document.querySelectorAll<HTMLElement>(".photoLink"));
+    if (buttons.length === 0 || items.length === 0) return;
     const statusEl = document.getElementById("filterStatus");
     const panel = document.querySelector<HTMLElement>('[role="tabpanel"]');
 
@@ -19,8 +20,9 @@ export function initPhotoFilters() {
         let visible = 0;
 
         items.forEach((item) => {
-            const category = item.dataset.category ?? "";
-            const match = filter === "All" || category === filter;
+            const category = (item.dataset.category ?? "").trim().toLowerCase();
+            const target = filter.trim().toLowerCase();
+            const match = target === "all" || category === target;
             item.style.display = match ? "" : "none";
             if (match) visible += 1;
         });
