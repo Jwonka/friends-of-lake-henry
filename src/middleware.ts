@@ -52,6 +52,36 @@ export const onRequest = defineMiddleware(async (context, next) => {
             { status: 200, headers: { "content-type": "application/json; charset=utf-8" } }
         );
     }
+    if (pathname === "/__debug-home") {
+        // Pretend this route doesn't exist and see what the app would have returned for "/"
+        // We'll do that by fetching "/" through the same worker (internal subrequest).
+        // This avoids needing to mutate context.url (which you can't).
+        const url = new URL(context.request.url);
+        url.pathname = "/";
+        url.search = "";
+
+        const r = await fetch(url.toString(), {
+            headers: context.request.headers,
+            method: "GET",
+        });
+
+        const text = await r.clone().text();
+
+        return new Response(
+            JSON.stringify(
+                {
+                    status: r.status,
+                    contentType: r.headers.get("content-type"),
+                    contentLengthHeader: r.headers.get("content-length"),
+                    textLen: text.length,
+                    textStart: text.slice(0, 120),
+                },
+                null,
+                2
+            ),
+            { headers: { "content-type": "application/json; charset=utf-8" } }
+        );
+    }
 
     const isAdminUi = pathname.startsWith("/admin");
     const isAdminApi = pathname.startsWith("/api/admin");
