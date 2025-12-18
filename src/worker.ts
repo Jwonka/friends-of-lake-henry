@@ -1,25 +1,16 @@
-import * as entry from "@astrojs/cloudflare/entrypoints/server.js";
-
-// Avoid needing Cloudflare's ExecutionContext type just to compile.
-type Ctx = { waitUntil(promise: Promise<any>): void; passThroughOnException?: () => void };
-
-function pickHandler(mod: any) {
-    // Try common shapes without assuming types.
-    if (typeof mod?.default?.fetch === "function") return mod.default.fetch.bind(mod.default);
-    if (typeof mod?.default === "function") return mod.default;
-    if (typeof mod?.fetch === "function") return mod.fetch;
-    if (typeof mod?.handler === "function") return mod.handler;
-    if (typeof mod?.onRequest === "function") return mod.onRequest;
-    return null;
-}
-
-const handler = pickHandler(entry as any);
+// This file is used as the Cloudflare worker entrypoint via adapter.workerEntryPoint.
+// It imports the built SSR entry (virtual) that Astro generates at build time.
+import type { SSRManifest } from "astro";
 
 export default {
-    async fetch(request: Request, env: any, ctx: Ctx): Promise<Response> {
-        if (!handler) {
+    async fetch(request: Request, env: any, ctx: any): Promise<Response> {
+        // The adapter injects the real handler; we just verify Response-ness at runtime.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const handler = (globalThis as any).__ASTRO_FETCH;
+
+        if (typeof handler !== "function") {
             return new Response(
-                `Could not find handler export in @astrojs/cloudflare/entrypoints/server.js. Exports: ${Object.keys(entry as any).join(", ")}`,
+                "Worker wrapper: __ASTRO_FETCH not found. Entry wiring is incorrect.",
                 { status: 500, headers: { "content-type": "text/plain; charset=utf-8" } }
             );
         }
@@ -30,7 +21,6 @@ export default {
             isResponse: result instanceof Response,
             type: typeof result,
             ctor: (result as any)?.constructor?.name,
-            keys: typeof result === "object" && result ? Object.keys(result).slice(0, 20) : null,
         });
 
         return result instanceof Response
@@ -41,3 +31,4 @@ export default {
             });
     },
 };
+

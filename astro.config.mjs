@@ -9,7 +9,7 @@ export default defineConfig({
     integrations: [sitemap()],
     output: "server",
     adapter: cloudflare({
-        workerEntryPoint: { path: "src/worker.ts" },
+        workerEntryPoint: { path: "src/worker.ts", namedExports: ["__ASTRO_FETCH"] },
     }),
     image: {
         service: { entrypoint: "astro/assets/services/noop" },
