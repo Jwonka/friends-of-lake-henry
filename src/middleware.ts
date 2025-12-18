@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro/middleware";
 
+const MAX_SESSION_AGE_MS = 8 * 60 * 60 * 1000; // 8 hours
 const SECURITY_HEADERS: Record<string, string> = {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
@@ -41,14 +42,39 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const m = cookie.match(/(?:^|;\s*)admin_auth=([^;]+)/);
     if (!m) return isAdminApi ? unauthorized() : redirectToLogin(context.url.origin, pathname + search);
 
-    const token = m[1]; // do NOT decode unless you encoded when writing it
-    const [secret, ts] = token.split(":");
+    let token = m[1];
+    try {
+        token = decodeURIComponent(token);
+    } catch {
+        return isAdminApi ? unauthorized() : redirectToLogin(context.url.origin, pathname + search);
+    }
+
+    const [secret, tsRaw] = token.split(":");
+    const ts = Number(tsRaw);
 
     const cookieSecret = context.locals.runtime.env.ADMIN_COOKIE_SECRET;
-    if (!cookieSecret) return isAdminApi ? unauthorized() : redirectToLogin(context.url.origin, pathname + search, "server");
+    if (!cookieSecret) {
+        return isAdminApi
+            ? unauthorized()
+            : redirectToLogin(context.url.origin, pathname + search, "server");
+    }
 
-    if (!secret || secret !== cookieSecret || !ts || !Number.isFinite(Number(ts))) {
+    // Validate secret
+    if (!secret || secret !== cookieSecret) {
         return isAdminApi ? unauthorized() : redirectToLogin(context.url.origin, pathname + search);
+    }
+
+    // Validate timestamp
+    if (!Number.isFinite(ts)) {
+        return isAdminApi ? unauthorized() : redirectToLogin(context.url.origin, pathname + search);
+    }
+
+    const age = Date.now() - ts;
+    if (age < 0 || age > MAX_SESSION_AGE_MS) {
+        // expired or clock-skewed token
+        return isAdminApi
+            ? unauthorized()
+            : redirectToLogin(context.url.origin, pathname + search, "auth");
     }
 
     return next();
