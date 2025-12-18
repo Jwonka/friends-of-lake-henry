@@ -8,7 +8,7 @@ const SECURITY_HEADERS: Record<string, string> = {
 };
 
 function redirectToLogin(origin: string, nextPath: string, err = "auth") {
-    const safeNext = nextPath.startsWith("/admin/login") ? "/admin" : nextPath;
+    const safeNext = nextPath.startsWith("/admin/login") || nextPath.startsWith("/admin/login/") ? "/admin" : nextPath;
     const next = encodeURIComponent(safeNext);
     const location = `${origin}/admin/login?err=${encodeURIComponent(err)}&next=${next}`;
     return new Response(null, { status: 302, headers: { location, ...SECURITY_HEADERS } });
