@@ -28,6 +28,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
             headers: { "content-type": "text/plain; charset=utf-8" },
         });
     }
+    if (pathname === "/__ping") {
+        return new Response("<!doctype html><p>ping</p>", {
+            status: 200,
+            headers: { "content-type": "text/html; charset=utf-8" },
+        });
+    }
     const isAdminUi = pathname.startsWith("/admin");
     const isAdminApi = pathname.startsWith("/api/admin");
 
