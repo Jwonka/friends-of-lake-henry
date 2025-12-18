@@ -1,0 +1,289 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+export const prerender = false;
+---
+<BaseLayout title="Submit Photo | Friends of Lake Henry">
+    <div class="container">
+        <section class="card submitSection enter-block">
+            <h1>Submit a Photo</h1>
+            <p class="lead">Share restoration work, events, raffles, and scenery from Lake Henry.</p>
+
+            <div class="panel enter-block delay-1">
+                <h2 class="subhead">Photo details</h2>
+
+                <div id="status" class="status status--empty" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></div>
+
+                <form class="form" method="post" action="/api/photos/submit" enctype="multipart/form-data">
+                    <!-- Row 1: file + title + category -->
+                    <div class="row row--top">
+                        <label class="field field--file">
+                            <span class="labelRow">Photo<span class="req" aria-hidden="true">*</span><span class="srOnly">(required)</span></span>
+
+                            <input id="photo" class="fileInput" name="photo" type="file" accept="image/*" required />
+
+                            <div class="fileUi" role="group">
+                                <button class="pill fileBtn" type="button" data-file-btn>Choose file</button>
+                                <span class="fileName muted" data-file-name>No file chosen</span>
+                            </div>
+                        </label>
+
+                        <!-- Title  middle -->
+                        <label class="field">
+                            <span class="labelRow">Title</span>
+                            <input name="title" placeholder="Title (optional)" />
+                        </label>
+
+                        <!-- Category  right -->
+                        <label class="field">
+                            <span class="labelRow">Category<span class="req" aria-hidden="true">*</span><span class="srOnly">(required)</span></span>
+                            <select name="category" required>
+                                <option value="">Select a category…</option>
+                                <option value="Restoration">Restoration</option>
+                                <option value="Donations">Donations</option>
+                                <option value="Community Events">Community Events</option>
+                                <option value="Raffles">Raffles</option>
+                                <option value="Scenery">Scenery</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <!-- Row 2: alt full width -->
+                    <label class="field field--full">
+                        <span class="labelRow">
+                          Alt text<span class="req" aria-hidden="true">*</span><span class="srOnly">(required)</span>
+                        </span>
+
+                        <input
+                            name="alt"
+                            required
+                            minlength="5"
+                            placeholder='Example: "Volunteers placing rocks along the shoreline"'
+                        />
+
+                        <p class="help">
+                            <strong>What is alt text?</strong> A short description of the photo for people who use screen readers,
+                            and for cases where the image can’t load.
+                            <br />
+                            <span class="helpRow">
+                                <span><strong>Good example:</strong> “Kids holding raffle tickets in front of the Lake Henry sign.”</span>
+                                <span class="helpNo"><strong>Not helpful:</strong> “photo” or “image”.</span>
+                          </span>
+                        </p>
+                    </label>
+
+                    <!-- Row 3: submitted by + caption (caption half-row, not huge) -->
+                    <div class="row row--bottom">
+                        <label class="field">
+                            <span class="labelRow">Submitted by</span>
+                            <input name="submittedBy" placeholder="Name (optional)" />
+                        </label>
+
+                        <label class="field">
+                            <span class="labelRow">Caption</span>
+                            <textarea class="caption" name="caption" rows="3" placeholder="Caption (optional)"></textarea>
+                        </label>
+                    </div>
+
+                    <div class="ctaRow enter-block delay-2">
+                        <button class="btn" type="submit">Submit photo</button>
+                        <a class="pill submitPill" href="/photos">Back to photos</a>
+                    </div>
+
+                    <p class="fine muted">Submissions are reviewed before appearing publicly.</p>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <script is:inline>
+        (function () {
+            const statusEl = document.getElementById("status");
+            if (!statusEl) return;
+
+            const url = new URL(window.location.href);
+            const err = url.searchParams.get("err");
+            const submitted = url.searchParams.get("submitted");
+
+            function show(kind, msg) {
+                statusEl.textContent = msg;
+                statusEl.classList.remove("status--empty", "status--success", "status--error");
+                statusEl.classList.add(kind === "ok" ? "status--success" : "status--error");
+                try { statusEl.focus(); } catch {}
+            }
+
+            if (submitted === "1") {
+                show("ok", "Thanks! Your photo was submitted for review.");
+                url.searchParams.delete("submitted");
+                window.history.replaceState({}, "", url.pathname + url.search);
+                return;
+            }
+
+            if (err) {
+                const msg =
+                    err === "file" ? "Please choose a file."
+                        : err === "category" ? "Please choose a valid category."
+                            : err === "alt" ? "Alt text must be at least 5 characters."
+                                : err === "type" ? "Please upload a JPG, PNG, WEBP, or GIF."
+                                    : err === "size" ? "File must be under 8MB."
+                                        : "Sorry, something went wrong. Please try again.";
+
+                show("err", msg);
+                url.searchParams.delete("err");
+                window.history.replaceState({}, "", url.pathname + url.search);
+            }
+        })();
+    </script>
+    <script is:inline>
+        (function () {
+            const input = document.querySelector('input[type="file"][name="photo"]');
+            const btn = document.querySelector("[data-file-btn]");
+            const name = document.querySelector("[data-file-name]");
+            if (!input || !btn || !name) return;
+
+            btn.addEventListener("click", () => input.click());
+            input.addEventListener("change", () => {
+                const f = input.files && input.files[0];
+                name.textContent = f ? f.name : "No file chosen";
+            });
+        })();
+    </script>
+    <style>
+        .form { margin-top: 1rem; display: grid; gap: 1rem; }
+        .field { display: grid; gap: 0.4rem; }
+        .field--full { width: 100%; }
+        .helpRow{ display: block; }
+        .helpNo{ display:block; margin-top: .15rem; }
+        .row{
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+            align-items: end;
+        }
+
+        /* Desktop grid */
+        @media (min-width: 980px){
+            .row--top{
+                grid-template-columns: 1fr 1fr 0.9fr;
+                align-items: end;
+            }
+            .row--bottom{
+                grid-template-columns: 0.9fr 1.1fr;
+            }
+            .helpRow{
+                display: flex;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+            .helpNo{ margin-top: 0; }
+            .row--bottom textarea.caption{
+                height: 56px !important;
+                min-height: 56px !important;
+                max-height: 56px !important;
+                resize: none;
+                overflow: hidden;
+                padding: 0.9rem;
+                line-height: 1.35;
+            }
+        }
+
+        /* Hide native file input */
+        .fileInput{
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        /* File UI container: match inputs but not absurdly wide */
+        .fileUi{
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .65rem .75rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-strong);
+            background: var(--glass-light);
+            max-width: 520px;
+        }
+
+        @media (max-width: 980px){
+            .fileUi{ max-width: 100%; }
+        }
+
+        .fileName{
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        /* Make "Choose file" behave like .btn (same hover/active) */
+        .btn--file{
+            padding: 0.6rem 0.95rem;
+            border-radius: 999px;
+            font-weight: 750;
+        }
+
+        /* Select styling: darker “glass” */
+        select{
+            background: var(--glass-light);
+            border-color: var(--border-strong);
+            color: var(--text-bright);
+            /* make the arrow look consistent without changing the menu */
+            appearance: none;
+            background-image:
+                    linear-gradient(45deg, transparent 50%, var(--text-soft) 50%),
+                    linear-gradient(135deg, var(--text-soft) 50%, transparent 50%);
+            background-position:
+                    calc(100% - 18px) calc(50% - 3px),
+                    calc(100% - 12px) calc(50% - 3px);
+            background-size: 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 2.25rem;
+        }
+
+        /* Some browsers ignore option styling; still helps where supported */
+        select option{
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        /* CTA row */
+        .ctaRow{
+            display:flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: .35rem;
+            align-items: center;
+        }
+
+        /* Match Photos page green pill */
+        .submitPill{
+            background: var(--glass-dark);
+            border-color: var(--border-strong);
+            color: var(--text-on-dark);
+            box-shadow: var(--card-shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+        .submitPill::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            background: rgba(34,197,94,0.22);
+            pointer-events:none;
+        }
+        .submitPill:hover::before,
+        .submitPill:focus-visible::before{
+            background: rgba(34,197,94,0.32);
+        }
+
+        /* Mobile */
+        @media (max-width: 520px){
+            .ctaRow{ flex-direction: column; align-items: stretch; }
+            .ctaRow .btn,
+            .ctaRow .pill{ width: 100%; justify-content: center; }
+        }
+    </style>
+</BaseLayout>

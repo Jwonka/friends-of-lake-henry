@@ -6,7 +6,7 @@ export const prerender = true;
  * Nonprofit-first ordering:
  * Restoration -> Donations -> Community Events -> Raffle -> Scenery
  */
-const categories = ["All", "Restoration", "Donations", "Community Events", "Raffle", "Scenery"];
+const categories = ["All", "Restoration", "Donations", "Community Events", "Raffles", "Scenery"];
 
 ---
 
@@ -17,21 +17,21 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             <p class="lead">
                 Updates from restoration work, fundraising, community events, and life at Lake Henry.
             </p>
-
+            <div id="status" class="status status--empty" style="text-align: center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></div>
             <div class="filters enter-block delay-1" role="tablist" aria-label="Photo categories">
                 <div class="tabs" role="tablist" aria-label="Photo categories">
                     {categories.map((cat, i) => (
-                            <button
-                                class={`pill filter ${i === 0 ? "active" : ""}`}
-                                data-filter={cat}
-                                role="tab"
-                                id={`tab-${i}`}
-                                aria-selected={i === 0 ? "true" : "false"}
-                                tabindex={i === 0 ? 0 : -1}
-                                type="button"
-                            >
-                                {cat}
-                            </button>
+                        <button
+                            class={`pill filter ${i === 0 ? "active" : ""}`}
+                            data-filter={cat}
+                            role="tab"
+                            id={`tab-${i}`}
+                            aria-selected={i === 0 ? "true" : "false"}
+                            tabindex={i === 0 ? 0 : -1}
+                            type="button"
+                        >
+                            {cat}
+                        </button>
                     ))}
                 </div>
                 <a class="pill submitPill" href="/photos/submit">Submit a photo</a>
@@ -55,7 +55,24 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
         import { initPhotoFilters } from "../../scripts/photos-filter";
         initPhotoFilters();
     </script>
+    <script is:inline>
+        (function () {
+            const statusEl = document.getElementById("status");
+            if (!statusEl) return;
 
+            const url = new URL(window.location.href);
+            const submitted = url.searchParams.get("submitted");
+
+            if (submitted === "1") {
+                statusEl.textContent = "Thanks! Your photo was submitted for review.";
+                statusEl.classList.remove("status--empty");
+                statusEl.classList.add("status--success");
+                try { statusEl.focus(); } catch {}
+                url.searchParams.delete("submitted");
+                window.history.replaceState({}, "", url.pathname + url.search);
+            }
+        })();
+    </script>
     <style>
         .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}
         .lead { max-width: 75ch; margin: 0 0 1.25rem; color: var(--text-strong);line-height: 1.6;}

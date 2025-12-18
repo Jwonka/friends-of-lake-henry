@@ -33,12 +33,12 @@ const error = url.searchParams.get("error") === "1";
                     <div class="grid2">
                         <label class="field">
                             <span class="lbl">Full name <span class="req">*</span></span>
-                            <input name="name" autocomplete="name" required />
+                            <input name="name" autocomplete="name" placeholder="John Doe" required />
                         </label>
 
                         <label class="field">
                             <span class="lbl">Email <span class="req">*</span></span>
-                            <input name="email" type="email" autocomplete="email" required />
+                            <input name="email" type="email" autocomplete="email" placeholder="example@gmail.com" required />
                         </label>
                     </div>
 
@@ -57,15 +57,15 @@ const error = url.searchParams.get("error") === "1";
                         </label>
 
                         <label class="field">
-                            <span class="lbl">Donor name to display (optional)</span>
-                            <input name="displayName" placeholder="Company / Name" />
+                            <span class="lbl">Donor name to display <span class="req">*</span></span>
+                            <input name="displayName" placeholder="Company/Name" required/>
                         </label>
                     </div>
 
                     <div class="grid2">
                         <label class="field">
-                            <span class="lbl">In memory of (optional)</span>
-                            <input name="inMemoryOf" />
+                            <span class="lbl">In memory of</span>
+                            <input name="inMemoryOf" placeholder="In memory of (optional)"/>
                         </label>
 
                         <div class="field">
@@ -75,8 +75,8 @@ const error = url.searchParams.get("error") === "1";
                     </div>
 
                     <label class="field">
-                        <span class="lbl">Message (optional)</span>
-                        <textarea name="message" rows="4" placeholder="Any notes"></textarea>
+                        <span class="lbl">Message </span>
+                        <textarea name="message" rows="4" placeholder="Any notes (optional)"></textarea>
                     </label>
 
                     <div class="turnstile">
