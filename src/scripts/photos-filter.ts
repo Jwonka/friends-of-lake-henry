@@ -1,4 +1,9 @@
 export function initPhotoFilters() {
+    console.log("[photos-filter] init", {
+        buttons: document.querySelectorAll(".filter").length,
+        items: document.querySelectorAll(".photoLink").length,
+    });
+
     const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(".filter"));
     const items = Array.from(document.querySelectorAll<HTMLElement>(".photoLink"));
     if (buttons.length === 0 || items.length === 0) return;

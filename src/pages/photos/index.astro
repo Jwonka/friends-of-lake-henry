@@ -123,10 +123,8 @@ const statusClass =
     <script type="module">
         import { initPhotoFilters } from "../../scripts/photos-filter";
         import { cleanFlashParams } from "../../scripts/clean-flash";
-        window.addEventListener("DOMContentLoaded", () => {
-            initPhotoFilters();
-            cleanFlashParams(["submitted"], 0);
-        });
+        initPhotoFilters();
+        cleanFlashParams(["submitted"], 0);
     </script>
     <style>
         .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}
