@@ -47,17 +47,24 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
     });
     await BUCKET.delete(srcKey);
 
-    await DB.prepare(`
-    UPDATE photos
-    SET status = 'approved',
-        r2_key = ?,
-        alt = ?,
-        title = ?,
-        caption = ?,
-        category = ?,
-        approved_at = datetime('now')
-    WHERE id = ?
-  `).bind(dstKey, alt, title, caption, id).run();
+    const r = await DB.prepare(`
+      UPDATE photos
+      SET status = 'approved',
+          r2_key = ?,
+          alt = ?,
+          title = ?,
+          caption = ?,
+          category = ?,
+          approved_at = datetime('now')
+      WHERE id = ? AND status = 'pending'
+    `).bind(dstKey, alt, title, caption, category, id).run();
 
+    if (!r.success || (r.meta?.changes ?? 0) !== 1) {
+        // rollback the new object
+        await BUCKET.delete(dstKey);
+        return bad("Update failed", 500);
+    }
+
+    await BUCKET.delete(srcKey);
     return Response.redirect(`${url.origin}/admin/photos/pending?ok=approved`, 303);
 };
