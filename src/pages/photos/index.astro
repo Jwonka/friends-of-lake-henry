@@ -120,12 +120,10 @@ const statusClass =
             </div>
         </section>
     </div>
-    <script type="module">
-        import { initPhotoFilters } from "../../scripts/photos-filter";
-
-        initPhotoFilters();
-
-    </script>
+    <script
+        type="module"
+        src={new URL("../../scripts/photos-page.ts", import.meta.url).toString()}
+    />
     <style>
         .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}
         .lead { max-width: 75ch; margin: 0 0 1.25rem; color: var(--text-strong);line-height: 1.6;}

@@ -141,10 +141,10 @@ const statusMsg =
             </div>
         </section>
     </div>
-    <script type="module">
-        import { cleanFlashParams } from "../../../scripts/clean-flash";
-        cleanFlashParams(["ok", "err"]);
-    </script>
+    <script
+        type="module"
+        src={new URL("../../../scripts/admin-photos-pending-page.ts", import.meta.url).toString()}
+    />
     <style>
         .pendingCard { margin-top: var(--section-gap); }
 
