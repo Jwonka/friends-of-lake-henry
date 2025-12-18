@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+export const prerender = false;
 
 const url = new URL(Astro.request.url);
 const sent = url.searchParams.get("sent") === "1";

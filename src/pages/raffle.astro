@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { raffleConfig } from "../data/raffle";
+export const prerender = false;
 
 const { monthName, year, monthIndex, ticketPrice, flyerMeta, rules, prizesByDay } = raffleConfig;
 
