@@ -17,7 +17,6 @@ function redirectToLogin(origin: string, nextPath: string, err = "auth") {
 
 export const onRequest = defineMiddleware(async (context, next) => {
     const { pathname, search } = context.url;
-
     // diagnostics
     if (pathname === "/__health") {
         return new Response("health-ok", { headers: { "content-type": "text/plain" } });
@@ -26,6 +25,32 @@ export const onRequest = defineMiddleware(async (context, next) => {
         return new Response("<!doctype html><p>ping</p>", {
             headers: { "content-type": "text/html" },
         });
+    }
+    if (pathname === "/__debug-next") {
+        const r: any = await next();
+
+        const isResponseLike =
+            r &&
+            typeof r === "object" &&
+            typeof r.headers?.get === "function" &&
+            typeof r.text === "function" &&
+            typeof r.clone === "function";
+
+        return new Response(
+            JSON.stringify(
+                {
+                    typeof: typeof r,
+                    ctor: r?.constructor?.name ?? null,
+                    isResponseLike,
+                    hasHeadersGet: typeof r?.headers?.get === "function",
+                    status: r?.status ?? null,
+                    contentType: r?.headers?.get?.("content-type") ?? null,
+                },
+                null,
+                2
+            ),
+            { status: 200, headers: { "content-type": "application/json; charset=utf-8" } }
+        );
     }
 
     const isAdminUi = pathname.startsWith("/admin");
