@@ -38,14 +38,19 @@ export function initPhotosSubmit() {
 }
 
 export function initFilePickerUI() {
-    const input = document.querySelector<HTMLInputElement>('input[type="file"][name="photo"]');
-    const btn = document.querySelector<HTMLElement>("[data-file-btn]");
-    const name = document.querySelector<HTMLElement>("[data-file-name]");
+    const input = document.querySelector<HTMLInputElement>('#photo');
+    const btn = document.querySelector<HTMLButtonElement>('[data-file-btn]');
+    const name = document.querySelector<HTMLElement>('[data-file-name]');
     if (!input || !btn || !name) return;
 
-    btn.addEventListener("click", () => input.click());
-    input.addEventListener("change", () => {
+    btn.addEventListener('click', () => {
+        // Chrome has showPicker; fallback for others
+        (input as any).showPicker?.();
+        input.click();
+    });
+
+    input.addEventListener('change', () => {
         const f = input.files?.[0];
-        name.textContent = f ? f.name : "No file chosen";
+        name.textContent = f ? f.name : 'No file chosen';
     });
 }

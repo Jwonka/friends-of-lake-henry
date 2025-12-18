@@ -88,7 +88,7 @@ const statusMsg =
 
                                             <label class="field">
                                                 <span class="labelRow">Category<span class="req" aria-hidden="true">*</span></span>
-                                                <select name="category" required>
+                                                <select name="category" class="selectGlass" required>
                                                     {categories.map((c) => (
                                                             <option value={c} selected={p.category === c}>{c}</option>
                                                     ))}
@@ -203,6 +203,43 @@ const statusMsg =
         .itemBody{
             display: grid;
             gap: 0.9rem;
+        }
+
+        .selectGlass{
+            width: 100%;
+            background: var(--glass-light);
+            border: 1px solid var(--border-strong);
+            color: var(--text-bright);
+            border-radius: 12px;
+            padding: 0.85rem 2.25rem 0.85rem 0.9rem;
+            line-height: 1.2;
+
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+
+            /* custom arrow */
+            background-image:
+                    linear-gradient(45deg, transparent 50%, var(--text-soft) 50%),
+                    linear-gradient(135deg, var(--text-soft) 50%, transparent 50%);
+            background-position:
+                    calc(100% - 18px) calc(50% - 3px),
+                    calc(100% - 12px) calc(50% - 3px);
+            background-size: 6px 6px;
+            background-repeat: no-repeat;
+        }
+
+        .selectGlass:focus,
+        .selectGlass:focus-visible{
+            outline: none;
+            border-color: var(--border-bright-strong);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.12);
+        }
+
+        /* Some browsers ignore option styling, but this helps where supported */
+        .selectGlass option{
+            background: var(--surface);
+            color: var(--text);
         }
 
         .meta{
