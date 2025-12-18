@@ -17,19 +17,44 @@ const DB = env?.DB;
 
 let photos: PhotoRow[] = [];
 let dbMissing = false;
+let dbError: string | null = null;
 
 if (!DB) {
     dbMissing = true;
 } else {
-    const res = await DB.prepare(`
-    SELECT id, category, title, caption, alt
-    FROM photos
-    WHERE status = 'approved'
-    ORDER BY approved_at DESC, submitted_at DESC
-  `).all();
+    try {
+        const res = await DB.prepare(`
+      SELECT id, category, title, caption, alt
+      FROM photos
+      WHERE status = 'approved'
+      ORDER BY approved_at DESC, submitted_at DESC
+    `).all();
 
-    photos = (res.results ?? []) as PhotoRow[];
+        photos = (res.results ?? []) as PhotoRow[];
+    } catch (e) {
+        dbError = e instanceof Error ? e.message : String(e);
+    }
 }
+const submitted = Astro.url.searchParams.get("submitted");
+
+let statusMsg = "";
+let statusTone: "empty" | "success" | "error" = "empty";
+
+if (submitted === "1") {
+    statusMsg = "Thanks! Your photo was submitted for review.";
+    statusTone = "success";
+} else if (dbMissing) {
+    statusMsg = "Server misconfigured: DB binding not available.";
+    statusTone = "error";
+} else if (dbError) {
+    statusMsg = `Photos DB query failed: ${dbError}`;
+    statusTone = "error";
+}
+
+const statusClass =
+    statusTone === "success" ? "status--success" :
+        statusTone === "error" ? "status--error" :
+            "status--empty";
 ---
 
 <BaseLayout title="Photos | Friends of Lake Henry">
@@ -39,17 +64,16 @@ if (!DB) {
             <p class="lead">
                 Updates from restoration work, fundraising, community events, and life at Lake Henry.
             </p>
-            <div id="status" class="status status--empty" style="text-align: center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></div>
             <div
-                    id="status"
-                    class={`status ${dbMissing ? "status--error" : "status--empty"}`}
-                    style="text-align: center;"
-                    role="status"
-                    aria-live="polite"
-                    aria-atomic="true"
-                    tabindex="-1"
+                id="status"
+                class={`status ${statusClass}`}
+                style="text-align:center;"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                tabindex="-1"
             >
-                {dbMissing ? "Server misconfigured: DB binding not available." : ""}
+                {statusMsg}
             </div>
             <div class="filters enter-block delay-1" role="tablist" aria-label="Photo categories">
                 <div class="tabs" role="tablist" aria-label="Photo categories">
@@ -89,20 +113,11 @@ if (!DB) {
     </script>
     <script is:inline>
         (function () {
-            const statusEl = document.getElementById("status");
-            if (!statusEl) return;
-
             const url = new URL(window.location.href);
-            const submitted = url.searchParams.get("submitted");
-
-            if (submitted === "1") {
-                statusEl.textContent = "Thanks! Your photo was submitted for review.";
-                statusEl.classList.remove("status--empty");
-                statusEl.classList.add("status--success");
-                try { statusEl.focus(); } catch {}
+            if (url.searchParams.has("submitted")) {
                 url.searchParams.delete("submitted");
                 window.history.replaceState({}, "", url.pathname + url.search);
-            }
+                }
         })();
     </script>
     <style>
