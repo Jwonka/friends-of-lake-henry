@@ -9,4 +9,7 @@ export default defineConfig({
     integrations: [sitemap()],
     output: "server",
     adapter: cloudflare(),
+    image: {
+        service: { entrypoint: "astro/assets/services/noop" },
+    },
 });
