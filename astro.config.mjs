@@ -8,7 +8,9 @@ export default defineConfig({
     site: 'https://friendsoflakehenry.com',
     integrations: [sitemap()],
     output: "server",
-    adapter: cloudflare(),
+    adapter: cloudflare({
+        workerEntryPoint: { path: "src/worker.ts" },
+    }),
     image: {
         service: { entrypoint: "astro/assets/services/noop" },
     },
