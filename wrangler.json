@@ -1,7 +1,31 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "friends-of-lake-henry",
+
   "compatibility_date": "2025-09-15",
   "compatibility_flags": ["nodejs_compat", "disable_nodejs_process_v2"],
-  "pages_build_output_dir": "dist"
+
+  "pages_build_output_dir": "dist",
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "folh-db",
+      "database_id": "PUT_FOLH_DB_UUID_HERE"
+    }
+  ],
+
+  "kv_namespaces": [
+    {
+      "binding": "SESSION",
+      "id": "PUT_PROD_SESSION_KV_ID_HERE"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "PHOTOS_BUCKET",
+      "bucket_name": "folh-photos"
+    }
+  ]
 }
