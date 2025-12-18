@@ -118,39 +118,19 @@ export const prerender = false;
             });
         })();
     </script>
-    <script is:inline>
-        (function () {
-            const statusEl = document.getElementById("status");
-            if (!statusEl) return;
-
-            const url = new URL(window.location.href);
-            const sent = url.searchParams.get("sent");
-            const err = url.searchParams.get("err");
-
-            function show(kind, msg) {
-                statusEl.textContent = msg;
-                statusEl.classList.remove("status--empty", "status--success", "status--error");
-                statusEl.classList.add(kind === "ok" ? "status--success" : "status--error");
-                try { statusEl.focus(); } catch {}
-            }
-
-            if (sent === "1") {
-                show("ok", "Thanks! We’ll be in touch shortly.");
-                url.searchParams.delete("sent");
-                window.history.replaceState({}, "", url.pathname + url.search);
-                return;
-            }
-
-            if (err) {
-                show("err",
-                    err === "captcha" ? "Verification failed. Please try again."
-                        : err === "input" ? "Please check your details and try again."
-                            : "Sorry, something went wrong. Please try again."
-                );
-                url.searchParams.delete("err");
-                window.history.replaceState({}, "", url.pathname + url.search);
-            }
-        })();
+    <script type="module">
+        import { initFlashStatus } from "../scripts/flash-status";
+        initFlashStatus({
+            okParam: "sent",
+            errParam: "err",
+            okMessages: { "1": "Thanks! We’ll be in touch shortly." },
+            errMessages: {
+                captcha: "Verification failed. Please try again.",
+                input: "Please check your details and try again.",
+            },
+            defaultErr: "Sorry, something went wrong. Please try again.",
+            cleanupDelayMs: 0,
+        });
     </script>
     <style>
         .contactSection{ margin-top: var(--section-gap); margin-bottom: calc(var(--section-gap) * 1.25); }

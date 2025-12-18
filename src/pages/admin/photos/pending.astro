@@ -3,6 +3,7 @@ export const prerender = false;
 
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import type { D1Database } from "@cloudflare/workers-types";
+const categories = ["Restoration", "Donations", "Community Events", "Raffles", "Scenery"];
 
 const DB = (Astro.locals as any).runtime.env.DB as D1Database;
 
@@ -67,10 +68,6 @@ const statusMsg =
                                     <div class="itemBody">
                                         <div class="meta">
                                             <div class="metaRow">
-                                                <span class="metaLabel">Category</span>
-                                                <span class="metaValue">{p.category}</span>
-                                            </div>
-                                            <div class="metaRow">
                                                 <span class="metaLabel">Submitted</span>
                                                 <span class="metaValue">{p.submitted_at}</span>
                                             </div>
@@ -88,6 +85,15 @@ const statusMsg =
 
                                         <form method="post" action="/api/admin/photos/approve" class="form approveForm">
                                             <input type="hidden" name="id" value={p.id} />
+
+                                            <label class="field">
+                                                <span class="labelRow">Category<span class="req" aria-hidden="true">*</span></span>
+                                                <select name="category" required>
+                                                    {categories.map((c) => (
+                                                            <option value={c} selected={p.category === c}>{c}</option>
+                                                    ))}
+                                                </select>
+                                            </label>
 
                                             <label class="field">
                                                 <span class="labelRow">Alt text<span class="req" aria-hidden="true">*</span></span>
@@ -114,8 +120,9 @@ const statusMsg =
 
                                                 <button
                                                     class="pill pill--danger"
-                                                    type="button"
-                                                    onclick={`document.getElementById('reject-${p.id}')?.requestSubmit()`}
+                                                    type="submit"
+                                                    form={`reject-${p.id}`}
+                                                    onclick="return confirm('Reject this photo? This permanently deletes the image and record.');"
                                                 >
                                                     Reject
                                                 </button>
@@ -134,18 +141,9 @@ const statusMsg =
             </div>
         </section>
     </div>
-    <script is:inline>
-        (function () {
-            const url = new URL(window.location.href);
-            if (url.searchParams.has("ok") || url.searchParams.has("err")) {
-                // give the DOM a beat to render the status text before removing params
-                setTimeout(() => {
-                    url.searchParams.delete("ok");
-                    url.searchParams.delete("err");
-                    window.history.replaceState({}, "", url.pathname + url.search);
-                }, 250);
-            }
-        })();
+    <script type="module">
+        import { cleanFlashParams } from "../../../scripts/clean-flash";
+        cleanFlashParams(["ok", "err"]);
     </script>
     <style>
         .pendingCard { margin-top: var(--section-gap); }

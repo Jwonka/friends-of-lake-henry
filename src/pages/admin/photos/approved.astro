@@ -1,0 +1,148 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import type { D1Database } from "@cloudflare/workers-types";
+
+const DB = (Astro.locals as any).runtime.env.DB as D1Database;
+
+type ApprovedRow = {
+    id: string;
+    category: string;
+    title: string | null;
+    caption: string | null;
+    alt: string;
+    submitted_by: string | null;
+    submitted_at: string;
+    approved_at: string | null;
+};
+
+const res = await DB.prepare(`
+  SELECT id, category, title, caption, alt, submitted_by, submitted_at, approved_at
+  FROM photos
+  WHERE status = 'approved'
+  ORDER BY approved_at DESC, submitted_at DESC
+`).all();
+
+const approved = (res.results ?? []) as ApprovedRow[];
+
+const ok = Astro.url.searchParams.get("ok");
+const err = Astro.url.searchParams.get("err");
+
+const statusClass =
+    ok ? "status--success" :
+        err ? "status--error" :
+            "status--empty";
+
+const statusMsg =
+    ok === "deleted" ? "Deleted. Photo removed from the gallery." :
+        err === "notfound" ? "Not found." :
+            err === "server" ? "Server error. Try again." :
+                err ? "Something went wrong. Try again." :
+                    "";
+---
+
+<BaseLayout title="Approved Photos | Admin">
+    <div class="container" style="--maxw: 1100px;">
+        <section class="card approvedCard enter-block">
+            <div class="adminHeader">
+                <div class="adminHeaderLeft">
+                    <a class="pill" href="/admin">Admin</a>
+                    <h1 class="h1-tight">Approved photos</h1>
+                    <p class="lead">These are visible on the public Photos page. Delete removes from gallery.</p>
+
+                    <div id="status" class={`status ${statusClass}`} style="text-align:center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
+                        {statusMsg}
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel approvedPanel enter-block delay-1">
+                {approved.length === 0 ? (
+                        <div class="emptyState">
+                            <p class="muted">No approved photos yet.</p>
+                        </div>
+                ) : (
+                    <div class="approvedList">
+                        {approved.map((p) => (
+                            <article class="approvedItem panel">
+                                <div class="itemGrid">
+                                    <a class="previewLink" href={`/api/photos/file?id=${p.id}`} target="_blank" rel="noopener">
+                                        <img class="previewImg" src={`/api/photos/file?id=${p.id}`} alt="" loading="lazy" />
+                                    </a>
+
+                                    <div class="itemBody">
+                                        <div class="meta">
+                                            <div class="metaRow">
+                                                <span class="metaLabel">Category</span>
+                                                <span class="metaValue">{p.category}</span>
+                                            </div>
+                                            {p.title ? (
+                                                <div class="metaRow">
+                                                    <span class="metaLabel">Title</span>
+                                                    <span class="metaValue">{p.title}</span>
+                                                </div>
+                                            ) : null}
+                                            {p.caption ? (
+                                                <div class="metaRow">
+                                                    <span class="metaLabel">Caption</span>
+                                                    <span class="metaValue">{p.caption}</span>
+                                                </div>
+                                            ) : null}
+                                            <div class="metaRow">
+                                                <span class="metaLabel">Alt</span>
+                                                <span class="metaValue">{p.alt}</span>
+                                            </div>
+                                            <div class="metaRow">
+                                                <span class="metaLabel">Approved</span>
+                                                <span class="metaValue">{p.approved_at ?? "—"}</span>
+                                            </div>
+                                            <div class="metaRow">
+                                                <span class="metaLabel">ID</span>
+                                                <span class="metaValue mono">{p.id}</span>
+                                            </div>
+                                        </div>
+
+                                        <form method="post" action="/api/admin/photos/delete" class="deleteForm">
+                                            <input type="hidden" name="id" value={p.id} />
+                                            <button
+                                                class="pill pill--danger"
+                                                type="submit"
+                                                onclick="return confirm('Delete this approved photo? This removes it from the public gallery and cannot be undone.');"
+                                            >
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        import { cleanFlashParams } from "../../../scripts/clean-flash";
+        cleanFlashParams(["ok", "err"]);
+    </script>>
+
+    <style>
+        .approvedPanel{ background: var(--panel-bg-dense); }
+        .approvedList{ display:grid; gap: 1rem; }
+        .itemGrid{ display:grid; gap: 1rem; grid-template-columns: 260px 1fr; align-items:start; }
+        .previewImg{ width:100%; border-radius: 12px; border: 1px solid var(--border-strong); display:block; }
+        .meta{ display:grid; gap: .4rem; }
+        .metaRow{ display:grid; grid-template-columns: 110px 1fr; gap: .6rem; }
+        .metaLabel{ color: var(--text-soft); font-weight: 700; }
+        .metaValue{ color: var(--text); }
+        .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: .9em; }
+        .deleteForm{ margin-top: .9rem; }
+
+        @media (max-width: 900px){
+            .itemGrid{ grid-template-columns: 1fr; }
+            .metaRow{ grid-template-columns: 100px 1fr; }
+        }
+    </style>
+</BaseLayout>

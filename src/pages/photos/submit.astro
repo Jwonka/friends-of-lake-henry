@@ -95,58 +95,12 @@ export const prerender = false;
         </section>
     </div>
 
-    <script is:inline>
-        (function () {
-            const statusEl = document.getElementById("status");
-            if (!statusEl) return;
-
-            const url = new URL(window.location.href);
-            const err = url.searchParams.get("err");
-            const submitted = url.searchParams.get("submitted");
-
-            function show(kind, msg) {
-                statusEl.textContent = msg;
-                statusEl.classList.remove("status--empty", "status--success", "status--error");
-                statusEl.classList.add(kind === "ok" ? "status--success" : "status--error");
-                try { statusEl.focus(); } catch {}
-            }
-
-            if (submitted === "1") {
-                show("ok", "Thanks! Your photo was submitted for review.");
-                url.searchParams.delete("submitted");
-                window.history.replaceState({}, "", url.pathname + url.search);
-                return;
-            }
-
-            if (err) {
-                const msg =
-                    err === "file" ? "Please choose a file."
-                        : err === "category" ? "Please choose a valid category."
-                            : err === "alt" ? "Alt text must be at least 5 characters."
-                                : err === "type" ? "Please upload a JPG, PNG, WEBP, or GIF."
-                                    : err === "size" ? "File must be under 8MB."
-                                        : "Sorry, something went wrong. Please try again.";
-
-                show("err", msg);
-                url.searchParams.delete("err");
-                window.history.replaceState({}, "", url.pathname + url.search);
-            }
-        })();
+    <script type="module">
+        import { initPhotosSubmit, initFilePickerUI } from "../../scripts/photos-submit";
+        initPhotosSubmit();
+        initFilePickerUI();
     </script>
-    <script is:inline>
-        (function () {
-            const input = document.querySelector('input[type="file"][name="photo"]');
-            const btn = document.querySelector("[data-file-btn]");
-            const name = document.querySelector("[data-file-name]");
-            if (!input || !btn || !name) return;
 
-            btn.addEventListener("click", () => input.click());
-            input.addEventListener("change", () => {
-                const f = input.files && input.files[0];
-                name.textContent = f ? f.name : "No file chosen";
-            });
-        })();
-    </script>
     <style>
         .form { margin-top: 1rem; display: grid; gap: 1rem; }
         .field { display: grid; gap: 0.4rem; }

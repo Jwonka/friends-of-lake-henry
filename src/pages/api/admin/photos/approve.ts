@@ -18,7 +18,9 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
     const alt = String(form.get("alt") ?? "").trim();
     const title = String(form.get("title") ?? "").trim() || null;
     const caption = String(form.get("caption") ?? "").trim() || null;
+    const category = String(form.get("category") ?? "").trim();
 
+    if (!category) return bad("Missing category");
     if (!id) return bad("Missing id");
     if (alt.length < 5) return bad("Alt too short");
 
@@ -52,6 +54,7 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
         alt = ?,
         title = ?,
         caption = ?,
+        category = ?,
         approved_at = datetime('now')
     WHERE id = ?
   `).bind(dstKey, alt, title, caption, id).run();

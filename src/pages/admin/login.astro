@@ -38,31 +38,18 @@ const next = url.searchParams.get("next") ?? "/admin/";
             </div>
         </section>
     </div>
-    <script is:inline>
-        (function () {
-            const statusEl = document.getElementById("status");
-            if (!statusEl) return;
-
-            const url = new URL(window.location.href);
-            const err = url.searchParams.get("err");
-
-            function show(msg) {
-                statusEl.textContent = msg;
-                statusEl.classList.remove("status--empty");
-                statusEl.classList.add("status--error");
-                try { statusEl.focus(); } catch {}
-            }
-
-            if (err === "auth") show("Please log in to continue.");
-            else if (err === "1") show("Invalid username or password.");
-            else if (err === "server") show("Login is temporarily unavailable. Please try again later.");
-
-            // Optional: remove err from URL after showing message (cleaner)
-            if (err) {
-                url.searchParams.delete("err");
-                window.history.replaceState({}, "", url.pathname + url.search);
-            }
-        })();
+    <script type="module">
+        import { initFlashStatus } from "../../scripts/flash-status";
+        initFlashStatus({
+            okParam: "ok",
+            errParam: "err",
+            errMessages: {
+                auth: "Please log in to continue.",
+                "1": "Invalid username or password.",
+                server: "Login is temporarily unavailable. Please try again later.",
+            },
+            defaultErr: "Login failed. Please try again.",
+        });
     </script>
     <style>
         .pad { margin-top: var(--section-gap); }

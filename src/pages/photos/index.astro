@@ -110,15 +110,8 @@ const statusClass =
     <script type="module">
         import { initPhotoFilters } from "../../scripts/photos-filter";
         initPhotoFilters();
-    </script>
-    <script is:inline>
-        (function () {
-            const url = new URL(window.location.href);
-            if (url.searchParams.has("submitted")) {
-                url.searchParams.delete("submitted");
-                window.history.replaceState({}, "", url.pathname + url.search);
-                }
-        })();
+        import { cleanFlashParams } from "../../scripts/clean-flash";
+        cleanFlashParams(["submitted"]);
     </script>
     <style>
         .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}
