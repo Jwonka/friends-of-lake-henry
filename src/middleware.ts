@@ -15,51 +15,42 @@ function redirectToLogin(origin: string, nextPath: string, err = "auth") {
     return new Response(null, { status: 302, headers: { location, ...SECURITY_HEADERS } });
 }
 
-async function nextResponse(next: () => Promise<Response | unknown>) {
-    const result = await next();
-    return result instanceof Response ? result : new Response(String(result));
-}
-
 export const onRequest = defineMiddleware(async (context, next) => {
     const { pathname, search } = context.url;
+
+    // diagnostics
     if (pathname === "/__health") {
-        return new Response("health-ok", {
-            status: 200,
-            headers: { "content-type": "text/plain; charset=utf-8" },
-        });
+        return new Response("health-ok", { headers: { "content-type": "text/plain" } });
     }
     if (pathname === "/__ping") {
         return new Response("<!doctype html><p>ping</p>", {
-            status: 200,
-            headers: { "content-type": "text/html; charset=utf-8" },
+            headers: { "content-type": "text/html" },
         });
     }
+
     const isAdminUi = pathname.startsWith("/admin");
     const isAdminApi = pathname.startsWith("/api/admin");
 
-    // non-admin paths
+    // non-admin: PASS THROUGH
     if (!isAdminUi && !isAdminApi) {
-        return nextResponse(next);
+        return await next();
     }
 
-    // allow login UI
-    if (pathname === "/admin/login" || pathname === "/admin/login/") {
-        return nextResponse(next);
-    }
-
-    // allow login API
-    if (pathname === "/api/admin/login") {
-        return nextResponse(next);
+    // allow login routes
+    if (
+        pathname === "/admin/login" ||
+        pathname === "/admin/login/" ||
+        pathname === "/api/admin/login"
+    ) {
+        return await next();
     }
 
     const cookie = context.request.headers.get("cookie") ?? "";
     const m = cookie.match(/(?:^|;\s*)admin_auth=([^;]+)/);
 
     if (!m) {
-        if (isAdminApi) {
-            return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS });
-        }
-        return redirectToLogin(context.url.origin, pathname + search, "auth");
+        if (isAdminApi) return new Response("Unauthorized", { status: 401 });
+        return redirectToLogin(context.url.origin, pathname + search);
     }
 
     const token = decodeURIComponent(m[1]);
@@ -67,12 +58,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     const cookieSecret = context.locals.runtime.env.ADMIN_COOKIE_SECRET;
     if (!secret || secret !== cookieSecret || !ts || !Number.isFinite(Number(ts))) {
-        if (isAdminApi) {
-            return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS });
-        }
-        return redirectToLogin(context.url.origin, pathname + search, "auth");
+        if (isAdminApi) return new Response("Unauthorized", { status: 401 });
+        return redirectToLogin(context.url.origin, pathname + search);
     }
 
-    // authenticated admin paths
-    return nextResponse(next);
+    return await next();
 });
