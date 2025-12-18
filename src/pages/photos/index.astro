@@ -2,10 +2,6 @@
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import type { D1Database } from "@cloudflare/workers-types";
-/**
- * Nonprofit-first ordering:
- * Restoration -> Donations -> Community Events -> Raffle -> Scenery
- */
 
 type PhotoRow = {
     id: string;
@@ -14,17 +10,26 @@ type PhotoRow = {
     caption: string | null;
     alt: string | null;
 };
-const DB = (Astro.locals as any).runtime.env.DB as D1Database;
 
-const rows = await DB.prepare(`
-  SELECT id, category, title, caption, alt
-  FROM photos
-  WHERE status = 'approved'
-  ORDER BY approved_at DESC, submitted_at DESC
-`).all<PhotoRow>();
-
-const photos = rows.results ?? [];
 const categories = ["All", "Restoration", "Donations", "Community Events", "Raffles", "Scenery"];
+const env = (Astro.locals as any).runtime?.env as { DB?: D1Database } | undefined;
+const DB = env?.DB;
+
+let photos: PhotoRow[] = [];
+let dbMissing = false;
+
+if (!DB) {
+    dbMissing = true;
+} else {
+    const res = await DB.prepare(`
+    SELECT id, category, title, caption, alt
+    FROM photos
+    WHERE status = 'approved'
+    ORDER BY approved_at DESC, submitted_at DESC
+  `).all();
+
+    photos = (res.results ?? []) as PhotoRow[];
+}
 ---
 
 <BaseLayout title="Photos | Friends of Lake Henry">
@@ -35,6 +40,17 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
                 Updates from restoration work, fundraising, community events, and life at Lake Henry.
             </p>
             <div id="status" class="status status--empty" style="text-align: center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></div>
+            <div
+                    id="status"
+                    class={`status ${dbMissing ? "status--error" : "status--empty"}`}
+                    style="text-align: center;"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    tabindex="-1"
+            >
+                {dbMissing ? "Server misconfigured: DB binding not available." : ""}
+            </div>
             <div class="filters enter-block delay-1" role="tablist" aria-label="Photo categories">
                 <div class="tabs" role="tablist" aria-label="Photo categories">
                     {categories.map((cat, i) => (
@@ -67,8 +83,7 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             </div>
         </section>
     </div>
-
-    <script>
+    <script type="module">
         import { initPhotoFilters } from "../../scripts/photos-filter";
         initPhotoFilters();
     </script>
