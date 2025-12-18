@@ -22,7 +22,12 @@ async function nextResponse(next: () => Promise<Response | unknown>) {
 
 export const onRequest = defineMiddleware(async (context, next) => {
     const { pathname, search } = context.url;
-
+    if (pathname === "/__health") {
+        return new Response("health-ok", {
+            status: 200,
+            headers: { "content-type": "text/plain; charset=utf-8" },
+        });
+    }
     const isAdminUi = pathname.startsWith("/admin");
     const isAdminApi = pathname.startsWith("/api/admin");
 
