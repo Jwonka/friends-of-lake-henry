@@ -1,0 +1,101 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import type { D1Database } from "@cloudflare/workers-types";
+
+type PhotoRow = {
+    id: string;
+    category: string;
+    title: string | null;
+    caption: string | null;
+    alt: string | null;
+    status: string;
+};
+
+const id = Astro.params.id;
+if (!id) {
+    return new Response("Not found", { status: 404 });
+}
+
+const env = (Astro.locals as any).runtime?.env as { DB?: D1Database } | undefined;
+const DB = env?.DB;
+if (!DB) {
+    return new Response("Server misconfigured", { status: 500 });
+}
+
+const row = (await DB.prepare(
+    `SELECT id, category, title, caption, alt, status
+   FROM photos
+   WHERE id = ?`
+)
+    .bind(id)
+    .first()) as PhotoRow | null;
+
+if (!row || row.status !== "approved") {
+    return new Response("Not found", { status: 404 });
+}
+
+const pageTitle =
+    row.title?.trim()
+        ? `${row.title} | Photos | Friends of Lake Henry`
+        : `${row.category} Photo | Friends of Lake Henry`;
+
+const altText =
+    row.alt?.trim() ||
+    row.caption?.trim() ||
+    row.title?.trim() ||
+    "Photo from Friends of Lake Henry";
+---
+
+<BaseLayout title={pageTitle}>
+    <div class="container" style="--maxw: 1100px;">
+        <section class="card detailCard enter-block">
+            <h1 class="h1-tight">{row.title ?? row.category}</h1>
+
+            <div class="detailBack enter-block delay-1">
+                <a class="pill" href="/photos">← Back to Photos</a>
+            </div>
+
+            <div class="panel detailPanel enter-block delay-2">
+                <img
+                    class="detailImg enter-block delay-3"
+                    src={`/api/photos/file?id=${row.id}`}
+                    alt={altText}
+                    loading="eager"
+                    decoding="async"
+                />
+
+                {(row.caption || row.alt) && (
+                    <p class="detailCaption">
+                        {row.caption ?? row.alt}
+                    </p>
+                )}
+
+                <p class="enter-block delay-4">
+                    <a class="pill" href={`/api/photos/file?id=${row.id}`} target="_blank" rel="noopener">
+                        Open original image
+                    </a>
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .detailCard{ margin-top: var(--section-gap); }
+        .detailBack{ margin: .75rem 0 1rem; }
+        .detailPanel{ display: grid; gap: 1rem; }
+        .detailImg{
+            width: 100%;
+            height: auto;
+            border-radius: 14px;
+            border: 1px solid var(--border-strong);
+            box-shadow: var(--card-shadow-strong);
+            background: var(--glass-dark);
+        }
+        .detailCaption{
+            margin: 0;
+            color: var(--text-soft);
+            line-height: 1.6;
+        }
+    </style>
+</BaseLayout>

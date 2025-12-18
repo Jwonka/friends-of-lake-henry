@@ -1,13 +1,30 @@
 ---
+export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { photos } from "../../data/photos";
-export const prerender = true;
+import type { D1Database } from "@cloudflare/workers-types";
 /**
  * Nonprofit-first ordering:
  * Restoration -> Donations -> Community Events -> Raffle -> Scenery
  */
-const categories = ["All", "Restoration", "Donations", "Community Events", "Raffles", "Scenery"];
 
+type PhotoRow = {
+    id: string;
+    category: string;
+    title: string | null;
+    caption: string | null;
+    alt: string | null;
+};
+const DB = (Astro.locals as any).runtime.env.DB as D1Database;
+
+const rows = await DB.prepare(`
+  SELECT id, category, title, caption, alt
+  FROM photos
+  WHERE status = 'approved'
+  ORDER BY approved_at DESC, submitted_at DESC
+`).all<PhotoRow>();
+
+const photos = rows.results ?? [];
+const categories = ["All", "Restoration", "Donations", "Community Events", "Raffles", "Scenery"];
 ---
 
 <BaseLayout title="Photos | Friends of Lake Henry">
@@ -40,9 +57,9 @@ const categories = ["All", "Restoration", "Donations", "Community Events", "Raff
             <div class="panel galleryPanel enter-block delay-2" role="tabpanel" aria-labelledby="tab-0">
                 <div class="grid enter-block delay-2" id="photoGrid">
                     {photos.map((p) => (
-                        <a class="photoLink" href={`/photos/${p.slug}`} data-category={p.category}>
+                        <a class="photoLink" href={`/photos/${p.id}`} data-category={p.category}>
                             <figure class="photo">
-                                <img src={p.src} alt={p.alt} loading="lazy" />
+                                <img src={`/api/photos/file?id=${p.id}`} alt={p.alt ?? ""} loading="lazy" />
                             </figure>
                         </a>
                     ))}

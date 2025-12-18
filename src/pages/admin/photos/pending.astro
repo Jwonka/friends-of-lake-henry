@@ -1,130 +1,316 @@
 ---
-import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { pendingPhotos } from "../../../lib/adminMockPhotos";
 export const prerender = false;
-const total = pendingPhotos.length;
+
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import type { D1Database } from "@cloudflare/workers-types";
+
+const DB = (Astro.locals as any).runtime.env.DB as D1Database;
+
+const rows = await DB.prepare(`
+    SELECT id, r2_key, category, title, caption, alt, submitted_by, submitted_at
+    FROM photos
+    WHERE status = 'pending'
+    ORDER BY submitted_at DESC
+`).all();
+
+const pending = rows.results ?? [];
+const ok = Astro.url.searchParams.get("ok");
+const err = Astro.url.searchParams.get("err");
+const statusClass =
+    ok ? "status--success" :
+        err ? "status--error" :
+            "status--empty";
+
+const statusMsg =
+    ok === "approved" ? "Approved. Photo is now public." :
+        ok === "rejected" ? "Rejected. Photo deleted." :
+            err === "server" ? "Server error. Try again." :
+                err ? "Something went wrong. Try again." :
+                    "";
 ---
 
-<BaseLayout title={`Admin | Pending Photos (${total}) | Friends of Lake Henry`}>
-    <div class="container" style="--maxw: 1200px;">
-        <section class="card enter-block" style="margin-top: var(--section-gap);">
+<BaseLayout title="Pending Photos | Admin">
+    <div class="container" style="--maxw: 1100px;">
+        <section class="card pendingCard enter-block">
             <div class="adminHeader">
-                <div class="adminTitle">
-                    <div>
-                        <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
-                        <h1 class="h1-tight">Pending Photos</h1>
+                <div class="adminHeaderLeft">
+                    <a class="pill" href="/admin">Admin</a>
+                    <h1 class="h1-tight">Pending photos</h1>
+                    <p class="lead">Approve to publish. Reject deletes the image and the DB row.</p>
+                    <div id="status" class={`status ${statusClass}`} style="text-align: center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
+                        {statusMsg}
                     </div>
-                    <p class="lead" style="margin: .25rem 0 0;">Review submissions before publishing to the public gallery.</p>
-                </div>
-                <div class="adminHeaderActions">
-                  <span class="pill enter-block delay-2" aria-disabled="true" style="opacity:.85; cursor: default;">
-                    {total} pending
-                  </span>
                 </div>
             </div>
-            <div class="panel enter-block delay-2" style="margin-top: 1rem;">
-                <div class="grid">
-                    {pendingPhotos.map((p) => (
-                        <a class="tile enter-block delay-3" href={`/admin/photos/${p.id}`}>
-                            <figure class="thumb">
-                                <img src={p.previewSrc} alt={p.altSuggestion ?? p.title} loading="lazy" />
-                            </figure>
 
-                            <div class="meta">
-                                <div class="topLine">
-                                    <span class="pill tag">{p.category}</span>
-                                    <span class="muted small">{new Date(p.submittedAt).toLocaleString()}</span>
+            <div class="panel pendingPanel enter-block delay-1">
+                {pending.length === 0 ? (
+                    <div class="emptyState">
+                        <p class="muted">No pending photos.</p>
+                    </div>
+                ) : (
+                    <div class="pendingList">
+                        {pending.map((p: any) => (
+                            <article class="pendingItem panel">
+                                <div class="itemGrid">
+                                    {/* Preview */}
+                                    <a class="previewLink" href={`/api/admin/photos/file?id=${p.id}`} target="_blank" rel="noopener">
+                                        <img
+                                            class="previewImg"
+                                            src={`/api/admin/photos/file?id=${p.id}`}
+                                            alt=""
+                                            loading="lazy"
+                                        />
+                                    </a>
+
+                                    {/* Details + Actions */}
+                                    <div class="itemBody">
+                                        <div class="meta">
+                                            <div class="metaRow">
+                                                <span class="metaLabel">Category</span>
+                                                <span class="metaValue">{p.category}</span>
+                                            </div>
+                                            <div class="metaRow">
+                                                <span class="metaLabel">Submitted</span>
+                                                <span class="metaValue">{p.submitted_at}</span>
+                                            </div>
+                                            {p.submitted_by ? (
+                                                    <div class="metaRow">
+                                                        <span class="metaLabel">By</span>
+                                                        <span class="metaValue">{p.submitted_by}</span>
+                                                    </div>
+                                            ) : null}
+                                            <div class="metaRow">
+                                                <span class="metaLabel">ID</span>
+                                                <span class="metaValue mono">{p.id}</span>
+                                            </div>
+                                        </div>
+
+                                        <form method="post" action="/api/admin/photos/approve" class="form approveForm">
+                                            <input type="hidden" name="id" value={p.id} />
+
+                                            <label class="field">
+                                                <span class="labelRow">Alt text<span class="req" aria-hidden="true">*</span></span>
+                                                <input name="alt" value={p.alt ?? ""} required minlength="5" />
+                                                <p class="help small">
+                                                    Keep it short and specific. Example: “Kids holding raffle tickets in front of the Lake Henry sign.”
+                                                </p>
+                                            </label>
+
+                                            <div class="row row2">
+                                                <label class="field">
+                                                    <span class="labelRow">Title</span>
+                                                    <input name="title" value={p.title ?? ""} />
+                                                </label>
+
+                                                <label class="field">
+                                                    <span class="labelRow">Caption</span>
+                                                    <input name="caption" value={p.caption ?? ""} />
+                                                </label>
+                                            </div>
+
+                                            <div class="ctaRow actions">
+                                                <button class="btn" type="submit">Approve</button>
+
+                                                <button
+                                                    class="pill pill--danger"
+                                                    type="button"
+                                                    onclick={`document.getElementById('reject-${p.id}')?.requestSubmit()`}
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        </form>
+
+                                        <form id={`reject-${p.id}`} method="post" action="/api/admin/photos/reject">
+                                            <input type="hidden" name="id" value={p.id} />
+                                        </form>
+                                    </div>
                                 </div>
-                                <strong class="title">{p.title}</strong>
-                                {p.caption && <div class="muted">{p.caption}</div>}
-                            </div>
-                        </a>
-                    ))}
-                </div>
+                            </article>
+                        ))}
+                    </div>
+                )}
             </div>
         </section>
     </div>
-
+    <script is:inline>
+        (function () {
+            const url = new URL(window.location.href);
+            if (url.searchParams.has("ok") || url.searchParams.has("err")) {
+                // give the DOM a beat to render the status text before removing params
+                setTimeout(() => {
+                    url.searchParams.delete("ok");
+                    url.searchParams.delete("err");
+                    window.history.replaceState({}, "", url.pathname + url.search);
+                }, 250);
+            }
+        })();
+    </script>
     <style>
-        .adminHeader{
-            display:flex;
-            justify-content:space-between;
+        .pendingCard { margin-top: var(--section-gap); }
+
+        .pendingPanel{
+            background: var(--panel-bg-dense);
+            border-color: rgba(255,255,255,0.14);
+            padding: 1.25rem;
+        }
+
+        .pendingList{
+            display: grid;
             gap: 1rem;
-            align-items: flex-end;
-            flex-wrap: wrap;
-        }
-        .adminHeaderActions{ display:flex; gap:.5rem; align-items:center; }
-
-        .grid{
-            display:grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.75rem;
         }
 
-        .tile{
-            display:block;
-            border: 1px solid var(--border);
-            border-radius: 16px;
+        .pendingItem{
             background: var(--glass-dark);
-            backdrop-filter: blur(6px);
-            text-decoration: none;
-            color: var(--text);
+            border: 1px solid var(--border-strong);
+            box-shadow: var(--card-shadow-soft);
+            border-radius: 16px;
             overflow: hidden;
-            transition: transform 140ms ease, border-color 160ms ease, background-color 160ms ease;
-            -webkit-tap-highlight-color: transparent;
+            padding: 1rem;
         }
-        .tile:hover,
-        .tile:focus-visible{
-            transform: translateY(-2px);
-            border-color: var(--border-bright);
-            background: var(--glass-dark-strong);
-            outline: none;
+
+        .itemGrid{
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
         }
-        .tile:active{ transform: translateY(0); }
-        .thumb{
-            margin:0;
-            aspect-ratio: 4 / 3;
-            overflow:hidden;
-            background: rgba(0,0,0,0.18);
-        }
-        .thumb img{
-            width:100%;
-            height:100%;
+
+        .previewLink{
             display:block;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-strong);
+            background: rgba(0,0,0,0.18);
+            box-shadow: var(--card-shadow-soft);
+            transition: transform 140ms ease, box-shadow 160ms ease, border-color 160ms ease;
+        }
+
+        .previewLink:hover,
+        .previewLink:focus-visible{
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-strong);
+            border-color: rgba(255,255,255,0.22);
+        }
+
+        .previewImg{
+            width: 100%;
+            height: auto;
+            display:block;
+            aspect-ratio: 4 / 3;
             object-fit: cover;
+            transform: translateZ(0);
+        }
+
+        .itemBody{
+            display: grid;
+            gap: 0.9rem;
         }
 
         .meta{
-            padding: 0.85rem 0.9rem;
+            display:grid;
+            gap: 0.35rem;
+            padding: 0.75rem 0.85rem;
+            border-radius: 14px;
+            background: rgba(0,0,0,0.18);
+            border: 1px solid rgba(255,255,255,0.12);
         }
-        .topLine{
+
+        .metaRow{
             display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap: .5rem;
-            margin-bottom: .5rem;
-        }
-        .title{ display:block; margin-bottom: .35rem; }
-
-        .small{ font-size: .9rem; }
-        .tag{
-            font-size: .9rem;
-            font-weight: 600;
-            padding: .35rem .7rem;
+            justify-content: space-between;
+            gap: 0.75rem;
+            align-items: baseline;
         }
 
-        /* Tablet */
-        @media (max-width: 1024px){
-            .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .metaLabel{
+            color: var(--text-soft);
+            font-weight: 700;
+            font-size: 0.95rem;
         }
 
-        /* Phones */
-        @media (max-width: 680px){
-            .grid{ grid-template-columns: 1fr; }
-            .adminHeader{ align-items: flex-start; }
-            .adminHeaderActions{ width: 100%; }
-            .adminHeaderActions .btn,
-            .adminHeaderActions .pill{ width: 100%; justify-content: center; }
+        .metaValue{
+            color: var(--text-strong);
+            font-weight: 650;
+            text-align: right;
+        }
+
+        .mono{
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9rem;
+            opacity: 0.95;
+            overflow-wrap: anywhere;
+        }
+
+        .approveForm{ display:grid; gap: 0.9rem; }
+
+        .help.small{
+            margin: 0.25rem 0 0;
+            font-size: 0.92rem;
+            color: var(--text-soft);
+            line-height: 1.45;
+        }
+
+        .row2{
+            display:grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+            align-items: end;
+        }
+
+        .actions{
+            display:flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* Make reject visually distinct but still “site-native” */
+        .pill--danger{
+            background: var(--glass-dark);
+            border-color: rgba(255,255,255,0.18);
+            color: var(--text-on-dark);
+            position: relative;
+            overflow: hidden;
+        }
+        .pill--danger::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            background: rgba(239,68,68,0.22); /* red tint */
+            pointer-events:none;
+        }
+        .pill--danger:hover::before,
+        .pill--danger:focus-visible::before{
+            background: rgba(239,68,68,0.32);
+        }
+
+        /* Desktop: image left, forms right */
+        @media (min-width: 920px){
+            .pendingItem{ padding: 1.1rem; }
+
+            .itemGrid{
+                grid-template-columns: 420px 1fr;
+                align-items: start;
+            }
+
+            .row2{
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Mobile: stack buttons full width for easy tapping */
+        @media (max-width: 520px){
+            .pendingPanel{ padding: 1rem; }
+            .actions{
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .actions .btn,
+            .actions .pill{
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </BaseLayout>
