@@ -18,21 +18,16 @@ function startDow(y: number, m: number) {
 const totalDays = daysInMonth(year, monthIndex);
 const firstDow = startDow(year, monthIndex);
 const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const facebookPageUrl = "https://www.facebook.com/people/Friends-of-Lake-Henry/61552199315213/";
-const facebookPageHref = encodeURIComponent(facebookPageUrl);
+const facebookPageUrl =
+    "https://www.facebook.com/people/Friends-of-Lake-Henry/61552199315213/";
 
-// Page Plugin embed. This is the most reliable embed for Pages/SSR.
-// It will show the Page content; if a Live is running, it often appears prominently.
-const facebookEmbedSrc =
-    `https://www.facebook.com/plugins/page.php?` +
-    `href=${facebookPageHref}` +
-    `&tabs=timeline` +
-    `&width=500` +
-    `&height=700` +
-    `&small_header=true` +
-    `&adapt_container_width=true` +
-    `&hide_cover=false` +
-    `&show_facepile=false`;
+const liveVideoUrl =
+    "https://www.facebook.com/61552199315213/videos/854234677564535";
+
+const embedSrc = liveVideoUrl
+    ? `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(liveVideoUrl)}&show_text=0&width=500`
+    : `https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(facebookPageUrl)}&tabs=timeline&width=500&height=700&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false`;
+
 ---
 
 <BaseLayout title={`Raffle | Friends of Lake Henry`}>
@@ -98,7 +93,7 @@ const facebookEmbedSrc =
                 <div class="liveFrame">
                     <iframe
                         class="fbFrame"
-                        src={"https://www.facebook.com/reel/1393954152400350"}
+                        src={embedSrc}
                         title="Friends of Lake Henry — Facebook Live"
                         loading="lazy"
                         allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
