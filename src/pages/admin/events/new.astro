@@ -1,0 +1,143 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+export const prerender = false;
+
+const ok = Astro.url.searchParams.get("ok");
+const err = Astro.url.searchParams.get("err");
+const statusClass =
+    ok ? "status--success" :
+        err ? "status--error" :
+            "status--empty";
+const statusMsg =
+    ok === "created" ? "Created." :
+        err === "invalid" ? "Please check the fields and try again." :
+            err === "server" ? "Server error. Try again." :
+                err ? "Something went wrong." : "";
+---
+
+<BaseLayout title="New Event | Admin">
+    <div class="container" style="--maxw: 900px;">
+        <section class="card enter-block" style="margin-top: var(--section-gap);">
+            <div class="adminHeader">
+                <div>
+                    <a class="pill" href="/admin/events">← Events</a>
+                    <h1 class="h1-tight">New event</h1>
+                    <p class="lead" style="margin:0;">Create an event and publish when ready.</p>
+
+                    <div id="status" class={`status ${statusClass}`} role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
+                        {statusMsg}
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel enter-block delay-1" style="margin-top: 1rem; background: var(--panel-bg-dense);">
+                <form method="post" action="/api/admin/events/create" class="form">
+                    <div class="grid">
+                        <label class="field">
+                            <span class="label">Title *</span>
+                            <input name="title" required maxlength="120" />
+                        </label>
+
+                        <label class="field">
+                            <span class="label">Kind *</span>
+                            <select name="kind" required>
+                                <option value="Event">Event</option>
+                                <option value="Meeting">Meeting</option>
+                                <option value="Fundraiser">Fundraiser</option>
+                                <option value="Raffle">Raffle</option>
+                            </select>
+                        </label>
+
+                        <label class="field">
+                            <span class="label">Status</span>
+                            <select name="status">
+                                <option value="draft">draft</option>
+                                <option value="published">published</option>
+                            </select>
+                        </label>
+
+                        <label class="field checkbox">
+                            <input type="checkbox" name="is_tbd" value="1" id="is_tbd" />
+                            <span>Planned (Date TBD)</span>
+                        </label>
+
+                        <label class="field">
+                            <span class="label">Start</span>
+                            <input type="datetime-local" name="date_start" id="date_start" />
+                        </label>
+
+                        <label class="field">
+                            <span class="label">End</span>
+                            <input type="datetime-local" name="date_end" id="date_end" />
+                        </label>
+
+                        <label class="field full">
+                            <span class="label">Location</span>
+                            <input name="location" maxlength="120" />
+                        </label>
+
+                        <label class="field full">
+                            <span class="label">Summary</span>
+                            <textarea name="summary" rows="4" maxlength="600"></textarea>
+                        </label>
+
+                        <label class="field full">
+                            <span class="label">Link URL</span>
+                            <input name="url" inputmode="url" placeholder="https://..." />
+                        </label>
+
+                        <label class="field">
+                            <span class="label">Link label</span>
+                            <input name="url_label" maxlength="40" placeholder="Details" />
+                        </label>
+                    </div>
+
+                    <div class="actions">
+                        <button class="pill" type="submit">Create</button>
+                        <a class="pill" href="/admin/events">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        const tbd = document.getElementById("is_tbd");
+        const start = document.getElementById("date_start");
+        const end = document.getElementById("date_end");
+
+        function sync() {
+            const on = tbd.checked;
+            start.disabled = on;
+            end.disabled = on;
+            if (on) { start.value = ""; end.value = ""; }
+        }
+        tbd.addEventListener("change", sync);
+        sync();
+    </script>
+
+    <style>
+        .adminHeader{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
+        .grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+        .full{ grid-column: 1 / -1; }
+        .field{ display:grid; gap:.35rem; }
+        .label{ font-weight: 800; color: var(--text); }
+        input, select, textarea{
+            width: 100%;
+            padding: .75rem .85rem;
+            border-radius: 14px;
+            border: 1px solid var(--border-strong);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            outline: none;
+        }
+        textarea{ resize: vertical; }
+        input:focus-visible, select:focus-visible, textarea:focus-visible{
+            border-color: var(--border-bright);
+            box-shadow: 0 0 0 3px rgba(140,200,255,0.18);
+        }
+        .checkbox{ align-items:center; grid-template-columns: auto 1fr; gap:.6rem; }
+        .actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-top: 1rem; }
+        @media (max-width: 720px){ .grid{ grid-template-columns: 1fr; } }
+    </style>
+</BaseLayout>

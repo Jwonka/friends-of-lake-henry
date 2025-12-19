@@ -191,10 +191,8 @@ for (const e of monthEvents) {
                 </div>
 
                 {/* Month list (good for readability + mobile + SEO) */}
-                <div class="monthList">
-                    {monthEvents.length === 0 ? (
-                        <p class="muted">No published events for this month yet.</p>
-                    ) : (
+                {monthEvents.length > 0 && (
+                    <div class="monthList">
                         <div class="list">
                             {monthEvents.map((e) => {
                                 const d = safeDate(e.date_start);
@@ -239,8 +237,8 @@ for (const e of monthEvents) {
                                 );
                             })}
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* TBD */}

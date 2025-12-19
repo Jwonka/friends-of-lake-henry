@@ -1,0 +1,186 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import type { D1Database } from "@cloudflare/workers-types";
+export const prerender = false;
+
+const DB = (Astro.locals as any).runtime.env.DB as D1Database;
+
+type Row = {
+    id: string;
+    title: string;
+    kind: string;
+    status: string;
+    date_start: string | null;
+    is_tbd: number;
+    location: string | null;
+    updated_at: string;
+};
+
+const res = await DB.prepare(`
+  SELECT id, title, kind, status, date_start, is_tbd, location, updated_at
+  FROM events
+  ORDER BY
+    CASE WHEN status='published' THEN 0 ELSE 1 END,
+    CASE WHEN is_tbd=1 OR date_start IS NULL THEN 1 ELSE 0 END,
+    date_start ASC,
+    updated_at DESC
+`).all<Row>();
+
+const rows = res.results ?? [];
+
+function niceDate(dateStart: string | null, isTbd: number) {
+    if (isTbd === 1 || !dateStart) return "TBD";
+    const d = new Date(dateStart);
+    if (Number.isNaN(d.getTime())) return "TBD";
+    return d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }).replace(":00", "");
+}
+
+const ok = Astro.url.searchParams.get("ok");
+const err = Astro.url.searchParams.get("err");
+const statusClass =
+    ok ? "status--success" :
+        err ? "status--error" :
+            "status--empty";
+const statusMsg =
+    ok === "created" ? "Created." :
+        ok === "updated" ? "Updated." :
+            ok === "deleted" ? "Deleted." :
+                ok === "toggled" ? "Updated status." :
+                    err === "notfound" ? "Not found." :
+                        err === "server" ? "Server error. Try again." :
+                            err ? "Something went wrong." : "";
+---
+
+<BaseLayout title="Events | Admin">
+    <div class="container" style="--maxw: 1100px;">
+        <section class="card enter-block" style="margin-top: var(--section-gap);">
+            <div class="adminHeader">
+                <div>
+                    <a class="pill" href="/admin">Admin</a>
+                    <h1 class="h1-tight">Events</h1>
+                    <p class="lead" style="margin:0;">Create and publish events shown on the public Events page.</p>
+
+                    <div id="status" class={`status ${statusClass}`} style="text-align:center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
+                        {statusMsg}
+                    </div>
+                </div>
+
+                <a class="pill" href="/admin/events/new">+ New event</a>
+            </div>
+
+            <div class="panel enter-block delay-1" style="margin-top: 1rem; background: var(--panel-bg-dense);">
+                {rows.length === 0 ? (
+                    <div class="emptyState">
+                        <p class="muted">No events yet.</p>
+                    </div>
+                ) : (
+                    <div class="eventList">
+                        {rows.map((e) => (
+                            <article class="panel eventItem">
+                                <div class="eventRow">
+                                    <div class="eventMain">
+                                        <div class="eventTitleRow">
+                                            <a class="eventTitle" href={`/admin/events/${e.id}`}>{e.title}</a>
+                                            <span class={`pillMini ${e.status === "published" ? "pillOk" : "pillDraft"}`}>
+                                                {e.status}
+                                            </span>
+                                            <span class="pillMini">{e.kind}</span>
+                                        </div>
+
+                                        <div class="eventMeta">
+                                            <span class="muted">{niceDate(e.date_start, e.is_tbd)}</span>
+                                            {e.location ? <span class="muted"> • {e.location}</span> : null}
+                                        </div>
+                                    </div>
+
+                                    <div class="eventActions">
+                                        <form method="post" action="/api/admin/events/toggle-status">
+                                            <input type="hidden" name="id" value={e.id} />
+                                            <input type="hidden" name="next" value={e.status === "published" ? "draft" : "published"} />
+                                            <button class="pill" type="submit">
+                                                {e.status === "published" ? "Unpublish" : "Publish"}
+                                            </button>
+                                        </form>
+
+                                        <a class="pill" href={`/admin/events/${e.id}`}>Edit</a>
+
+                                        <form method="post" action="/api/admin/events/delete" onsubmit="return confirm('Delete this event? This cannot be undone.');">
+                                            <input type="hidden" name="id" value={e.id} />
+                                            <button class="pill pill--danger" type="submit">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        import { cleanFlashParams } from "../../../scripts/clean-flash";
+        cleanFlashParams(["ok", "err"]);
+    </script>
+
+    <style>
+        .adminHeader{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-end;
+            gap:1rem;
+            flex-wrap:wrap;
+        }
+        .eventList{ display:grid; gap: 1rem; }
+        .eventItem{ background: rgba(0,0,0,0.18); }
+        .eventRow{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .eventMain{ min-width: 260px; flex: 1; }
+        .eventTitleRow{ display:flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+        .eventTitle{
+            font-weight: 900;
+            color: var(--text);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+        }
+        .eventTitle:hover,
+        .eventTitle:focus-visible{
+            border-bottom-color: var(--border-bright);
+            outline: none;
+        }
+        .eventMeta{ margin-top: .35rem; }
+        .eventActions{
+            display:flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .pillMini{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding: .18rem .55rem;
+            border-radius: 999px;
+            border: 1px solid var(--border-strong);
+            background: var(--glass-dark-strong);
+            color: var(--text-on-glass);
+            font-weight: 800;
+            font-size: .78rem;
+        }
+        .pillOk{ border-color: rgba(140,255,190,0.35); }
+        .pillDraft{ border-color: rgba(255,220,140,0.35); }
+
+        @media (max-width: 680px){
+            .eventActions{ justify-content: flex-start; }
+            .eventActions form, .eventActions a{ width: 100%; }
+            .eventActions .pill{ width: 100%; justify-content: center; }
+        }
+    </style>
+</BaseLayout>

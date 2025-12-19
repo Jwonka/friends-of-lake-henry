@@ -1,0 +1,186 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import type { D1Database } from "@cloudflare/workers-types";
+export const prerender = false;
+
+const id = Astro.params.id!;
+const DB = (Astro.locals as any).runtime.env.DB as D1Database;
+
+type Row = {
+    id: string;
+    title: string;
+    kind: string;
+    status: string;
+    date_start: string | null;
+    date_end: string | null;
+    is_tbd: number;
+    location: string | null;
+    summary: string | null;
+    url: string | null;
+    url_label: string | null;
+};
+
+const res = await DB.prepare(`
+  SELECT id,title,kind,status,date_start,date_end,is_tbd,location,summary,url,url_label
+  FROM events WHERE id = ?
+`).bind(id).first<Row>();
+
+if (!res) {
+    return new Response(null, { status: 302, headers: { location: "/admin/events?err=notfound" } });
+}
+
+const ok = Astro.url.searchParams.get("ok");
+const err = Astro.url.searchParams.get("err");
+const statusClass =
+    ok ? "status--success" :
+        err ? "status--error" :
+            "status--empty";
+const statusMsg =
+    ok === "updated" ? "Updated." :
+        err === "invalid" ? "Please check the fields and try again." :
+            err === "server" ? "Server error. Try again." :
+                err ? "Something went wrong." : "";
+---
+
+<BaseLayout title={`Edit Event | Admin`}>
+    <div class="container" style="--maxw: 900px;">
+        <section class="card enter-block" style="margin-top: var(--section-gap);">
+            <div class="adminHeader">
+                <div>
+                    <a class="pill" href="/admin/events">← Events</a>
+                    <h1 class="h1-tight">Edit event</h1>
+                    <p class="muted" style="margin:.2rem 0 0;">ID: <code>{res.id}</code></p>
+
+                    <div id="status" class={`status ${statusClass}`} role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
+                        {statusMsg}
+                    </div>
+                </div>
+
+                <div class="headerActions">
+                    <form method="post" action="/api/admin/events/toggle-status">
+                        <input type="hidden" name="id" value={res.id} />
+                        <input type="hidden" name="next" value={res.status === "published" ? "draft" : "published"} />
+                        <button class="pill" type="submit">{res.status === "published" ? "Unpublish" : "Publish"}</button>
+                    </form>
+
+                    <form method="post" action="/api/admin/events/delete" onsubmit="return confirm('Delete this event? This cannot be undone.');">
+                        <input type="hidden" name="id" value={res.id} />
+                        <button class="pill pill--danger" type="submit">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="panel enter-block delay-1" style="margin-top: 1rem; background: var(--panel-bg-dense);">
+                <form method="post" action="/api/admin/events/update" class="form">
+                    <input type="hidden" name="id" value={res.id} />
+
+                    <div class="grid">
+                        <label class="field">
+                            <span class="label">Title *</span>
+                            <input name="title" required maxlength="120" value={res.title} />
+                        </label>
+
+                        <label class="field">
+                            <span class="label">Kind *</span>
+                            <select name="kind" required>
+                                <option value="Event" selected={res.kind === "Event"}>Event</option>
+                                <option value="Meeting" selected={res.kind === "Meeting"}>Meeting</option>
+                                <option value="Fundraiser" selected={res.kind === "Fundraiser"}>Fundraiser</option>
+                                <option value="Raffle" selected={res.kind === "Raffle"}>Raffle</option>
+                            </select>
+                        </label>
+
+                        <label class="field">
+                            <span class="label">Status</span>
+                            <select name="status">
+                                <option value="draft" selected={res.status === "draft"}>draft</option>
+                                <option value="published" selected={res.status === "published"}>published</option>
+                            </select>
+                        </label>
+
+                        <label class="field checkbox">
+                            <input type="checkbox" name="is_tbd" value="1" id="is_tbd" checked={res.is_tbd === 1} />
+                            <span>Planned (Date TBD)</span>
+                        </label>
+
+                        <label class="field">
+                            <span class="label">Start</span>
+                            <input type="datetime-local" name="date_start" id="date_start" value={res.is_tbd ? "" : (res.date_start ?? "")} />
+                        </label>
+
+                        <label class="field">
+                            <span class="label">End</span>
+                            <input type="datetime-local" name="date_end" id="date_end" value={res.is_tbd ? "" : (res.date_end ?? "")} />
+                        </label>
+
+                        <label class="field full">
+                            <span class="label">Location</span>
+                            <input name="location" maxlength="120" value={res.location ?? ""} />
+                        </label>
+
+                        <label class="field full">
+                            <span class="label">Summary</span>
+                            <textarea name="summary" rows="4" maxlength="600">{res.summary ?? ""}</textarea>
+                        </label>
+
+                        <label class="field full">
+                            <span class="label">Link URL</span>
+                            <input name="url" inputmode="url" placeholder="https://..." value={res.url ?? ""} />
+                        </label>
+
+                        <label class="field">
+                            <span class="label">Link label</span>
+                            <input name="url_label" maxlength="40" placeholder="Details" value={res.url_label ?? ""} />
+                        </label>
+                    </div>
+
+                    <div class="actions">
+                        <button class="pill" type="submit">Save</button>
+                        <a class="pill" href="/admin/events">Back</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        const tbd = document.getElementById("is_tbd");
+        const start = document.getElementById("date_start");
+        const end = document.getElementById("date_end");
+
+        function sync() {
+            const on = tbd.checked;
+            start.disabled = on;
+            end.disabled = on;
+            if (on) { start.value = ""; end.value = ""; }
+        }
+        tbd.addEventListener("change", sync);
+        sync();
+    </script>
+
+    <style>
+        .adminHeader{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
+        .headerActions{ display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+        .grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+        .full{ grid-column: 1 / -1; }
+        .field{ display:grid; gap:.35rem; }
+        .label{ font-weight: 800; color: var(--text); }
+        input, select, textarea{
+            width: 100%;
+            padding: .75rem .85rem;
+            border-radius: 14px;
+            border: 1px solid var(--border-strong);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            outline: none;
+        }
+        textarea{ resize: vertical; }
+        input:focus-visible, select:focus-visible, textarea:focus-visible{
+            border-color: var(--border-bright);
+            box-shadow: 0 0 0 3px rgba(140,200,255,0.18);
+        }
+        .checkbox{ align-items:center; grid-template-columns: auto 1fr; gap:.6rem; }
+        .actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-top: 1rem; }
+        @media (max-width: 720px){ .grid{ grid-template-columns: 1fr; } }
+    </style>
+</BaseLayout>
