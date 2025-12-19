@@ -47,7 +47,7 @@ const statusMsg =
         <section class="card approvedCard enter-block">
             <div class="adminHeader">
                 <div class="adminHeaderLeft">
-                    <a class="pill" href="/admin">Admin</a>
+                    <a class="pill enter-block delay-1" href="/admin">Admin</a>
                     <h1 class="h1-tight">Approved photos</h1>
                     <p class="lead">These are visible on the public Photos page. Delete removes from gallery.</p>
 
@@ -57,13 +57,13 @@ const statusMsg =
                 </div>
             </div>
 
-            <div class="panel approvedPanel enter-block delay-1">
+            <div class="panel approvedPanel enter-block delay-2">
                 {approved.length === 0 ? (
                         <div class="emptyState">
                             <p class="muted">No approved photos yet.</p>
                         </div>
                 ) : (
-                    <div class="approvedList">
+                    <div class="approvedList enter-block delay-3">
                         {approved.map((p) => (
                             <article class="approvedItem panel">
                                 <div class="itemGrid">
@@ -106,7 +106,7 @@ const statusMsg =
                                         <form method="post" action="/api/admin/photos/delete" class="deleteForm">
                                             <input type="hidden" name="id" value={p.id} />
                                             <button
-                                                class="pill pill--danger"
+                                                class="pill pill--danger enter-block delay-4"
                                                 type="submit"
                                                 onclick="return confirm('Delete this approved photo? This removes it from the public gallery and cannot be undone.');"
                                             >

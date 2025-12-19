@@ -35,7 +35,7 @@ const statusMsg =
         <section class="card pendingCard enter-block">
             <div class="adminHeader">
                 <div class="adminHeaderLeft">
-                    <a class="pill" href="/admin">Admin</a>
+                    <a class="pill  enter-block delay-1" href="/admin">Admin</a>
                     <h1 class="h1-tight">Pending photos</h1>
                     <p class="lead">Approve to publish. Reject deletes the image and the DB row.</p>
                     <div id="status" class={`status ${statusClass}`} style="text-align: center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
@@ -44,13 +44,13 @@ const statusMsg =
                 </div>
             </div>
 
-            <div class="panel pendingPanel enter-block delay-1">
+            <div class="panel pendingPanel enter-block delay-2">
                 {pending.length === 0 ? (
                     <div class="emptyState">
                         <p class="muted">No pending photos.</p>
                     </div>
                 ) : (
-                    <div class="pendingList">
+                    <div class="pendingList  enter-block delay-3">
                         {pending.map((p: any) => (
                             <article class="pendingItem panel">
                                 <div class="itemGrid">
@@ -116,10 +116,10 @@ const statusMsg =
                                             </div>
 
                                             <div class="ctaRow actions">
-                                                <button class="btn" type="submit">Approve</button>
+                                                <button class="btn  enter-block delay-4" type="submit">Approve</button>
 
                                                 <button
-                                                    class="pill pill--danger"
+                                                    class="pill pill--danger  enter-block delay-5"
                                                     type="submit"
                                                     form={`reject-${p.id}`}
                                                     onclick="return confirm('Reject this photo? This permanently deletes the image and record.');"
