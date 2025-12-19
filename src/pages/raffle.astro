@@ -18,6 +18,21 @@ function startDow(y: number, m: number) {
 const totalDays = daysInMonth(year, monthIndex);
 const firstDow = startDow(year, monthIndex);
 const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const facebookPageUrl = "https://www.facebook.com/people/Friends-of-Lake-Henry/61552199315213/";
+const facebookPageHref = encodeURIComponent(facebookPageUrl);
+
+// Page Plugin embed. This is the most reliable embed for Pages/SSR.
+// It will show the Page content; if a Live is running, it often appears prominently.
+const facebookEmbedSrc =
+    `https://www.facebook.com/plugins/page.php?` +
+    `href=${facebookPageHref}` +
+    `&tabs=timeline` +
+    `&width=500` +
+    `&height=700` +
+    `&small_header=true` +
+    `&adapt_container_width=true` +
+    `&hide_cover=false` +
+    `&show_facepile=false`;
 ---
 
 <BaseLayout title={`Raffle | Friends of Lake Henry`}>
@@ -76,8 +91,39 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
                 })}
             </div>
         </section>
+        <section class="card liveCard enter-block delay-2">
+            <h2 class="sectionTitle">Live Stream</h2>
 
-        <section class="card rules  enter-block delay-2">
+            <div class="panel livePanel">
+                <div class="liveFrame">
+                    <iframe
+                        class="fbFrame"
+                        src={"https://www.facebook.com/reel/1393954152400350"}
+                        title="Friends of Lake Henry — Facebook Live"
+                        loading="lazy"
+                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                        allowfullscreen
+                    ></iframe>
+                </div>
+
+                <div class="liveFallback">
+                    <p class="muted" style="margin:0 0 .75rem;">
+                        Live is offline right now. When a broadcast starts, it will appear here (if embedding is allowed in your browser/network).
+                    </p>
+
+                    <a
+                        class="btn fbBtn"
+                        href={facebookPageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Watch on Facebook
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="card rules  enter-block delay-3">
             <h2>Rules</h2>
             <ul>
                 {rules.map((r) => <li>{r}</li>)}
@@ -173,6 +219,46 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
         .rules ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
         .rules li { margin: 0.4rem 0;
             line-height: 1.5; }
+        .liveCard{
+            margin-top: var(--section-gap);
+            padding: 1.5rem;
+        }
+
+        .livePanel{
+            display: grid;
+            gap: 1rem;
+        }
+
+        .liveFrame{
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.20);
+        }
+
+        .fbFrame{
+            display: block;
+            width: 100%;
+            height: 700px;
+            border: 0;
+        }
+
+        .liveFallback{
+            display: flex;
+            gap: .75rem;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        /* make the Facebook CTA feel intentional without changing global .btn */
+        .fbBtn{
+            border-color: rgba(24,119,242,0.35);
+        }
+        .fbBtn:hover,
+        .fbBtn:focus-visible{
+            border-color: rgba(24,119,242,0.55);
+        }
 
         @media (min-width: 980px) {
             .hero { grid-template-columns: 1.35fr .65fr; align-items: start; }
@@ -187,7 +273,8 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
             .calendarCard { padding: 1rem; }
             .calendar { gap: .4rem; }
             .dow { display: none; }
-
+            /* reduce the iframe height */
+            .fbFrame{ height: 560px; }
             .cell {
                 min-height: 72px;
                 padding: .55rem .55rem .65rem;
@@ -207,6 +294,15 @@ const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
         @media (max-width: 520px) {
             .heroCtas { flex-direction: column; align-items: stretch; }
             .heroCtas .btn { width: 100%; }
+            .fbFrame{ height: 520px; }
+            .liveFallback{
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .liveFallback .btn{
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </BaseLayout>
