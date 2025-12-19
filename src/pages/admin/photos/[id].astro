@@ -64,6 +64,42 @@ if (!photo) throw new Error("Not found");
                     </div>
                 </div>
             </div>
+
+            <div class="panel enter-block delay-3" style="margin-top: 1rem; background: var(--panel-bg-dense);">
+                <h2 class="h2-zero">Poster</h2>
+                <p class="muted" style="margin: .35rem 0 1rem;">
+                    Upload a flyer image to show inside the public event details.
+                </p>
+
+                {res.poster_key ? (
+                        <figure class="posterPreview" style="margin:0 0 1rem;">
+                            <img src={`/api/events/poster?id=${res.id}`} alt={res.poster_alt ?? res.title} loading="lazy" />
+                        </figure>
+                ) : (
+                        <p class="muted" style="margin: 0 0 1rem;">No poster uploaded yet.</p>
+                )}
+
+                <form method="post" action="/api/admin/events/poster" enctype="multipart/form-data" class="form">
+                    <input type="hidden" name="id" value={res.id} />
+
+                    <div class="grid">
+                        <label class="field full">
+                            <span class="label">Poster image</span>
+                            <input type="file" name="poster" accept="image/*" required />
+                        </label>
+
+                        <label class="field full">
+                            <span class="label">Poster alt text *</span>
+                            <input name="alt" required minlength="5" maxlength="140" value={res.poster_alt ?? ""} />
+                        </label>
+                    </div>
+
+                    <div class="actions">
+                        <button class="pill" type="submit">Upload poster</button>
+                    </div>
+                </form>
+            </div>
+
         </section>
     </div>
 
@@ -126,6 +162,15 @@ if (!photo) throw new Error("Not found");
             border-color: rgba(255,255,255,0.22);
             background: rgba(11,18,32,0.68);
             color: var(--text);
+        }
+
+        .posterPreview img{
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+            border: 1px solid var(--border-strong);
+            box-shadow: var(--card-shadow-soft);
+            background: var(--glass-dark);
         }
 
         @media (max-width: 900px){

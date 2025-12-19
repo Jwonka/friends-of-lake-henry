@@ -18,11 +18,14 @@ type Row = {
     summary: string | null;
     url: string | null;
     url_label: string | null;
+    poster_key: string | null;
+    poster_alt: string | null;
 };
 
 const res = await DB.prepare(`
-  SELECT id,title,kind,status,date_start,date_end,is_tbd,location,summary,url,url_label
-  FROM events WHERE id = ?
+    SELECT id,title,kind,status,date_start,date_end,is_tbd,location,summary,url,url_label,
+           poster_key, poster_alt
+    FROM events WHERE id = ?
 `).bind(id).first<Row>();
 
 if (!res) {
