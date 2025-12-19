@@ -122,10 +122,18 @@ const statusMsg =
             </div>
         </section>
     </div>
-    <script type="module">
-        import { cleanFlashParams } from "../../../scripts/clean-flash";
-        cleanFlashParams(["ok", "err"]);
-    </script>
+    <script is:inline>
+    (function () {
+        const params = new URLSearchParams(window.location.search);
+        if (!params.has("ok") && !params.has("err")) return;
+
+        params.delete("ok");
+        params.delete("err");
+        const qs = params.toString();
+        const next = window.location.pathname + (qs ? `?${qs}` : "");
+        window.history.replaceState({}, "", next);
+    })();
+</script>
     <style>
         .approvedPanel{ background: var(--panel-bg-dense); }
         .approvedList{ display:grid; gap: 1rem; }
