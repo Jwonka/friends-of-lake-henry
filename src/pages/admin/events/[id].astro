@@ -143,6 +143,63 @@ const statusMsg =
                     </div>
                 </form>
             </div>
+            <div class="panel enter-block delay-5" style="margin-top: 1rem; background: var(--panel-bg-dense);">
+                <h2 class="h2-zero">Poster</h2>
+                <p class="muted" style="margin:.35rem 0 1rem;">
+                    Upload a poster image for this event (optional).
+                </p>
+
+                {res.poster_key ? (
+                    <figure class="poster" style="margin:0 0 1rem;">
+                        <img
+                            src={`/api/events/poster?id=${res.id}`}
+                            alt={res.poster_alt ?? res.title}
+                            loading="lazy"
+                        />
+                    </figure>
+                ) : null}
+
+                <form method="post" action="/api/admin/events/poster" enctype="multipart/form-data" class="form" data-file-form>
+                    <input type="hidden" name="id" value={res.id} />
+
+                    <div class="field field--file full">
+                        <label class="labelRow" for="poster">
+                            Poster
+                            <span class="req" aria-hidden="true">*</span>
+                            <span class="srOnly">(required)</span>
+                        </label>
+
+                        <input
+                            id="poster"
+                            class="fileInput"
+                            name="poster"
+                            type="file"
+                            accept="image/*"
+                            required
+                            data-file-input
+                        />
+
+                        <div class="fileUi enter-block delay-6" role="group">
+                            <button class="pill fileBtn" type="button" data-file-btn>
+                                Choose file
+                            </button>
+
+                            <span class="fileName muted" data-file-name>
+                              No file chosen
+                            </span>
+                        </div>
+                    </div>
+
+                    <label class="field full">
+                        <span class="label">Poster alt text *</span>
+                        <input name="alt" minlength="5" required value={res.poster_alt ?? ""} />
+                    </label>
+
+                    <div class="actions">
+                        <button class="pill enter-block delay-7" type="submit">Upload poster</button>
+                    </div>
+                </form>
+            </div>
         </section>
     </div>
 
@@ -160,7 +217,20 @@ const statusMsg =
         tbd.addEventListener("change", sync);
         sync();
     </script>
+    <script type="module">
+        const root = document.querySelector("[data-file-form]");
+        if (root) {
+            const input = root.querySelector("[data-file-input]");
+            const btn = root.querySelector("[data-file-btn]");
+            const name = root.querySelector("[data-file-name]");
 
+            btn?.addEventListener("click", () => input?.click());
+            input?.addEventListener("change", () => {
+                const file = input.files?.[0];
+                if (name) name.textContent = file ? file.name : "No file chosen";
+            });
+        }
+    </script>
     <style>
         .adminHeader{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
         .pageTop .pill { justify-self: start; }
@@ -169,6 +239,11 @@ const statusMsg =
         .full{ grid-column: 1 / -1; }
         .field{ display:grid; gap:.35rem; }
         .label{ font-weight: 800; color: var(--text); }
+        .labelRow{
+            display: block;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
         /* Select styling: darker “glass” */
         select{
             background: var(--glass-light);
@@ -194,6 +269,42 @@ const statusMsg =
         }
         .checkbox{ align-items:center; grid-template-columns: auto 1fr; gap:.6rem; }
         .actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-top: 1rem; }
+        .fileInput{
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        .fileUi{
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .65rem .75rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-strong);
+            background: var(--glass-light);
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .fileName{
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .fileBtn{
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
         @media (max-width: 720px){ .grid{ grid-template-columns: 1fr; } }
     </style>
 </BaseLayout>

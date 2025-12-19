@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
     const headers = new Headers();
     headers.set("Content-Type", obj.httpMetadata?.contentType || "application/octet-stream");
-    headers.set("Cache-Control", "public, max-age=86400"); 
+    headers.set("Cache-Control", "public, max-age=86400");
     if (obj.httpEtag) headers.set("ETag", obj.httpEtag);
 
     return new Response(r2Response.body, { status: 200, headers });
