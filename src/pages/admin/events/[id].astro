@@ -39,10 +39,19 @@ const statusClass =
         err ? "status--error" :
             "status--empty";
 const statusMsg =
-    ok === "updated" ? "Updated." :
-        err === "invalid" ? "Please check the fields and try again." :
-            err === "server" ? "Server error. Try again." :
-                err ? "Something went wrong." : "";
+    ok === "updated" ? "Updated."
+        : ok === "poster" ? "Poster uploaded."
+            : ok === "created" ? "Created."
+                : ok === "deleted" ? "Deleted."
+                    : ok === "toggled" ? "Updated status."
+                        : err === "invalid" ? "Please check the fields and try again."
+                            : err === "server" ? "Server error. Try again."
+                                : err === "alt" ? "Alt text must be at least 5 characters."
+                                    : err === "file" ? "Please choose a file."
+                                        : err === "type" ? "Please upload a JPG, PNG, WEBP, or GIF."
+                                            : err === "size" ? "File must be under 8MB."
+                                                : err ? "Something went wrong."
+                                                    : "";
 ---
 
 <BaseLayout title={`Edit Event | Admin`}>
@@ -231,19 +240,49 @@ const statusMsg =
             const file = input.files?.[0];
             if (name) name.textContent = file ? file.name : "No file chosen";
         });
+        // Auto-clear ok/err query params (keeps refresh from re-showing messages)
+        (() => {
+            const u = new URL(window.location.href);
+            let changed = false;
+
+            if (u.searchParams.has("ok")) { u.searchParams.delete("ok"); changed = true; }
+            if (u.searchParams.has("err")) { u.searchParams.delete("err"); changed = true; }
+
+            if (changed) {
+                const next = u.pathname + (u.searchParams.toString() ? `?${u.searchParams.toString()}` : "") + u.hash;
+                window.history.replaceState({}, "", next);
+            }
+        })();
     </script>
     <style>
         .adminHeader{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
         .pageTop .pill { justify-self: start; }
         .headerActions{ display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
         .grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+        .grid > * { min-width: 0; }
         .full{ grid-column: 1 / -1; }
-        .field{ display:grid; gap:.35rem; }
+        .field{ display:grid; gap:.35rem; min-width: 0; }
         .label{ font-weight: 800; color: var(--text); }
         .labelRow{
             display: block;
             max-width: 100%;
             overflow-wrap: anywhere;
+        }
+        /* Prevent long labels/titles from overflowing */
+        .label,
+        .labelRow{
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        /* Critical: allow grid/flex children to shrink */
+        .field,
+        .pageTop,
+        .eventMain,
+        .eventTitleRow,
+        .fileUi{
+            min-width: 0;
         }
         /* Select styling: darker “glass” */
         select{
@@ -306,6 +345,12 @@ const statusMsg =
             white-space: nowrap;
             flex: 0 0 auto;
         }
+        input, select, textarea {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        input[type="datetime-local"]{ min-width: 0; }
         @media (max-width: 720px){ .grid{ grid-template-columns: 1fr; } }
     </style>
 </BaseLayout>

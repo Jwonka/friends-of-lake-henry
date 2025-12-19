@@ -120,9 +120,26 @@ const statusMsg =
         .adminHeader{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
         .pageTop .pill { justify-self: start; }
         .grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+        .grid > * { min-width: 0; }
         .full{ grid-column: 1 / -1; }
-        .field{ display:grid; gap:.35rem; }
+        .field{ display:grid; gap:.35rem; min-width: 0; }
         .label{ font-weight: 800; color: var(--text); }
+        /* Prevent long labels/titles from overflowing */
+        .label,
+        .labelRow{
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        /* Critical: allow grid/flex children to shrink */
+        .field,
+        .pageTop,
+        .eventMain,
+        .eventTitleRow,
+        .fileUi{
+            min-width: 0;
+        }
         /* Select styling: darker “glass” */
         select{
             background: var(--glass-light);
@@ -148,6 +165,12 @@ const statusMsg =
         }
         .checkbox{ align-items:center; grid-template-columns: auto 1fr; gap:.6rem; }
         .actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-top: 1rem; }
+        input, select, textarea {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        input[type="datetime-local"]{ min-width: 0; }
         @media (max-width: 720px){ .grid{ grid-template-columns: 1fr; } }
     </style>
 </BaseLayout>

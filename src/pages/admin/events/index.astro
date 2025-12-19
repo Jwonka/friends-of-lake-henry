@@ -148,13 +148,15 @@ const statusMsg =
             color: var(--text);
             text-decoration: none;
             border-bottom: 1px solid transparent;
+            overflow-wrap:anywhere;
+            word-break:break-word;
         }
         .eventTitle:hover,
         .eventTitle:focus-visible{
             border-bottom-color: var(--border-bright);
             outline: none;
         }
-        .eventMeta{ margin-top: .35rem; }
+        .eventMeta{ margin-top: .35rem; overflow-wrap:anywhere; word-break:break-word; }
         .eventActions{
             display:flex;
             gap: .5rem;
@@ -177,7 +179,22 @@ const statusMsg =
         }
         .pillOk{ border-color: rgba(140,255,190,0.35); }
         .pillDraft{ border-color: rgba(255,220,140,0.35); }
+        /* Prevent long labels/titles from overflowing */
+        .label,
+        .labelRow{
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
 
+        /* Critical: allow grid/flex children to shrink */
+        .field,
+        .pageTop,
+        .eventMain,
+        .eventTitleRow,
+        .fileUi{
+            min-width: 0;
+        }
         @media (max-width: 680px){
             .eventActions{ justify-content: flex-start; }
             .eventActions form, .eventActions a{ width: 100%; }
