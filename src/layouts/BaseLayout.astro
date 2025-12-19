@@ -27,10 +27,12 @@ const ogImageUrl = Astro.site ? new URL(image, Astro.site).toString() : image;
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+    <meta property="og:image:alt" content="Lake Henry dredging project sign and shoreline restoration work." />
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:site_name" content="Friends of Lake Henry" />
     {canonical && <meta property="og:url" content={canonical} />}
 
     <!-- Twitter -->
