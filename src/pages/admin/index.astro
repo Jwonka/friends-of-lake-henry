@@ -7,14 +7,14 @@ export const prerender = false;
     <div class="container" style="--maxw: 1100px;">
         <section class="card adminCard enter-block">
             <div class="adminHeader">
-                <div>
+                <div class="pageTop">
                     <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
                     <h1 class="h1-tight">Admin Dashboard</h1>
                     <p class="lead adminLead">Manage site content and donor listings.</p>
                 </div>
 
                 <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
-                    <button class="pill" type="submit">Log out</button>
+                    <button class="btn" type="submit">Log out</button>
                 </form>
             </div>
 
@@ -61,6 +61,7 @@ export const prerender = false;
             gap: 1rem;
             flex-wrap: wrap;
         }
+        .pageTop .pill { justify-self: start; }
         .adminGrid{
             display:grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));

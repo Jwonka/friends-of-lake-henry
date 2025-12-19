@@ -46,8 +46,8 @@ const statusMsg =
     <div class="container" style="--maxw: 900px;">
         <section class="card enter-block" style="margin-top: var(--section-gap);">
             <div class="adminHeader">
-                <div>
-                    <a class="pill" href="/admin/events">← Events</a>
+                <div class="pageTop">
+                    <a class="pill enter-block delay-1" href="/admin/events">← Events</a>
                     <h1 class="h1-tight">Edit event</h1>
                     <p class="muted" style="margin:.2rem 0 0;">ID: <code>{res.id}</code></p>
 
@@ -60,17 +60,17 @@ const statusMsg =
                     <form method="post" action="/api/admin/events/toggle-status">
                         <input type="hidden" name="id" value={res.id} />
                         <input type="hidden" name="next" value={res.status === "published" ? "draft" : "published"} />
-                        <button class="pill" type="submit">{res.status === "published" ? "Unpublish" : "Publish"}</button>
+                        <button class="pill  enter-block delay-2" type="submit">{res.status === "published" ? "Unpublish" : "Publish"}</button>
                     </form>
 
                     <form method="post" action="/api/admin/events/delete" onsubmit="return confirm('Delete this event? This cannot be undone.');">
                         <input type="hidden" name="id" value={res.id} />
-                        <button class="pill pill--danger" type="submit">Delete</button>
+                        <button class="pill pill--danger enter-block delay-3" type="submit">Delete</button>
                     </form>
                 </div>
             </div>
 
-            <div class="panel enter-block delay-1" style="margin-top: 1rem; background: var(--panel-bg-dense);">
+            <div class="panel enter-block delay-4" style="margin-top: 1rem; background: var(--panel-bg-dense);">
                 <form method="post" action="/api/admin/events/update" class="form">
                     <input type="hidden" name="id" value={res.id} />
 
@@ -135,8 +135,8 @@ const statusMsg =
                     </div>
 
                     <div class="actions">
-                        <button class="pill" type="submit">Save</button>
-                        <a class="pill" href="/admin/events">Back</a>
+                        <button class="pill enter-block delay-5" type="submit">Save</button>
+                        <a class="pill enter-block delay-6" href="/admin/events">Back</a>
                     </div>
                 </form>
             </div>
@@ -160,24 +160,34 @@ const statusMsg =
 
     <style>
         .adminHeader{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
+        .pageTop .pill { justify-self: start; }
         .headerActions{ display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
         .grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
         .full{ grid-column: 1 / -1; }
         .field{ display:grid; gap:.35rem; }
         .label{ font-weight: 800; color: var(--text); }
-        input, select, textarea{
-            width: 100%;
-            padding: .75rem .85rem;
-            border-radius: 14px;
-            border: 1px solid var(--border-strong);
-            background: rgba(255,255,255,0.06);
-            color: var(--text);
-            outline: none;
+        /* Select styling: darker “glass” */
+        select{
+            background: var(--glass-light);
+            border-color: var(--border-strong);
+            color: var(--text-bright);
+            /* make the arrow look consistent without changing the menu */
+            appearance: none;
+            background-image:
+                    linear-gradient(45deg, transparent 50%, var(--text-soft) 50%),
+                    linear-gradient(135deg, var(--text-soft) 50%, transparent 50%);
+            background-position:
+                    calc(100% - 18px) calc(50% - 3px),
+                    calc(100% - 12px) calc(50% - 3px);
+            background-size: 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 2.25rem;
         }
-        textarea{ resize: vertical; }
-        input:focus-visible, select:focus-visible, textarea:focus-visible{
-            border-color: var(--border-bright);
-            box-shadow: 0 0 0 3px rgba(140,200,255,0.18);
+
+        /* Some browsers ignore option styling; still helps where supported */
+        select option{
+            background: var(--surface);
+            color: var(--text);
         }
         .checkbox{ align-items:center; grid-template-columns: auto 1fr; gap:.6rem; }
         .actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-top: 1rem; }

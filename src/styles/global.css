@@ -323,6 +323,8 @@ p { color: var(--text-strong); }
     white-space: nowrap;
     border: 0;
 }
+/* paddiing for admin button */
+.pageTop { display: grid; gap: .6rem; }
 
 /* Form controls (site-wide) */
 label { display: block; }

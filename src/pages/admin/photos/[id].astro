@@ -19,7 +19,7 @@ if (!photo) throw new Error("Not found");
     <div class="container" style="--maxw: 1100px;">
         <section class="card enter-block" style="margin-top: var(--section-gap);">
             <div class="adminHeader">
-                <div>
+                <div class="pageTop">
                     <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
                     <h1 class="h1-tight">Review Submission</h1>
                     <p class="lead" style="margin: 0;">Confirm category and alt text before publishing.</p>
@@ -75,7 +75,7 @@ if (!photo) throw new Error("Not found");
             align-items:flex-end;
             flex-wrap:wrap;
         }
-
+        .pageTop .pill { justify-self: start; }
         .preview{
             margin:0 0 1rem;
             border-radius: 14px;

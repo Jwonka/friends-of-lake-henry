@@ -55,8 +55,8 @@ const statusMsg =
     <div class="container" style="--maxw: 1100px;">
         <section class="card enter-block" style="margin-top: var(--section-gap);">
             <div class="adminHeader">
-                <div>
-                    <a class="pill" href="/admin">Admin</a>
+                <div class="pageTop">
+                    <a class="pill enter-block delay-1" href="/admin">Admin</a>
                     <h1 class="h1-tight">Events</h1>
                     <p class="lead" style="margin:0;">Create and publish events shown on the public Events page.</p>
 
@@ -65,10 +65,10 @@ const statusMsg =
                     </div>
                 </div>
 
-                <a class="pill" href="/admin/events/new">+ New event</a>
+                <a class="pill enter-block delay-2" href="/admin/events/new">+ New event</a>
             </div>
 
-            <div class="panel enter-block delay-1" style="margin-top: 1rem; background: var(--panel-bg-dense);">
+            <div class="panel enter-block delay-3" style="margin-top: 1rem; background: var(--panel-bg-dense);">
                 {rows.length === 0 ? (
                     <div class="emptyState">
                         <p class="muted">No events yet.</p>
@@ -131,6 +131,7 @@ const statusMsg =
             gap:1rem;
             flex-wrap:wrap;
         }
+        .pageTop .pill { justify-self: start; }
         .eventList{ display:grid; gap: 1rem; }
         .eventItem{ background: rgba(0,0,0,0.18); }
         .eventRow{

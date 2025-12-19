@@ -10,7 +10,7 @@ const raffle = raffleConfig.banner;
         <section class="card adminCard enter-block">
             <div class="adminHeader">
                 <div class="adminTitle">
-                    <div>
+                    <div class="pageTop">
                         <a class="pill enter-block delay-1" href="/admin" >ADMIN</a>
                         <h1 class="h1-tight">Raffle</h1>
                     </div>
@@ -53,7 +53,7 @@ const raffle = raffleConfig.banner;
             <div class="panel adminPanel enter-block delay-4" style="margin-top: 1rem;">
                 <div class="winnersHead">
                     <h2 class="h2-zero">Winners</h2>
-                    <button class="pill enter-block delay-5" type="button">Add winner (mock)</button>
+                    <button class="btn enter-block delay-5" type="button">Add winner (mock)</button>
                 </div>
 
                 <div class="winnersList">
@@ -77,7 +77,7 @@ const raffle = raffleConfig.banner;
         .adminCard{ margin-top: var(--section-gap); }
         .adminLead{ margin: .25rem 0 0; }
         .adminPanel{ margin-top: 1rem; }
-
+        .pageTop .pill { justify-self: start; }
         .formGrid{
             display:grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));

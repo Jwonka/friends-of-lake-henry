@@ -46,7 +46,7 @@ const statusMsg =
     <div class="container" style="--maxw: 1100px;">
         <section class="card approvedCard enter-block">
             <div class="adminHeader">
-                <div class="adminHeaderLeft">
+                <div class="adminHeaderLeft pageTop">
                     <a class="pill enter-block delay-1" href="/admin">Admin</a>
                     <h1 class="h1-tight">Approved photos</h1>
                     <p class="lead">These are visible on the public Photos page. Delete removes from gallery.</p>
@@ -137,6 +137,7 @@ const statusMsg =
     <style>
         .approvedPanel{ background: var(--panel-bg-dense); }
         .approvedList{ display:grid; gap: 1rem; }
+        .pageTop .pill { justify-self: start; }
         .itemGrid{ display:grid; gap: 1rem; grid-template-columns: 260px 1fr; align-items:start; }
         .previewImg{ width:100%; border-radius: 12px; border: 1px solid var(--border-strong); display:block; }
         .meta{ display:grid; gap: .4rem; }

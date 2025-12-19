@@ -34,7 +34,7 @@ const statusMsg =
     <div class="container" style="--maxw: 1100px;">
         <section class="card pendingCard enter-block">
             <div class="adminHeader">
-                <div class="adminHeaderLeft">
+                <div class="adminHeaderLeft pageTop">
                     <a class="pill  enter-block delay-1" href="/admin">Admin</a>
                     <h1 class="h1-tight">Pending photos</h1>
                     <p class="lead">Approve to publish. Reject deletes the image and the DB row.</p>
@@ -154,6 +154,7 @@ const statusMsg =
         })();
     </script>
     <style>
+        .pageTop .pill { justify-self: start; }
         .pendingCard { margin-top: var(--section-gap); }
 
         .pendingPanel{
