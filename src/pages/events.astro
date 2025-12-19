@@ -141,51 +141,53 @@ for (const e of monthEvents) {
 
                     <div class="calNav">
                         <a class="pill" href={prevHref} aria-label="Previous month">← Prev</a>
-                        <a class="pill" href={thisHref} aria-label="Current month">This month</a>
+                        <a class="pill thisMonthBtn" href={thisHref} aria-label="Current month">This month</a>
                         <a class="pill" href={nextHref} aria-label="Next month">Next →</a>
                     </div>
                 </div>
 
-                <div class="calendar" role="grid" aria-label={`Calendar for ${monthLabel(firstOfMonth)}`}>
-                    {dow.map((d) => (
-                            <div class="dow" role="columnheader">{d}</div>
-                    ))}
+                <div class="calendarWrap" aria-hidden="false">
+                    <div class="calendar" role="grid" aria-label={`Calendar for ${monthLabel(firstOfMonth)}`}>
+                        {dow.map((d) => (
+                                <div class="dow" role="columnheader">{d}</div>
+                        ))}
 
-                    {Array.from({ length: startDow }).map(() => (
-                            <div class="cell blank" aria-hidden="true"></div>
-                    ))}
+                        {Array.from({ length: startDow }).map(() => (
+                                <div class="cell blank" aria-hidden="true"></div>
+                        ))}
 
-                    {Array.from({ length: daysInMonth }).map((_, idx) => {
-                        const day = idx + 1;
-                        const iso = `${monthKey(year, monthIndex)}-${String(day).padStart(2, "0")}`;
-                        const dayEvents = byDay.get(iso) ?? [];
-                        return (
-                            <div class="cell" role="gridcell">
-                                <div class="dayNum">{day}</div>
+                        {Array.from({ length: daysInMonth }).map((_, idx) => {
+                            const day = idx + 1;
+                            const iso = `${monthKey(year, monthIndex)}-${String(day).padStart(2, "0")}`;
+                            const dayEvents = byDay.get(iso) ?? [];
+                            return (
+                                <div class="cell" role="gridcell">
+                                    <div class="dayNum">{day}</div>
 
-                                {dayEvents.length ? (
-                                    <div class="chips">
-                                        {dayEvents.slice(0, 3).map((ev) => (
-                                            <a
-                                                class="chip"
-                                                href={ev.url ?? "#"}
-                                                aria-disabled={ev.url ? "false" : "true"}
-                                                title={ev.summary ?? ev.title}
-                                            >
-                                                <span class="chipKind">{ev.kind}</span>
-                                                <span class="chipTitle">{ev.title}</span>
-                                            </a>
-                                        ))}
-                                        {dayEvents.length > 3 ? (
-                                                <div class="muted small">+{dayEvents.length - 3} more</div>
-                                        ) : null}
-                                    </div>
-                                ) : (
-                                    <div class="muted empty">—</div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                    {dayEvents.length ? (
+                                        <div class="chips">
+                                            {dayEvents.slice(0, 3).map((ev) => (
+                                                <a
+                                                    class="chip"
+                                                    href={ev.url ?? "#"}
+                                                    aria-disabled={ev.url ? "false" : "true"}
+                                                    title={ev.summary ?? ev.title}
+                                                >
+                                                    <span class="chipKind">{ev.kind}</span>
+                                                    <span class="chipTitle">{ev.title}</span>
+                                                </a>
+                                            ))}
+                                            {dayEvents.length > 3 ? (
+                                                    <div class="muted small">+{dayEvents.length - 3} more</div>
+                                            ) : null}
+                                        </div>
+                                    ) : (
+                                        <div class="muted empty">—</div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Month list (good for readability + mobile + SEO) */}
@@ -393,6 +395,9 @@ for (const e of monthEvents) {
 
         @media (max-width: 760px){
             .calendar { gap: .4rem; }
+            /* Hide calendar grid on phones; keep month list */
+            .calendarWrap { display: none; }
+            .thisMonthBtn { display:none; }
             .dow { display:none; }
             .cell { min-height: 92px; padding: .55rem; }
             .chipTitle { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -401,7 +406,16 @@ for (const e of monthEvents) {
         @media (max-width: 520px){
             .calendarPanel { padding: 1rem; }
             .item { padding: 1rem; }
-            .calNav { width: 100%; justify-content: space-between; }
-        }
+            .calNav{
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: .5rem;
+                width: 100%;
+            }
+            .calNav .pill{
+                width: 100%;
+                justify-content: center;
+            }
+       }
     </style>
 </BaseLayout>
