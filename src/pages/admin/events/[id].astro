@@ -204,32 +204,33 @@ const statusMsg =
     </div>
 
     <script type="module">
+        // TBD toggle
         const tbd = document.getElementById("is_tbd");
         const start = document.getElementById("date_start");
         const end = document.getElementById("date_end");
 
-        function sync() {
+        function syncTbd() {
+            if (!tbd || !start || !end) return;
             const on = tbd.checked;
             start.disabled = on;
             end.disabled = on;
             if (on) { start.value = ""; end.value = ""; }
         }
-        tbd.addEventListener("change", sync);
-        sync();
-    </script>
-    <script type="module">
-        const root = document.querySelector("[data-file-form]");
-        if (root) {
-            const input = root.querySelector("[data-file-input]");
-            const btn = root.querySelector("[data-file-btn]");
-            const name = root.querySelector("[data-file-name]");
+        tbd?.addEventListener("change", syncTbd);
+        syncTbd();
 
-            btn?.addEventListener("click", () => input?.click());
-            input?.addEventListener("change", () => {
-                const file = input.files?.[0];
-                if (name) name.textContent = file ? file.name : "No file chosen";
-            });
-        }
+        // File chooser UI (scoped to the poster form)
+        const root = document.querySelector("[data-file-form]");
+        const input = root?.querySelector("[data-file-input]");
+        const btn = root?.querySelector("[data-file-btn]");
+        const name = root?.querySelector("[data-file-name]");
+
+        btn?.addEventListener("click", () => (input instanceof HTMLInputElement) && input.click());
+        input?.addEventListener("change", () => {
+            if (!(input instanceof HTMLInputElement)) return;
+            const file = input.files?.[0];
+            if (name) name.textContent = file ? file.name : "No file chosen";
+        });
     </script>
     <style>
         .adminHeader{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
