@@ -25,10 +25,12 @@ export const GET: APIRoute = async ({ locals, url }) => {
     const obj = await BUCKET.get(key);
     if (!obj) return new Response("Not found", { status: 404 });
 
+    const r2Response = new Response(obj.body as any);
+
     const headers = new Headers();
     headers.set("Content-Type", obj.httpMetadata?.contentType || "application/octet-stream");
-    headers.set("Cache-Control", "public, max-age=86400"); // 1 day cache
+    headers.set("Cache-Control", "public, max-age=86400"); 
     if (obj.httpEtag) headers.set("ETag", obj.httpEtag);
 
-    return new Response(obj.body as any, { status: 200, headers });
+    return new Response(r2Response.body, { status: 200, headers });
 };

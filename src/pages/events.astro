@@ -172,13 +172,15 @@ for (const e of monthEvents) {
                                                     href={ev.url ?? "#"}
                                                     aria-disabled={ev.url ? "false" : "true"}
                                                     title={ev.summary ?? ev.title}
+                                                    target={ev.url ? "_blank" : undefined}
+                                                    rel={ev.url ? "noopener noreferrer" : undefined}
                                                 >
                                                     <span class="chipKind">{ev.kind}</span>
                                                     <span class="chipTitle">{ev.title}</span>
                                                 </a>
                                             ))}
                                             {dayEvents.length > 3 ? (
-                                                    <div class="muted small">+{dayEvents.length - 3} more</div>
+                                                <div class="muted small">+{dayEvents.length - 3} more</div>
                                             ) : null}
                                         </div>
                                     ) : (
@@ -229,7 +231,9 @@ for (const e of monthEvents) {
 
                                             {e.url ? (
                                                 <p style="margin: .75rem 0 0;">
-                                                    <a class="pill" href={e.url}>{e.url_label ?? "Details"}</a>
+                                                    <a class="pill" href={e.url} target="_blank" rel="noopener noreferrer">
+                                                        {e.url_label ?? "Details"}
+                                                    </a>
                                                 </p>
                                             ) : null}
                                         </div>
@@ -245,12 +249,14 @@ for (const e of monthEvents) {
             <div class="panel enter-block delay-2" style="margin-top: var(--section-gap);">
                 <h2 class="h2-zero">To be announced</h2>
                 <p class="muted" style="margin: .35rem 0 1rem;">
-                    Planned items that don’t have a confirmed date yet.
+                    {tbdEvents.length === 0
+                        ? "No TBD events right now."
+                        : tbdEvents.length === 1
+                            ? "1 event doesn’t have a confirmed date yet."
+                            : `${tbdEvents.length} events don’t have a confirmed date yet.`}
                 </p>
 
-                {tbdEvents.length === 0 ? (
-                    <p class="muted">No TBD events right now.</p>
-                ) : (
+                {tbdEvents.length > 0 && (
                     <div class="list">
                         {tbdEvents.map((e) => (
                             <article class="panel item">
