@@ -130,7 +130,13 @@ for (const e of monthEvents) {
                 <div class="calHead">
                     <div>
                         <h2 class="h2-zero">{monthLabel(firstOfMonth)}</h2>
-                        <div class="muted calHint">Use the arrows to browse months.</div>
+                        <div class="muted calHint">
+                            {monthEvents.length === 0
+                                ? "No published events this month yet."
+                                : monthEvents.length === 1
+                                    ? "1 published event this month."
+                                    : `${monthEvents.length} published events this month.`}
+                        </div>
                     </div>
 
                     <div class="calNav">
@@ -154,65 +160,83 @@ for (const e of monthEvents) {
                         const iso = `${monthKey(year, monthIndex)}-${String(day).padStart(2, "0")}`;
                         const dayEvents = byDay.get(iso) ?? [];
                         return (
-                                <div class="cell" role="gridcell">
-                                    <div class="dayNum">{day}</div>
+                            <div class="cell" role="gridcell">
+                                <div class="dayNum">{day}</div>
 
-                                    {dayEvents.length ? (
-                                            <div class="chips">
-                                                {dayEvents.slice(0, 3).map((ev) => (
-                                                        <a
-                                                                class="chip"
-                                                                href={ev.url ?? "#"}
-                                                                aria-disabled={ev.url ? "false" : "true"}
-                                                                title={ev.summary ?? ev.title}
-                                                        >
-                                                            <span class="chipKind">{ev.kind}</span>
-                                                            <span class="chipTitle">{ev.title}</span>
-                                                        </a>
-                                                ))}
-                                                {dayEvents.length > 3 ? (
-                                                        <div class="muted small">+{dayEvents.length - 3} more</div>
-                                                ) : null}
-                                            </div>
-                                    ) : (
-                                            <div class="muted empty">—</div>
-                                    )}
-                                </div>
+                                {dayEvents.length ? (
+                                    <div class="chips">
+                                        {dayEvents.slice(0, 3).map((ev) => (
+                                            <a
+                                                class="chip"
+                                                href={ev.url ?? "#"}
+                                                aria-disabled={ev.url ? "false" : "true"}
+                                                title={ev.summary ?? ev.title}
+                                            >
+                                                <span class="chipKind">{ev.kind}</span>
+                                                <span class="chipTitle">{ev.title}</span>
+                                            </a>
+                                        ))}
+                                        {dayEvents.length > 3 ? (
+                                                <div class="muted small">+{dayEvents.length - 3} more</div>
+                                        ) : null}
+                                    </div>
+                                ) : (
+                                    <div class="muted empty">—</div>
+                                )}
+                            </div>
                         );
                     })}
                 </div>
 
                 {/* Month list (good for readability + mobile + SEO) */}
                 <div class="monthList">
-                    <h3 class="h3-zero">In {monthLabel(firstOfMonth)}</h3>
                     {monthEvents.length === 0 ? (
-                            <p class="muted">No published events for this month yet.</p>
+                        <p class="muted">No published events for this month yet.</p>
                     ) : (
-                            <div class="list">
-                                {monthEvents.map((e) => {
-                                    const d = safeDate(e.date_start);
-                                    const nice = d
-                                        ? d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
-                                        : "Date TBD";
-                                    return (
-                                            <article class="panel item">
-                                                <div class="meta">
-                                                    <div class="title">{e.title}</div>
-                                                    <div class="sub">
-                                                        {nice}
-                                                        {e.location ? <span> • {e.location}</span> : null}
-                                                    </div>
+                        <div class="list">
+                            {monthEvents.map((e) => {
+                                const d = safeDate(e.date_start);
+                                const nice = d
+                                    ? d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+                                    : "Date TBD";
+
+                                const time = d
+                                    ? d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).replace(":00", "")
+                                    : null;
+
+                                return (
+                                    <details class="panel item eventDetails">
+                                        <summary class="eventSummary">
+                                            <div class="meta">
+                                                <div class="title">{e.title}</div>
+                                                <div class="sub">
+                                                    {nice}{time ? ` • ${time}` : ""}
+                                                    {e.location ? <span> • {e.location}</span> : null}
                                                 </div>
-                                                {e.summary ? <p class="summary">{e.summary}</p> : null}
-                                                {e.url ? (
-                                                        <p style="margin: .75rem 0 0;">
-                                                            <a class="pill" href={e.url}>{e.url_label ?? "Details"}</a>
-                                                        </p>
-                                                ) : null}
-                                            </article>
-                                    );
-                                })}
-                            </div>
+                                            </div>
+                                            <span class="pillMini">{e.kind}</span>
+                                        </summary>
+
+                                        <div class="eventBody">
+                                            {e.summary ? <p class="summary">{e.summary}</p> : null}
+
+                                            {/* Poster (later: wire poster_key to an image endpoint) */}
+                                            {e.poster_key ? (
+                                                <figure class="poster">
+                                                    <img src={`/api/events/poster?id=${e.id}`} alt={e.poster_alt ?? e.title} loading="lazy" />
+                                                </figure>
+                                            ) : null}
+
+                                            {e.url ? (
+                                                <p style="margin: .75rem 0 0;">
+                                                    <a class="pill" href={e.url}>{e.url_label ?? "Details"}</a>
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                    </details>
+                                );
+                            })}
+                        </div>
                     )}
                 </div>
             </div>
@@ -225,27 +249,27 @@ for (const e of monthEvents) {
                 </p>
 
                 {tbdEvents.length === 0 ? (
-                        <p class="muted">No TBD events right now.</p>
+                    <p class="muted">No TBD events right now.</p>
                 ) : (
-                        <div class="list">
-                            {tbdEvents.map((e) => (
-                                    <article class="panel item">
-                                        <div class="meta">
-                                            <div class="title">{e.title}</div>
-                                            <div class="sub">
-                                                <span class="pillMini">TBD</span>
-                                                {e.location ? <span> • {e.location}</span> : null}
-                                            </div>
-                                        </div>
-                                        {e.summary ? <p class="summary">{e.summary}</p> : null}
-                                        {e.url ? (
-                                                <p style="margin: .75rem 0 0;">
-                                                    <a class="pill" href={e.url}>{e.url_label ?? "Details"}</a>
-                                                </p>
-                                        ) : null}
-                                    </article>
-                            ))}
-                        </div>
+                    <div class="list">
+                        {tbdEvents.map((e) => (
+                            <article class="panel item">
+                                <div class="meta">
+                                    <div class="title">{e.title}</div>
+                                    <div class="sub">
+                                        <span class="pillMini">TBD</span>
+                                        {e.location ? <span> • {e.location}</span> : null}
+                                    </div>
+                                </div>
+                                {e.summary ? <p class="summary">{e.summary}</p> : null}
+                                {e.url ? (
+                                        <p style="margin: .75rem 0 0;">
+                                            <a class="pill" href={e.url}>{e.url_label ?? "Details"}</a>
+                                        </p>
+                                ) : null}
+                            </article>
+                        ))}
+                    </div>
                 )}
             </div>
         </section>
@@ -254,14 +278,10 @@ for (const e of monthEvents) {
     <style>
         .pad { margin-top: var(--section-gap); }
         .lead { margin: 0 0 1.25rem; max-width: 75ch; }
-
         .calendarPanel { padding: 1.25rem; background: var(--panel-bg-dense); border-color: rgba(255,255,255,0.14); }
-
         .calHead { display:flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
         .calHint { font-size: .95rem; }
-
         .calNav { display:flex; gap: .5rem; flex-wrap: wrap; }
-
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -287,10 +307,10 @@ for (const e of monthEvents) {
             display: grid;
             gap: .5rem;
             align-content: start;
+            overflow: hidden;
         }
 
         .blank { background: transparent; border: 1px dashed rgba(255,255,255,0.08); }
-
         .dayNum {
             font-weight: 900;
             font-size: .95rem;
@@ -298,7 +318,7 @@ for (const e of monthEvents) {
             text-shadow: var(--text-shadow);
         }
 
-        .chips { display: grid; gap: .35rem; }
+        .chips { display: grid; gap: .35rem; min-width: 0; }
         .chip {
             display: grid;
             grid-template-columns: auto 1fr;
@@ -310,21 +330,53 @@ for (const e of monthEvents) {
             background: var(--glass-dark);
             color: var(--text-on-glass);
             text-decoration: none;
+            min-width: 0;
+            overflow: hidden;
         }
         .chip[aria-disabled="true"] { opacity: .65; pointer-events: none; }
-
         .chipKind { font-weight: 900; font-size: .72rem; letter-spacing: .02em; opacity: .9; }
-        .chipTitle { font-weight: 700; font-size: .85rem; line-height: 1.2; }
+        .chipTitle {
+            font-weight: 700;
+            font-size: .85rem;
+            line-height: 1.2;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
         .empty { opacity: .45; }
+        .eventDetails { padding: 0; }
+        .eventSummary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1.1rem;
+        }
+        .eventSummary::-webkit-details-marker { display: none; }
+        .eventBody { padding: 0 1.1rem 1.1rem; }
+        .eventDetails[open] .eventSummary {
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
 
+        .poster { margin: .85rem 0 0; }
+        .poster img {
+            width: 100%;
+            height: auto;
+            border-radius: 14px;
+            border: 1px solid var(--border-strong);
+            box-shadow: var(--card-shadow-soft);
+            background: var(--glass-dark);
+        }
         .monthList { margin-top: 1.25rem; }
         .list { display: grid; gap: 1rem; }
         .item { padding: 1.1rem; }
         .title { font-weight: 900; color: var(--text); font-size: 1.1rem; }
         .sub { color: var(--text-soft); font-size: 0.95rem; margin-top: 0.35rem; }
         .summary { margin: 0.75rem 0 0; color: var(--text-soft); max-width: 80ch; }
-
         .pillMini{
             display:inline-flex;
             align-items:center;
