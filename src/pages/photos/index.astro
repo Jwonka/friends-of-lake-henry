@@ -120,8 +120,13 @@ const statusClass =
             </div>
         </section>
     </div>
-    <script type="module" src={new URL("../../scripts/photos-filter.ts", import.meta.url).toString()}></script>
-    <script type="module" src={new URL("../../scripts/clean-flash.ts", import.meta.url).toString()}></script>
+    <script type="module">
+        import { initPhotoFilters } from "../../scripts/photos-filter";
+        import { cleanFlashParams } from "../../scripts/clean-flash";
+
+        initPhotoFilters();
+        cleanFlashParams(["submitted"], 0);
+    </script>
     <style>
         .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}
         .lead { max-width: 75ch; margin: 0 0 1.25rem; color: var(--text-strong);line-height: 1.6;}

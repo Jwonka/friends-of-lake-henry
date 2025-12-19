@@ -9,7 +9,3 @@ export function cleanFlashParams(keys: string[], delayMs = 250) {
         window.history.replaceState({}, "", next);
     }, delayMs);
 }
-
-if (typeof window !== "undefined") {
-    window.addEventListener("DOMContentLoaded", () => cleanFlashParams(["submitted"], 0));
-}

@@ -53,8 +53,3 @@ export function initPhotoFilters() {
         });
     });
 }
-
-// auto-run when loaded as a module via <script src=...>
-if (typeof window !== "undefined") {
-    window.addEventListener("DOMContentLoaded", () => initPhotoFilters());
-}
