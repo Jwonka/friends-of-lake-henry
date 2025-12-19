@@ -120,75 +120,12 @@ const statusClass =
             </div>
         </section>
     </div>
-    <script is:inline>
-        (function () {
-            // --- cleanFlashParams(["submitted"], 0) ---
-            const params = new URLSearchParams(window.location.search);
-            if (params.has("submitted")) {
-                params.delete("submitted");
-                const qs = params.toString();
-                const next = window.location.pathname + (qs ? `?${qs}` : "");
-                window.history.replaceState({}, "", next);
-            }
+    <script type="module">
+        import { initPhotoFilters } from "../../scripts/photos-filter";
+        import { cleanFlashParams } from "../../scripts/clean-flash";
 
-            // --- initPhotoFilters() ---
-            const buttons = Array.from(document.querySelectorAll(".filter"));
-            const items = Array.from(document.querySelectorAll(".photoLink"));
-            const statusEl = document.getElementById("filterStatus");
-            const panel = document.querySelector('[role="tabpanel"]');
-
-            if (!buttons.length) return;
-
-            function setActiveTab(activeBtn) {
-                buttons.forEach((b) => {
-                    const isActive = b === activeBtn;
-                    b.classList.toggle("active", isActive);
-                    b.setAttribute("aria-selected", String(isActive));
-                    b.tabIndex = isActive ? 0 : -1;
-                });
-                if (panel) panel.setAttribute("aria-labelledby", activeBtn.id);
-            }
-
-            function applyFilter(filter) {
-                const target = String(filter || "All").trim().toLowerCase();
-                let visible = 0;
-
-                items.forEach((item) => {
-                    const category = String(item.dataset.category || "").trim().toLowerCase();
-                    const match = target === "all" || category === target;
-                    item.style.display = match ? "" : "none";
-                    if (match) visible += 1;
-                });
-
-                if (statusEl) {
-                    statusEl.textContent = `Showing ${visible} photo${visible === 1 ? "" : "s"} in ${filter}.`;
-                }
-            }
-
-            function activate(btn) {
-                const filter = btn.dataset.filter || "All";
-                setActiveTab(btn);
-                applyFilter(filter);
-                btn.focus?.();
-            }
-
-            // initial
-            activate(buttons[0]);
-
-            buttons.forEach((btn) => {
-                btn.addEventListener("click", () => activate(btn));
-
-                btn.addEventListener("keydown", (e) => {
-                    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-                    e.preventDefault();
-
-                    const idx = buttons.indexOf(btn);
-                    const dir = e.key === "ArrowRight" ? 1 : -1;
-                    const next = buttons[(idx + dir + buttons.length) % buttons.length];
-                    if (next) activate(next);
-                });
-            });
-        })();
+        initPhotoFilters();
+        cleanFlashParams(["submitted"], 0);
     </script>
     <style>
         .photosCard{margin-top: var(--section-gap); padding: 1.5rem;}
