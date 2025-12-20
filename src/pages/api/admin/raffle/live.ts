@@ -9,7 +9,8 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 type LiveConfig = {
     latestVideoUrl: string | null;
-    updatedAt: string | null; // ISO
+    previousVideoUrl: string | null; // for old KV records
+    updatedAt: string | null;
 };
 
 const KEY = "raffle_live";
@@ -56,16 +57,17 @@ function normalizeFacebookVideoUrl(input: string): string | null {
 
 async function getConfig(env: any): Promise<LiveConfig> {
     const raw = await env.CONFIG?.get(KEY);
-    if (!raw) return { latestVideoUrl: null, updatedAt: null };
+    if (!raw) return { latestVideoUrl: null, previousVideoUrl: null, updatedAt: null };
 
     try {
-        const parsed = JSON.parse(raw) as LiveConfig;
+        const parsed = JSON.parse(raw) as Partial<LiveConfig>;
         return {
-            latestVideoUrl: parsed.latestVideoUrl ?? null,
-            updatedAt: parsed.updatedAt ?? null,
+            latestVideoUrl: typeof parsed.latestVideoUrl === "string" ? parsed.latestVideoUrl : null,
+            previousVideoUrl: typeof parsed.previousVideoUrl === "string" ? parsed.previousVideoUrl : null,
+            updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null,
         };
     } catch {
-        return { latestVideoUrl: null, updatedAt: null };
+        return { latestVideoUrl: null, previousVideoUrl: null, updatedAt: null };
     }
 }
 
@@ -90,7 +92,10 @@ export const POST: APIRoute = async (context) => {
 
     const urlRaw = String(body.latestVideoUrl ?? "").trim();
 
-    let latestVideoUrl: string | null = null;
+    // read existing config so we can roll "previous"
+    const existing = await getConfig(env);
+
+    let nextLatest: string | null = null;
     if (urlRaw.length) {
         const normalized = normalizeFacebookVideoUrl(urlRaw);
         if (!normalized) {
@@ -99,12 +104,19 @@ export const POST: APIRoute = async (context) => {
                 400
             );
         }
-        latestVideoUrl = normalized;
+        nextLatest = normalized;
     }
 
+    // If admin is saving a new non-empty latest, roll the old latest into previous
+    const nextPrevious =
+        nextLatest && existing.latestVideoUrl && existing.latestVideoUrl !== nextLatest
+            ? existing.latestVideoUrl
+            : (existing.previousVideoUrl ?? null);
+
     const updatedAt = new Date().toISOString();
-    const cfg: LiveConfig = { latestVideoUrl, updatedAt };
+    const cfg: LiveConfig = { latestVideoUrl: nextLatest, previousVideoUrl: nextPrevious, updatedAt };
 
     await env.CONFIG.put(KEY, JSON.stringify(cfg));
     return json({ ok: true, config: cfg });
 };
+

@@ -2,8 +2,10 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 
-const facebookPageUrl =
-    "https://www.facebook.com/people/Friends-of-Lake-Henry/61552199315213/";
+const facebookPageReelsUrl =
+    "https://www.facebook.com/profile.php?id=61552199315213&sk=reels_tab";
+
+const facebookPageLiveUrl = "https://www.facebook.com/profile.php?id=61552199315213&sk=live_videos";
 
 const rules = [
     "Drawing at 6pm EVERYDAY in November.",
@@ -13,18 +15,22 @@ const rules = [
     "All State & Federal laws apply; MUST be 21 or older to purchase a ticket.",
 ];
 
-type LiveConfig = { latestVideoUrl: string | null; updatedAt: string | null };
+type LiveConfig = { latestVideoUrl: string | null; previousVideoUrl?: string | null; updatedAt: string | null };
 
 const env = Astro.locals.runtime.env;
 
-let liveConfig: LiveConfig = { latestVideoUrl: null, updatedAt: null };
+let liveConfig: LiveConfig = { latestVideoUrl: null, previousVideoUrl: null,  updatedAt: null };
 
 try {
     const raw = await env.CONFIG?.get("raffle_live");
+
     if (raw) {
         const parsed = JSON.parse(raw) as Partial<LiveConfig>;
+        const cur = typeof parsed.latestVideoUrl === "string" ? parsed.latestVideoUrl.trim() : "";
+        const prev = typeof parsed.previousVideoUrl === "string" ? parsed.previousVideoUrl.trim() : "";
         liveConfig = {
-            latestVideoUrl: typeof parsed.latestVideoUrl === "string" ? parsed.latestVideoUrl : null,
+            latestVideoUrl: cur.length ? cur : null,
+            previousVideoUrl: prev.length ? prev : null,
             updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null,
         };
     }
@@ -32,9 +38,11 @@ try {
     // ignore bad KV / parse
 }
 
-const embedSrc = liveConfig.latestVideoUrl
-    ? `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(liveConfig.latestVideoUrl)}&show_text=0&adapt_container_width=true`
-    : `https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(facebookPageUrl)}&tabs=timeline&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false`;
+const effectiveVideoUrl = liveConfig.latestVideoUrl ?? liveConfig.previousVideoUrl ?? null;
+
+const embedSrc = effectiveVideoUrl
+    ? `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(effectiveVideoUrl)}&show_text=0&adapt_container_width=true`
+    : null;
 
 const updatedAtDate = liveConfig.updatedAt ? new Date(liveConfig.updatedAt) : null;
 const updatedAtLabel =
@@ -52,8 +60,8 @@ const updatedAtLabel =
                 </p>
 
                 <div class="heroCtas">
-                    <a class="btn" href="/events">View events</a>
-                    <a class="btn" href={facebookPageUrl} target="_blank" rel="noopener noreferrer">Facebook page</a>
+                    <a class="btn btn--facebook" href={facebookPageLiveUrl} target="_blank" rel="noopener noreferrer">Live videos</a>
+                    <a class="btn  btn--facebook" href={facebookPageReelsUrl} target="_blank" rel="noopener noreferrer">Winner reels</a>
                 </div>
 
                 <p class="fine">
@@ -77,38 +85,43 @@ const updatedAtLabel =
             <h2 class="sectionTitle">Latest Live Stream</h2>
 
             <div class="panel livePanel">
-                <div class="liveFrame">
-                    <iframe
-                        class="fbFrame"
-                        src={embedSrc}
-                        title="Friends of Lake Henry — Facebook Live"
-                        loading="lazy"
-                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                        allowfullscreen
-                    ></iframe>
-                </div>
-                {updatedAtLabel && (
-                    <p class="muted" style="margin:.5rem 0 0;">Last updated: {updatedAtLabel}</p>
-                )}
-                {!liveConfig.latestVideoUrl && (
-                    <div class="liveFallback">
-                        <p class="muted" style="margin:0 0 .75rem;">
-                            Live is offline right now. When a broadcast starts, it will appear here (if embedding is allowed in your browser/network).
-                        </p>
-                        <a class="btn fbBtn" href={facebookPageUrl} target="_blank" rel="noopener noreferrer">
-                            Watch on Facebook
-                        </a>
+                {embedSrc ? (
+                    <div class="liveFrame">
+                        <iframe
+                            class="fbFrame"
+                            src={embedSrc}
+                            title="Friends of Lake Henry — Facebook Live"
+                            loading="lazy"
+                            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                            allowfullscreen
+                        ></iframe>
+                    </div>
+                ) : (
+                    <div class="liveFrame liveFrame--empty">
+                        <div class="liveOverlay">
+                            <p class="muted" style="margin:0 0 .75rem;">
+                                Live is offline right now. Watch on Facebook for the newest broadcast.
+                            </p>
+                            <a class="btn  btn--facebook" href={facebookPageLiveUrl} target="_blank" rel="noopener noreferrer">
+                                Watch on Facebook
+                            </a>
+                        </div>
                     </div>
                 )}
 
-                {liveConfig.latestVideoUrl && (
+                {updatedAtLabel && (
+                    <p class="muted" style="margin:.5rem 0 0;">Last updated: {updatedAtLabel}</p>
+                )}
+
+                {embedSrc && (
                     <div class="liveFallback">
-                        <a class="btn fbBtn" href={facebookPageUrl} target="_blank" rel="noopener noreferrer">
+                        <a class="btn  btn--facebook" href={facebookPageLiveUrl} target="_blank" rel="noopener noreferrer">
                             Watch on Facebook
                         </a>
                     </div>
                 )}
             </div>
+
         </section>
 
         <section class="card rules  enter-block delay-2">
@@ -193,6 +206,18 @@ const updatedAtLabel =
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
+        }
+
+        .liveFrame--empty{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding: 1.25rem;
+        }
+
+        .liveOverlay{
+            text-align:center;
+            max-width: 60ch;
         }
 
         /* make the Facebook CTA feel intentional without changing global .btn */

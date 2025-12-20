@@ -28,8 +28,12 @@ export const prerender = false;
                             autocomplete="off"
                         />
                         <div class="muted" style="margin-top:.35rem;">
-                            Paste the Facebook <strong>video</strong> URL for the current/most recent live.
-                            Leave blank and save to clear (the site will show the Facebook page embed fallback).
+                           <p>Paste the Facebook <strong>video</strong> URL for the current/most recent live.
+                               **Leave <strong>blank</strong> and save to remove the latest live**</p>
+                        </div>
+                        <div class="muted" style="margin-top:.35rem;">
+                            <p>If a previous video is available, the site will show that.
+                            Otherwise it will show the “Watch on Facebook” button.</p>
                         </div>
                     </div>
 
@@ -59,12 +63,17 @@ export const prerender = false;
         const status = document.getElementById("liveStatus");
 
         function setStatus(kind, msg) {
+            if (!msg) {
+                status.className = "status status--empty";
+                status.textContent = "";
+                return;
+            }
             status.className = `status status--${kind}`;
             status.textContent = msg;
         }
 
         async function load() {
-            setStatus("success", "Loading current setting...");
+            setStatus("info", "Loading current setting");
             try {
                 const res = await fetch("/api/admin/raffle/live", { headers: { "Accept": "application/json" } });
                 const data = await res.json().catch(() => ({}));
@@ -95,7 +104,7 @@ export const prerender = false;
 
                 if (res.ok && data?.ok) {
                     const v = data.config?.latestVideoUrl;
-                    setStatus("success", v ? "Saved. The raffle page will show this latest stream." : "Cleared. The raffle page will show the Facebook page fallback.");
+                    setStatus("info", v ? "Saved. The raffle page will show this latest stream." : "Cleared. The raffle page will show the previous Facebook live.");
                 } else {
                     setStatus("error", data?.error ?? "Save failed.");
                 }
