@@ -1,8 +1,8 @@
 ---
-import { raffleConfig } from "../data/raffle";
-
-
-const { ctaUrl: raffleUrl, ctaText, cta, isActive } = raffleConfig.banner;
+const raffleUrl = "/raffle";
+const ctaText = "Raffle winners and live drawings on Facebook.";
+const cta = "View details";
+const isActive = true;
 ---
 {isActive && (
     <a href={raffleUrl} class="bar" aria-label="View raffle details">

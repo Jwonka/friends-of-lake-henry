@@ -1,8 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { raffleConfig } from "../../data/raffle";
 export const prerender = false;
-const raffle = raffleConfig.banner;
 ---
 
 <BaseLayout title="Admin | Raffle | Friends of Lake Henry">
@@ -11,65 +9,106 @@ const raffle = raffleConfig.banner;
             <div class="adminHeader">
                 <div class="adminTitle">
                     <div class="pageTop">
-                        <a class="pill enter-block delay-1" href="/admin" >ADMIN</a>
+                        <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
                         <h1 class="h1-tight">Raffle</h1>
                     </div>
-                    <p class="lead adminLead">Update raffle banner copy and record winners.</p>
+                    <p class="lead adminLead">Set the latest Facebook Live video shown on the public raffle page.</p>
                 </div>
             </div>
 
             <div class="panel adminPanel enter-block delay-2" style="margin-top: 1rem;">
                 <div class="formGrid">
                     <div class="field span2">
-                        <label class="label" for="active">Raffle active</label>
-                        <div class="toggleRow">
-                            <input id="active" type="checkbox" checked={raffle.isActive} />
-                            <span class="muted">Show the raffle banner on the site</span>
+                        <label class="label" for="latestVideoUrl">Latest Facebook Live video URL</label>
+                        <input
+                            id="latestVideoUrl"
+                            class="input"
+                            placeholder="https://www.facebook.com/<page>/videos/<id>"
+                            inputmode="url"
+                            autocomplete="off"
+                        />
+                        <div class="muted" style="margin-top:.35rem;">
+                            Paste the Facebook <strong>video</strong> URL for the current/most recent live.
+                            Leave blank and save to clear (the site will show the Facebook page embed fallback).
                         </div>
                     </div>
 
-                    <div class="field span2">
-                        <label class="label" for="ctaText">Banner text</label>
-                        <input id="ctaText" class="input" value={raffle.ctaText} />
-                    </div>
-
-                    <div class="field">
-                        <label class="label" for="ctaUrl">Banner link</label>
-                        <input id="ctaUrl" class="input" value={raffle.ctaUrl} />
-                    </div>
-
-                    <div class="field">
-                        <label class="label" for="drawDate">Draw date</label>
-                        <input id="drawDate" class="input" type="date" value={raffle.drawDate} />
-                    </div>
-
                     <div class="actions span2 enter-block delay-3">
-                        <button class="btn" type="button">Save (mock)</button>
+                        <button class="btn" id="saveLive" type="button">Save latest stream</button>
                         <a class="pill" href="/raffle">View public raffle page</a>
+                    </div>
+
+                    <div class="span2">
+                        <div id="liveStatus" class="status status--empty" aria-live="polite"></div>
                     </div>
                 </div>
             </div>
 
             <div class="panel adminPanel enter-block delay-4" style="margin-top: 1rem;">
-                <div class="winnersHead">
-                    <h2 class="h2-zero">Winners</h2>
-                    <button class="btn enter-block delay-5" type="button">Add winner (mock)</button>
-                </div>
-
-                <div class="winnersList">
-                    {raffle.winners.map((w) => (
-                        <div class="winnerRow enter-block delay-6">
-                            <div>
-                                <strong>{w.name}</strong>
-                                <div class="muted">{w.prize}</div>
-                            </div>
-                            <div class="muted">{w.date}</div>
-                        </div>
-                    ))}
-                </div>
+                <h2 class="h2-zero">Winners</h2>
+                <p class="muted" style="margin:.5rem 0 0;">
+                    Coming next: store and manage winners in D1 so the public raffle page can list all past raffle winners.
+                </p>
             </div>
         </section>
     </div>
+
+    <script type="module">
+        const input = document.getElementById("latestVideoUrl");
+        const btn = document.getElementById("saveLive");
+        const status = document.getElementById("liveStatus");
+
+        function setStatus(kind, msg) {
+            status.className = `status status--${kind}`;
+            status.textContent = msg;
+        }
+
+        async function load() {
+            setStatus("success", "Loading current setting...");
+            try {
+                const res = await fetch("/api/admin/raffle/live", { headers: { "Accept": "application/json" } });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data?.ok) {
+                    input.value = data.config?.latestVideoUrl ?? "";
+                    setStatus("success", "Loaded current latest stream setting.");
+                } else {
+                    setStatus("error", data?.error ?? "Failed to load live config.");
+                }
+            } catch {
+                setStatus("error", "Failed to load live config.");
+            }
+        }
+
+        btn.addEventListener("click", async () => {
+            setStatus("success", "Saving...");
+            btn.disabled = true;
+            btn.setAttribute("aria-disabled", "true");
+
+            try {
+                const res = await fetch("/api/admin/raffle/live", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                    body: JSON.stringify({ latestVideoUrl: input.value.trim() }),
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data?.ok) {
+                    const v = data.config?.latestVideoUrl;
+                    setStatus("success", v ? "Saved. The raffle page will show this latest stream." : "Cleared. The raffle page will show the Facebook page fallback.");
+                } else {
+                    setStatus("error", data?.error ?? "Save failed.");
+                }
+            } catch {
+                setStatus("error", "Save failed.");
+            } finally {
+                btn.disabled = false;
+                btn.setAttribute("aria-disabled", "false");
+            }
+        });
+
+        load();
+    </script>
 
     <style>
         .adminHeader{ display:flex; justify-content:space-between; gap:1rem; align-items:flex-end; flex-wrap:wrap; }
@@ -78,6 +117,7 @@ const raffle = raffleConfig.banner;
         .adminLead{ margin: .25rem 0 0; }
         .adminPanel{ margin-top: 1rem; }
         .pageTop .pill { justify-self: start; }
+
         .formGrid{
             display:grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -102,28 +142,13 @@ const raffle = raffleConfig.banner;
             font-size: 16px;
         }
 
-        .toggleRow{ display:flex; gap:.6rem; align-items:center; flex-wrap: wrap;}
         .actions{ display:flex; gap:.75rem; flex-wrap:wrap; margin-top:.25rem; }
-        .winnersHead{ display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:.75rem; }
-        .winnersList{ display:flex; flex-direction:column; gap:.6rem; }
-        .winnerRow{
-            display:flex;
-            justify-content:space-between;
-            gap:1rem;
-            padding:.75rem .85rem;
-            border-radius: 14px;
-            border: 1px solid var(--border);
-            background: var(--glass-dark);
-            backdrop-filter: blur(6px);
-        }
 
-        /* Tablet: single-column form */
         @media (max-width: 900px){
             .formGrid{ grid-template-columns: 1fr; }
             .span2{ grid-column: span 1; }
         }
 
-        /* Phones: full-width actions + winners stack */
         @media (max-width: 680px){
             .actions{
                 flex-direction: column;
@@ -134,16 +159,6 @@ const raffle = raffleConfig.banner;
                 width: 100%;
                 justify-content: center;
                 text-align: center;
-            }
-
-            .winnersHead .pill{
-                width: 100%;
-                justify-content: center;
-            }
-
-            .winnerRow{
-                flex-direction: column;
-                align-items: flex-start;
             }
         }
     </style>

@@ -19,6 +19,10 @@
     {
       "binding": "SESSION",
       "id": "d7ea3cc7deef422789bfa015a3c1a6db"
+    },
+    {
+      "binding": "CONFIG",
+      "id": "b70df87ff3db4230a621d4a39ab24ff7"
     }
   ],
 

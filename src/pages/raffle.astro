@@ -1,93 +1,80 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { raffleConfig } from "../data/raffle";
 export const prerender = false;
 
-const { monthName, year, monthIndex, ticketPrice, flyerMeta, rules, prizesByDay } = raffleConfig;
-
-const prizeByDay = new Map<number, string>(prizesByDay.map((p) => [p.day, p.prize]));
-const flyerTitle = `${monthName} ${year} — Calendar Raffle`;
-
-function daysInMonth(y: number, m: number) {
-    return new Date(y, m + 1, 0).getDate();
-}
-function startDow(y: number, m: number) {
-    return new Date(y, m, 1).getDay(); // 0=Sun
-}
-
-const totalDays = daysInMonth(year, monthIndex);
-const firstDow = startDow(year, monthIndex);
-const dowLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const facebookPageUrl =
     "https://www.facebook.com/people/Friends-of-Lake-Henry/61552199315213/";
 
-const liveVideoUrl =
-    "https://www.facebook.com/61552199315213/videos/854234677564535";
+const rules = [
+    "Drawing at 6pm EVERYDAY in November.",
+    "All proceeds go to Lake Henry Project.",
+    "If drawn, name goes in for remaining drawings.",
+    'Every firearm has a minimum value of $1000; $800 cash option if you do not choose the firearm.',
+    "All State & Federal laws apply; MUST be 21 or older to purchase a ticket.",
+];
 
-const embedSrc = liveVideoUrl
-    ? `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(liveVideoUrl)}&show_text=0&width=500`
-    : `https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(facebookPageUrl)}&tabs=timeline&width=500&height=700&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false`;
+type LiveConfig = { latestVideoUrl: string | null; updatedAt: string | null };
 
+const env = Astro.locals.runtime.env;
+
+let liveConfig: LiveConfig = { latestVideoUrl: null, updatedAt: null };
+
+try {
+    const raw = await env.CONFIG?.get("raffle_live");
+    if (raw) {
+        const parsed = JSON.parse(raw) as Partial<LiveConfig>;
+        liveConfig = {
+            latestVideoUrl: typeof parsed.latestVideoUrl === "string" ? parsed.latestVideoUrl : null,
+            updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null,
+        };
+    }
+} catch {
+    // ignore bad KV / parse
+}
+
+const embedSrc = liveConfig.latestVideoUrl
+    ? `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(liveConfig.latestVideoUrl)}&show_text=0&adapt_container_width=true`
+    : `https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(facebookPageUrl)}&tabs=timeline&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false`;
+
+const updatedAtDate = liveConfig.updatedAt ? new Date(liveConfig.updatedAt) : null;
+const updatedAtLabel =
+    updatedAtDate && Number.isFinite(updatedAtDate.getTime()) ? updatedAtDate.toLocaleString() : null;
 ---
 
 <BaseLayout title={`Raffle | Friends of Lake Henry`}>
     <div class="container">
         <section class="card hero enter-block">
             <div class="heroLeft">
-                <div class="kicker">{monthName} {year}</div>
-                <h1>{flyerMeta.subtitle}</h1>
+                <div class="kicker">Friends of Lake Henry</div>
+                <h1>Raffle Winners & Live Drawings</h1>
                 <p class="lead">
-                    ${ticketPrice}.00 per ticket • Drawing daily • Proceeds support Lake Henry restoration.
+                    Watch drawings on Facebook Live and see winners from past raffles.
                 </p>
 
                 <div class="heroCtas">
-                    <a class="btn" href="#" aria-disabled="true">Buy tickets (coming soon)</a>
                     <a class="btn" href="/events">View events</a>
+                    <a class="btn" href={facebookPageUrl} target="_blank" rel="noopener noreferrer">Facebook page</a>
                 </div>
 
                 <p class="fine">
-                    Online ticket purchasing will be enabled once raffle rules and processing details are confirmed.
+                    Ticket sales and raffle details will be posted when available.
                 </p>
             </div>
 
             <div class="heroRight">
                 <div class="infoCard">
-                    <div class="infoTitle">{flyerMeta.orgLine}</div>
-                    <div class="muted">{flyerMeta.address}</div>
-                    <div class="muted">Phone: {flyerMeta.phone}</div>
+                    <div class="infoTitle">Friends of Lake Henry</div>
+                    <div class="muted">P.O. Box 142, Blair, WI 54616</div>
+                    <div class="muted">Phone: 608-484-9241</div>
                     <div class="muted" style="margin-top:.5rem;">
-                        Winners will be posted on our Facebook page.
+                        Winners are posted on Facebook.
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="card calendarCard enter-block delay-1">
-            <h2 class="sectionTitle">{flyerTitle}</h2>
-
-            <div class="calendar" role="grid" aria-label={`${monthName} ${year} raffle calendar`}>
-                {dowLabels.map((d) => (
-                        <div class="dow" role="columnheader">{d}</div>
-                ))}
-
-                {Array.from({ length: firstDow }).map(() => (
-                        <div class="cell blank" aria-hidden="true"></div>
-                ))}
-
-                {Array.from({ length: totalDays }).map((_, idx) => {
-                    const day = idx + 1;
-                    const prize = prizeByDay.get(day);
-                    return (
-                            <div class="cell" role="gridcell">
-                                <div class="dayNum">{day}</div>
-                                <div class="prize">{prize ?? "Prize TBD"}</div>
-                            </div>
-                    );
-                })}
-            </div>
-        </section>
-        <section class="card liveCard enter-block delay-2">
-            <h2 class="sectionTitle">Live Stream</h2>
+        <section class="card liveCard enter-block delay-1">
+            <h2 class="sectionTitle">Latest Live Stream</h2>
 
             <div class="panel livePanel">
                 <div class="liveFrame">
@@ -100,25 +87,31 @@ const embedSrc = liveVideoUrl
                         allowfullscreen
                     ></iframe>
                 </div>
+                {updatedAtLabel && (
+                    <p class="muted" style="margin:.5rem 0 0;">Last updated: {updatedAtLabel}</p>
+                )}
+                {!liveConfig.latestVideoUrl && (
+                    <div class="liveFallback">
+                        <p class="muted" style="margin:0 0 .75rem;">
+                            Live is offline right now. When a broadcast starts, it will appear here (if embedding is allowed in your browser/network).
+                        </p>
+                        <a class="btn fbBtn" href={facebookPageUrl} target="_blank" rel="noopener noreferrer">
+                            Watch on Facebook
+                        </a>
+                    </div>
+                )}
 
-                <div class="liveFallback">
-                    <p class="muted" style="margin:0 0 .75rem;">
-                        Live is offline right now. When a broadcast starts, it will appear here (if embedding is allowed in your browser/network).
-                    </p>
-
-                    <a
-                        class="btn fbBtn"
-                        href={facebookPageUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Watch on Facebook
-                    </a>
-                </div>
+                {liveConfig.latestVideoUrl && (
+                    <div class="liveFallback">
+                        <a class="btn fbBtn" href={facebookPageUrl} target="_blank" rel="noopener noreferrer">
+                            Watch on Facebook
+                        </a>
+                    </div>
+                )}
             </div>
         </section>
 
-        <section class="card rules  enter-block delay-3">
+        <section class="card rules  enter-block delay-2">
             <h2>Rules</h2>
             <ul>
                 {rules.map((r) => <li>{r}</li>)}
@@ -151,52 +144,6 @@ const embedSrc = liveVideoUrl
         .muted { color: var(--muted); }
 
         .sectionTitle { margin: 0 0 1rem; font-size: 1.35rem; }
-
-        .calendar {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: .5rem;
-        }
-        .calendarCard{
-            margin-top: var(--section-gap);
-            padding: 1.5rem;
-        }
-
-        .dow {
-            color: var(--muted);
-            font-weight: 800;
-            font-size: .85rem;
-            padding: .5rem .5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        .cell{
-            border: 1px solid rgba(255,255,255,0.14);
-            border-radius: 12px;
-            padding: .65rem .65rem .75rem;
-            background: rgba(0,0,0,0.28);
-            min-height: 86px;
-            backdrop-filter: blur(2px);
-        }
-
-        .cell:hover{
-            background: rgba(0,0,0,0.32);
-            border-color: rgba(255,255,255,0.22);
-        }
-
-        .dayNum{
-            font-weight: 900;
-            font-size: .95rem;
-            margin-bottom: .35rem;
-            color: rgba(255,255,255,0.95);
-            text-shadow: 0 1px 6px rgba(0,0,0,0.35);
-        }
-
-        .prize{
-            color: rgba(255,255,255,0.86);
-            font-size: .85rem;
-            line-height: 1.25;
-            text-shadow: 0 1px 6px rgba(0,0,0,0.35);
-        }
 
         .blank {
             background: transparent;
@@ -263,29 +210,8 @@ const embedSrc = liveVideoUrl
         @media (min-width: 760px) and (max-width: 979px) {
             .hero { grid-template-columns: 1fr; }
             .heroCtas { gap: .6rem; }
-            .calendarCard { padding: 1.25rem; }
-            .prize { font-size: .82rem; }
         }
-        @media (max-width: 760px) {
-            .calendarCard { padding: 1rem; }
-            .calendar { gap: .4rem; }
-            .dow { display: none; }
-            .cell {
-                min-height: 72px;
-                padding: .55rem .55rem .65rem;
-            }
 
-            .dayNum { font-size: .9rem; margin-bottom: .25rem; }
-            .prize  { font-size: .78rem; line-height: 1.2; }
-
-            /* prevent long prize names from causing layout pain */
-            .prize {
-                display: -webkit-box;
-                -webkit-line-clamp: 3;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
-        }
         @media (max-width: 520px) {
             .heroCtas { flex-direction: column; align-items: stretch; }
             .heroCtas .btn { width: 100%; }
