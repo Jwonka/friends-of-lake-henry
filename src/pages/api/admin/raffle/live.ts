@@ -24,16 +24,34 @@ function json(data: unknown, status = 200) {
     });
 }
 
-function isValidFacebookVideoUrl(url: string): boolean {
-    // Keep it strict to avoid reels and weird URLs that won't embed reliably.
-    // Accepts: https://www.facebook.com/<pageId or name>/videos/<id>
+function extractFacebookVideoId(input: string): string | null {
     try {
-        const u = new URL(url);
-        if (u.hostname !== "www.facebook.com" && u.hostname !== "facebook.com") return false;
-        return /\/videos\/\d+/.test(u.pathname);
+        const u = new URL(input);
+
+        // Accept common hosts
+        const host = u.hostname.replace(/^www\./, "");
+        if (host !== "facebook.com" && host !== "m.facebook.com") return null;
+
+        // 1) /<page>/videos/<id> or /videos/<id>
+        const m1 = u.pathname.match(/\/videos\/(\d+)/);
+        if (m1?.[1]) return m1[1];
+
+        // 2) /watch/?v=<id>
+        const v = u.searchParams.get("v");
+        if (v && /^\d+$/.test(v)) return v;
+
+        return null;
     } catch {
-        return false;
+        return null;
     }
+}
+
+function normalizeFacebookVideoUrl(input: string): string | null {
+    const id = extractFacebookVideoId(input);
+    if (!id) return null;
+
+    // Canonical URL that FB embed reliably accepts
+    return `https://www.facebook.com/61552199315213/videos/${id}/`;
 }
 
 async function getConfig(env: any): Promise<LiveConfig> {
@@ -72,20 +90,16 @@ export const POST: APIRoute = async (context) => {
 
     const urlRaw = String(body.latestVideoUrl ?? "").trim();
 
-    // Allow clearing the value
     let latestVideoUrl: string | null = null;
     if (urlRaw.length) {
-        if (!isValidFacebookVideoUrl(urlRaw)) {
+        const normalized = normalizeFacebookVideoUrl(urlRaw);
+        if (!normalized) {
             return json(
-                {
-                    ok: false,
-                    error:
-                        "Please paste a Facebook video URL like https://www.facebook.com/<page>/videos/<id> (reels are not supported reliably).",
-                },
+                { ok: false, error: "Please paste a Facebook video URL (example: https://www.facebook.com/<page>/videos/<id> or https://www.facebook.com/watch/?v=<id>)." },
                 400
             );
         }
-        latestVideoUrl = urlRaw;
+        latestVideoUrl = normalized;
     }
 
     const updatedAt = new Date().toISOString();
