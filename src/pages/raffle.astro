@@ -375,7 +375,7 @@ const updatedAtLabel =
             tbody.innerHTML = "";
 
             if (!Array.isArray(winners) || winners.length === 0) {
-                if (wrap instanceof HTMLElement) wrap.style.display = "none";
+                if (wrap instanceof HTMLElement) wrap.hidden = true;
                 if (empty instanceof HTMLElement) {
                     empty.textContent = `No winners posted for ${monthLabel} yet.`;
                     empty.style.display = "";
@@ -383,7 +383,7 @@ const updatedAtLabel =
                 return;
             }
 
-            if (wrap instanceof HTMLElement) wrap.style.display = "";
+            if (wrap instanceof HTMLElement) wrap.hidden = false;
             if (empty instanceof HTMLElement) empty.style.display = "none";
 
             for (const w of winners) {
@@ -581,6 +581,7 @@ const updatedAtLabel =
             max-width: 980px;
             margin: 0;
             width: min(980px, 100%);
+            padding: 0 .75rem;
         }
 
         .winnersTable{
@@ -588,7 +589,7 @@ const updatedAtLabel =
             min-width: 720px;
             margin: 0 auto;
             border-collapse: collapse;
-            table-layout: auto;
+            table-layout: fixed;
         }
 
         .winnersTable col.colDate   { width: 8.5rem; } /* date */
@@ -606,13 +607,13 @@ const updatedAtLabel =
         }
 
         .winnersTable th:first-child,
-        .winnersTable td:first-child { padding-left: 1.15rem; }
+        .winnersTable td:first-child { padding-left: .75rem; }
 
         .winnersTable th:last-child,
-        .winnersTable td:last-child  { padding-right: .65rem; }
+        .winnersTable td:last-child  { padding-right: .75rem; }
 
         .winnersTable th:nth-child(4),
-        .winnersTable td:nth-child(4) { padding-left: .65rem; }
+        .winnersTable td:nth-child(4) { padding-left: .75rem; }
 
         .tdName, .tdTown{
             overflow: hidden;
