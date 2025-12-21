@@ -136,12 +136,13 @@ for (const e of monthEvents) {
                                 : monthEvents.length === 1
                                     ? "1 published event this month."
                                     : `${monthEvents.length} published events this month.`}
+
+                            <a class="pill thisMonthBtn" href={thisHref} aria-label="Current month">This month</a>
                         </div>
                     </div>
 
                     <div class="calNav">
                         <a class="pill" href={prevHref} aria-label="Previous month">← Prev</a>
-                        <a class="pill thisMonthBtn" href={thisHref} aria-label="Current month">This month</a>
                         <a class="pill" href={nextHref} aria-label="Next month">Next →</a>
                     </div>
                 </div>
@@ -286,7 +287,7 @@ for (const e of monthEvents) {
         .lead { margin: 0 0 1.25rem; max-width: 75ch; }
         .calendarPanel { padding: 1.25rem; background: var(--panel-bg-dense); border-color: rgba(255,255,255,0.14); }
         .calHead { display:flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-        .calHint { font-size: .95rem; }
+        .calHint { font-size: .95rem; display: flex;align-items: center;gap: .6rem;flex-wrap: wrap;}
         .calNav { display:flex; gap: .5rem; flex-wrap: wrap; }
         .calendar {
             display: grid;
@@ -396,7 +397,7 @@ for (const e of monthEvents) {
             font-size: .78rem;
             margin-right: .35rem;
         }
-
+        .thisMonthBtn{ padding: .3rem .65rem;font-size: .85rem; }
         @media (max-width: 760px){
             .calendar { gap: .4rem; }
             /* Hide calendar grid on phones; keep month list */
