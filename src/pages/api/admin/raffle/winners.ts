@@ -61,7 +61,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
     if (!DB) return json(500, { ok: false, error: "DB binding missing" });
 
     const url = new URL(request.url);
-    const raffleKey = (url.searchParams.get("raffleKey") ?? "2025-30day-30gun").trim();
+    const raffleKey = (url.searchParams.get("raffleKey") ?? "").trim();
+
+    if (!/^\d{4}-\d{2}$/.test(raffleKey)) {
+        return json(400, { ok: false, error: "raffleKey (YYYY-MM) required" });
+    }
 
     const { results } = await DB
         .prepare(
@@ -99,9 +103,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
         await DB.prepare(`DELETE FROM raffle_winners WHERE id = ?`).bind(id).run();
         return json(200, { ok: true });
     }
-
-    const raffleKey = (data?.raffleKey ?? "2025-30day-30gun").toString().trim();
-    const drawDate = (data?.drawDate ?? "").toString().trim(); // YYYY-MM-DD
+    const drawDate = (data?.drawDate ?? "").toString().trim();
+    const raffleKey = drawDate.slice(0, 7); // "YYYY-MM"
     const ticketNumberRaw = (data?.ticketNumber ?? "").toString().trim();
     const name = (data?.name ?? "").toString().trim();
     const town = (data?.town ?? "").toString().trim();
@@ -118,7 +121,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (town.length < 2) return json(400, { ok: false, error: "town required" });
 
     // Deterministic ID helps avoid duplicates; allow same ticket across different dates.
-    const id = `${drawDate}-${ticketNumber}`.replace(/[^\w-]/g, "");
+    const id = `${raffleKey}-${drawDate}-${ticketNumber}`.replace(/[^\w-]/g, "");
 
     await DB
         .prepare(

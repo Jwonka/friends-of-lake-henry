@@ -62,7 +62,6 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE INDEX IF NOT EXISTS idx_events_status_date
     ON events(status, date_start);
 
--- migrations/0009_raffle_winners.sql
 CREATE TABLE IF NOT EXISTS raffle_winners (
                                               id TEXT PRIMARY KEY,
                                               raffle_key TEXT NOT NULL,

@@ -188,7 +188,6 @@ export const prerender = false;
             load();
         }
 
-        const raffleKey = "2025-30day-30gun";
         const wDate = document.getElementById("wDate");
         const wTicket = document.getElementById("wTicket");
         const wName = document.getElementById("wName");
@@ -221,7 +220,9 @@ export const prerender = false;
         ) {
             setPageStatus("error", "Winners UI failed to initialize. Reload the page.");
         } else {
-
+            if (!wDate.value) {
+                wDate.value = `${currentMonthKeyLocal()}-01`;
+            }
             function renderWinners(rows) {
                 const tbody = winnersTable.tBodies?.[0];
                 if (!tbody) return;
@@ -243,13 +244,32 @@ export const prerender = false;
                     tbody.appendChild(tr);
                 }
             }
+            function monthKeyFromDateValue(dateValue) {
+                // dateValue is expected to be "YYYY-MM-DD" (or "")
+                if (typeof dateValue !== "string" || dateValue.length < 7) return "";
+                const m = dateValue.slice(0, 7);
+                return /^\d{4}-\d{2}$/.test(m) ? m : "";
+            }
+
+            function currentMonthKeyLocal() {
+                const d = new Date();
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, "0");
+                return `${y}-${m}`;
+            }
 
             async function loadWinners() {
                 setWinnersStatus("info", "Loading winners...");
                 try {
-                    const res = await fetch(`/api/admin/raffle/winners?raffleKey=${encodeURIComponent(raffleKey)}`, {
+                    const raffleKey =
+                        monthKeyFromDateValue(wDate.value) || currentMonthKeyLocal();
+
+                    const qs = new URLSearchParams({ raffleKey });
+
+                    const res = await fetch(`/api/admin/raffle/winners?${qs.toString()}`, {
                         headers: { "Accept": "application/json" }
                     });
+
                     const data = await res.json().catch(() => ({}));
                     if (res.ok && data?.ok) {
                         renderWinners(data.winners ?? []);
@@ -269,7 +289,6 @@ export const prerender = false;
 
                 try {
                     const payload = {
-                        raffleKey,
                         drawDate: wDate.value.trim(),
                         ticketNumber: wTicket.value.trim(),
                         name: wName.value.trim(),
