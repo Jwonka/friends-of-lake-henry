@@ -219,7 +219,10 @@ const statusMsg =
         const end = document.getElementById("date_end");
 
         function syncTbd() {
-            if (!tbd || !start || !end) return;
+            if (!(tbd instanceof HTMLInputElement)) return;
+            if (!(start instanceof HTMLInputElement)) return;
+            if (!(end instanceof HTMLInputElement)) return;
+
             const on = tbd.checked;
             start.disabled = on;
             end.disabled = on;
@@ -236,9 +239,10 @@ const statusMsg =
 
         btn?.addEventListener("click", () => (input instanceof HTMLInputElement) && input.click());
         input?.addEventListener("change", () => {
-            if (!(input instanceof HTMLInputElement)) return;
-            const file = input.files?.[0];
-            if (name) name.textContent = file ? file.name : "No file chosen";
+            if (input instanceof HTMLInputElement) {
+                const file = input.files?.[0];
+                if (name) name.textContent = file ? file.name : "No file chosen";
+            }
         });
         // Auto-clear ok/err query params (keeps refresh from re-showing messages)
         (() => {

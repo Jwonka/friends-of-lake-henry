@@ -79,7 +79,7 @@ export const prerender = false;
                 const data = await res.json().catch(() => ({}));
                 if (res.ok && data?.ok) {
                     input.value = data.config?.latestVideoUrl ?? "";
-                    setStatus("success", "Loaded current latest stream setting.");
+                    setStatus("info", "Loaded current latest stream setting.");
                 } else {
                     setStatus("error", data?.error ?? "Failed to load live config.");
                 }

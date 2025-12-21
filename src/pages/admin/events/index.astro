@@ -119,8 +119,23 @@ const statusMsg =
     </div>
 
     <script type="module">
-        import { cleanFlashParams } from "../../../scripts/clean-flash";
-        cleanFlashParams(["ok", "err"]);
+        // Auto-clear ok/err query params (keeps refresh from re-showing messages)
+        (() => {
+            const status = document.getElementById("status");
+            if (status && (status.classList.contains("status--success") || status.classList.contains("status--error"))) {
+                status.focus();
+            }
+            const u = new URL(window.location.href);
+            let changed = false;
+
+            if (u.searchParams.has("ok")) { u.searchParams.delete("ok"); changed = true; }
+            if (u.searchParams.has("err")) { u.searchParams.delete("err"); changed = true; }
+
+            if (changed) {
+                const next = u.pathname + (u.searchParams.toString() ? `?${u.searchParams.toString()}` : "") + u.hash;
+                window.history.replaceState({}, "", next);
+            }
+        })();
     </script>
 
     <style>

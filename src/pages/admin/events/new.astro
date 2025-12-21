@@ -107,6 +107,10 @@ const statusMsg =
         const end = document.getElementById("date_end");
 
         function sync() {
+            if (!(tbd instanceof HTMLInputElement)) return;
+            if (!(start instanceof HTMLInputElement)) return;
+            if (!(end instanceof HTMLInputElement)) return;
+
             const on = tbd.checked;
             start.disabled = on;
             end.disabled = on;
@@ -114,6 +118,19 @@ const statusMsg =
         }
         tbd.addEventListener("change", sync);
         sync();
+        // Auto-clear ok/err query params (keeps refresh from re-showing messages)
+        (() => {
+            const u = new URL(window.location.href);
+            let changed = false;
+
+            if (u.searchParams.has("ok")) { u.searchParams.delete("ok"); changed = true; }
+            if (u.searchParams.has("err")) { u.searchParams.delete("err"); changed = true; }
+
+            if (changed) {
+                const next = u.pathname + (u.searchParams.toString() ? `?${u.searchParams.toString()}` : "") + u.hash;
+                window.history.replaceState({}, "", next);
+            }
+        })();
     </script>
 
     <style>
