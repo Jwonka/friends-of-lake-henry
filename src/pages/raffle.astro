@@ -173,7 +173,7 @@ const updatedAtLabel =
 ---
 
 <BaseLayout title={`Raffle | Friends of Lake Henry`}>
-    <div class="container">
+    <div class="container  rafflePage">
         <section class="card hero enter-block">
             <div class="heroLeft">
                 <div class="kicker">Friends of Lake Henry</div>
@@ -679,5 +679,50 @@ const updatedAtLabel =
             .winnersTable td:last-child  { padding-right: .35rem; }
         }
     </style>
+    <style is:global>
+        .rafflePage .winnersTableWrap{
+            overflow-x:auto;
+            overflow-y:hidden;
+            -webkit-overflow-scrolling:touch;
+            touch-action:pan-x;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,0.08);
+            background:rgba(0,0,0,0.18);
+            max-width:980px;
+            margin:0 auto;
+        }
+
+        .rafflePage .winnersTable{
+            width:100%;
+            border-collapse:collapse;
+            table-layout:fixed;
+        }
+
+        .rafflePage .winnersTable th,
+        .rafflePage .winnersTable td{
+            padding:.75rem .9rem;
+            text-align:left;
+            border-bottom:1px solid rgba(255,255,255,0.08);
+            font-size:.98rem;
+            vertical-align:middle;
+        }
+
+        .rafflePage .tdName,
+        .rafflePage .tdTown{
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+
+        /* Date format toggle must be global because spans are injected */
+        .rafflePage .dateMobile{ display:none; }
+        .rafflePage .dateDesktop{ display:inline; }
+
+        @media (max-width:520px){
+            .rafflePage .dateDesktop{ display:none; }
+            .rafflePage .dateMobile{ display:inline; }
+        }
+    </style>
+
 </BaseLayout>
 
