@@ -576,8 +576,8 @@ const updatedAtLabel =
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(0,0,0,0.18);
-            max-width: 980px;
-            margin: 0 auto;
+            max-width: none;
+            margin: 0;
         }
 
         .winnersTable{
@@ -632,6 +632,13 @@ const updatedAtLabel =
             font-weight: 900;
         }
 
+        .monthNav,
+        #winnersPanel {
+            max-width: 980px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .dateMobile { display: none; }
         .dateDesktop { display: inline; }
 
@@ -660,23 +667,23 @@ const updatedAtLabel =
             .dateDesktop { display: none; }
             .dateMobile { display: inline; }
             .winnersPanel { padding: .85rem; }
-            .winnersTable{ min-width: 560px; width: max-content;  table-layout: fixed;}
+            .winnersTable{ min-width: 520px; width: max-content;  table-layout: fixed;}
 
             .winnersTable th,
             .winnersTable td{
-                padding: .5rem .5rem;
+                padding: .5rem .45rem;
                 font-size: .93rem;
             }
             .winnersTable col.colDate   { width: 6.5rem; }
             .winnersTable col.colTicket { width: 4.5rem; }
-            .winnersTable col.colName   { width: 12rem; }
-            .winnersTable col.colTown   { width: 12rem; }
+            .winnersTable col.colName   { width: 11rem; }
+            .winnersTable col.colTown   { width: 10rem; }
             /* remove “dead space” at edges */
             .winnersTable th:first-child,
             .winnersTable td:first-child { padding-left: .35rem; }
 
             .winnersTable th:last-child,
-            .winnersTable td:last-child  { padding-right: .35rem; }
+            .winnersTable td:last-child  { padding-right: .25rem; }
         }
     </style>
     <style is:global>
