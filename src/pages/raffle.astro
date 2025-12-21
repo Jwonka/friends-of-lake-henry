@@ -559,68 +559,6 @@ const updatedAtLabel =
             padding: 1.5rem;
         }
 
-        .winnersPanel{
-            padding: 1rem;
-            border-radius: 14px;
-            border: 1px solid var(--border);
-            background: rgba(0,0,0,0.28);
-            backdrop-filter: blur(2px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .winnersTableWrap{
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
-            touch-action: pan-x;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(0,0,0,0.18);
-            max-width: 980px;
-            margin: 0;
-            width: min(980px, 100%);
-            padding: 0 .75rem;
-        }
-
-        .winnersTable{
-            width: max-content;
-            min-width: 720px;
-            margin: 0 auto;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        .winnersTable col.colDate   { width: 8.5rem; } /* date */
-        .winnersTable col.colTicket { width: 5.5rem; } /* ticket */
-        .winnersTable col.colName   { width: 12rem; }  /* town */
-        .winnersTable col.colTown   { width: 12rem; } /* name */
-
-        .winnersTable th,
-        .winnersTable td{
-            padding: .75rem .9rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            font-size: .98rem;
-            vertical-align: middle;
-        }
-
-        .winnersTable th:first-child,
-        .winnersTable td:first-child { padding-left: .75rem; }
-
-        .winnersTable th:last-child,
-        .winnersTable td:last-child  { padding-right: .75rem; }
-
-        .winnersTable th:nth-child(4),
-        .winnersTable td:nth-child(4) { padding-left: .75rem; }
-
-        .tdName, .tdTown{
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
         .monthNav{
             display:flex;
             align-items:center;
@@ -677,8 +615,8 @@ const updatedAtLabel =
             }
             .winnersTable col.colDate   { width: 5rem; }
             .winnersTable col.colTicket { width: 4rem; }
-            .winnersTable col.colName   { width: 11rem; }
-            .winnersTable col.colTown   { width: 9rem; }
+            .winnersTable col.colName   { width: 10.5rem; }
+            .winnersTable col.colTown   { width: 8.5rem; }
             /* remove “dead space” at edges */
             .winnersTable th:first-child,
             .winnersTable td:first-child { padding-left: .35rem; }
@@ -688,6 +626,59 @@ const updatedAtLabel =
         }
     </style>
     <style is:global>
+        .rafflePage .winnersPanel{
+            padding: 1rem;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.28);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .rafflePage .winnersTableWrap{
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.18);
+            width: min(980px, 100%);
+            padding: 0 0.75rem 0 1.25rem;
+        }
+
+        .rafflePage .winnersTable{
+            width: max-content;
+            min-width: 720px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .rafflePage .winnersTable col.colDate   { width: 8.5rem; }
+        .rafflePage .winnersTable col.colTicket { width: 5.5rem; }
+        .rafflePage .winnersTable col.colName   { width: 12rem; }
+        .rafflePage .winnersTable col.colTown   { width: 12rem; }
+
+        .rafflePage .winnersTable th,
+        .rafflePage .winnersTable td{
+            padding: .75rem .9rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-size: .98rem;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .rafflePage .tdName,
+        .rafflePage .tdTown{
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         /* Date format toggle must be global because spans are injected */
         .rafflePage .dateMobile{ display:none; }
         .rafflePage .dateDesktop{ display:inline; }
