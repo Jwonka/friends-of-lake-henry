@@ -15,7 +15,7 @@ export const prerender = false;
                     <p class="lead adminLead">Set the latest Facebook Live video shown on the public raffle page.</p>
                 </div>
             </div>
-
+            <div id="pageStatus" class="status status--empty status--center" aria-live="polite"></div>
             <div class="panel adminPanel enter-block delay-2" style="margin-top: 1rem;">
                 <div class="formGrid">
                     <div class="field span2">
@@ -41,7 +41,6 @@ export const prerender = false;
                         <button class="btn" id="saveLive" type="button">Save latest stream</button>
                         <a class="pill" href="/raffle">View public raffle page</a>
                     </div>
-
                     <div class="span2">
                         <div id="liveStatus" class="status status--empty status--center" aria-live="polite"></div>
                     </div>
@@ -49,74 +48,290 @@ export const prerender = false;
             </div>
 
             <div class="panel adminPanel enter-block delay-4" style="margin-top: 1rem;">
-                <h2 class="h2-zero">Winners</h2>
-                <p class="muted" style="margin:.5rem 0 0;">
-                    Coming next: store and manage winners in D1 so the public raffle page can list all past raffle winners.
-                </p>
+                <div class="adminHeaderRow">
+                    <h2 class="h2-zero">Winners</h2>
+                    <div class="muted">Raffle: <strong>2025 30 Day / 30 Gun</strong></div>
+                </div>
+
+                <div class="formGrid" style="margin-top: .85rem;">
+                    <div class="field">
+                        <label class="label" for="wDate">Date (YYYY-MM-DD)</label>
+                        <input id="wDate" class="input" placeholder="2025-11-01" autocomplete="off" />
+                    </div>
+
+                    <div class="field">
+                        <label class="label" for="wTicket">Ticket #</label>
+                        <input id="wTicket" class="input" inputmode="numeric" placeholder="66" autocomplete="off" />
+                    </div>
+
+                    <div class="field span2">
+                        <label class="label" for="wName">Name</label>
+                        <input id="wName" class="input" placeholder="Kurt Thesing" autocomplete="off" />
+                    </div>
+
+                    <div class="field span2">
+                        <label class="label" for="wTown">Town</label>
+                        <input id="wTown" class="input" placeholder="Galesville" autocomplete="off" />
+                    </div>
+
+                    <div class="actions span2">
+                        <button class="btn" id="addWinner" type="button">Add winner</button>
+                    </div>
+
+                    <div class="span2">
+                        <div id="winnersStatus" class="status status--empty status--center" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <div class="winnersList" style="margin-top: 1rem;">
+                    <div class="muted" id="winnersCount" style="margin:0 0 .5rem;"></div>
+                    <div class="winnersTableWrap" role="region" aria-label="Admin winners list">
+                        <table class="winnersTable" id="winnersTable">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Ticket</th>
+                                <th>Name</th>
+                                <th>Town</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
 
     <script type="module">
-        const input = document.getElementById("latestVideoUrl");
-        const btn = document.getElementById("saveLive");
-        const status = document.getElementById("liveStatus");
+        const pageStatus = document.getElementById("pageStatus");
 
-        function setStatus(kind, msg) {
+        function setPageStatus(kind, msg) {
+            if (!(pageStatus instanceof HTMLElement)) return;
             if (!msg) {
-                status.className = "status status--empty";
-                status.textContent = "";
+                pageStatus.className = "status status--empty status--center";
+                pageStatus.textContent = "";
                 return;
             }
-            status.className = `status status--${kind}`;
-            status.textContent = msg;
+            pageStatus.className = `status status--${kind} status--center`;
+            pageStatus.textContent = msg;
         }
 
-        async function load() {
-            setStatus("info", "Loading current setting");
-            try {
-                const res = await fetch("/api/admin/raffle/live", { headers: { "Accept": "application/json" } });
-                const data = await res.json().catch(() => ({}));
-                if (res.ok && data?.ok) {
-                    input.value = data.config?.latestVideoUrl ?? "";
-                    setStatus("info", "Loaded current latest stream setting.");
-                } else {
-                    setStatus("error", data?.error ?? "Failed to load live config.");
-                }
-            } catch {
-                setStatus("error", "Failed to load live config.");
+        const input = document.getElementById("latestVideoUrl");
+        const btn = document.getElementById("saveLive");
+        const liveStatus = document.getElementById("liveStatus");
+
+        function setLiveStatus(kind, msg) {
+            if (!(liveStatus instanceof HTMLElement)) return;
+            if (!msg) {
+                liveStatus.className = "status status--empty status--center";
+                liveStatus.textContent = "";
+                return;
             }
+            liveStatus.className = `status status--${kind} status--center`;
+            liveStatus.textContent = msg;
         }
 
-        btn.addEventListener("click", async () => {
-            setStatus("success", "Saving...");
-            btn.disabled = true;
-            btn.setAttribute("aria-disabled", "true");
+        if (
+            !(input instanceof HTMLInputElement) ||
+            !(btn instanceof HTMLButtonElement) ||
+            !(liveStatus instanceof HTMLElement)
+        ) {
+            setPageStatus("error", "Live settings UI failed to initialize. Reload the page.");
+        } else {
 
-            try {
-                const res = await fetch("/api/admin/raffle/live", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Accept": "application/json" },
-                    body: JSON.stringify({ latestVideoUrl: input.value.trim() }),
-                });
-
-                const data = await res.json().catch(() => ({}));
-
-                if (res.ok && data?.ok) {
-                    const v = data.config?.latestVideoUrl;
-                    setStatus("info", v ? "Saved. The raffle page will show this latest stream." : "Cleared. The raffle page will show the previous Facebook live.");
-                } else {
-                    setStatus("error", data?.error ?? "Save failed.");
+            async function load() {
+                setLiveStatus("info", "Loading current setting");
+                try {
+                    const res = await fetch("/api/admin/raffle/live", {headers: {"Accept": "application/json"}});
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data?.ok) {
+                        input.value = data.config?.latestVideoUrl ?? "";
+                        setLiveStatus("info", "Loaded current latest stream setting.");
+                    } else {
+                        setLiveStatus("error", data?.error ?? "Failed to load live config.");
+                    }
+                } catch {
+                    setLiveStatus("error", "Failed to load live config.");
                 }
-            } catch {
-                setStatus("error", "Save failed.");
-            } finally {
-                btn.disabled = false;
-                btn.setAttribute("aria-disabled", "false");
             }
-        });
 
-        load();
+            btn.addEventListener("click", async () => {
+                setLiveStatus("success", "Saving...");
+                btn.disabled = true;
+                btn.setAttribute("aria-disabled", "true");
+
+                try {
+                    const res = await fetch("/api/admin/raffle/live", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json", "Accept": "application/json"},
+                        body: JSON.stringify({latestVideoUrl: input.value.trim()}),
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+
+                    if (res.ok && data?.ok) {
+                        const v = data.config?.latestVideoUrl;
+                        setLiveStatus("info", v ? "Saved. The raffle page will show this latest stream." : "Cleared. The raffle page will show the previous Facebook live.");
+                    } else {
+                        setLiveStatus("error", data?.error ?? "Save failed.");
+                    }
+                } catch {
+                    setLiveStatus("error", "Save failed.");
+                } finally {
+                    btn.disabled = false;
+                    btn.setAttribute("aria-disabled", "false");
+                }
+            });
+
+            load();
+        }
+
+        const raffleKey = "2025-30day-30gun";
+        const wDate = document.getElementById("wDate");
+        const wTicket = document.getElementById("wTicket");
+        const wName = document.getElementById("wName");
+        const wTown = document.getElementById("wTown");
+        const addWinnerBtn = document.getElementById("addWinner");
+        const winnersStatus = document.getElementById("winnersStatus");
+        const winnersTable = document.getElementById("winnersTable");
+        const winnersCount = document.getElementById("winnersCount");
+
+        function setWinnersStatus(kind, msg) {
+            if (!(winnersStatus instanceof HTMLElement)) return;
+            if (!msg) {
+                winnersStatus.className = "status status--empty status--center";
+                winnersStatus.textContent = "";
+                return;
+            }
+            winnersStatus.className = `status status--${kind} status--center`;
+            winnersStatus.textContent = msg;
+        }
+
+        if (
+            !(wDate instanceof HTMLInputElement) ||
+            !(wTicket instanceof HTMLInputElement) ||
+            !(wName instanceof HTMLInputElement) ||
+            !(wTown instanceof HTMLInputElement) ||
+            !(addWinnerBtn instanceof HTMLButtonElement) ||
+            !(winnersTable instanceof HTMLTableElement) ||
+            !(winnersStatus instanceof HTMLElement) ||
+            !(winnersCount instanceof HTMLElement)
+        ) {
+            setPageStatus("error", "Winners UI failed to initialize. Reload the page.");
+        } else {
+
+            function renderWinners(rows) {
+                const tbody = winnersTable.tBodies?.[0];
+                if (!tbody) return;
+                tbody.innerHTML = "";
+
+                winnersCount.textContent = rows.length ? `${rows.length} winner(s)` : "No winners yet.";
+
+                for (const r of rows) {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                  <td>${r.drawDate}</td>
+                  <td>${r.ticketNumber}</td>
+                  <td>${r.name}</td>
+                  <td>${r.town}</td>
+                  <td style="text-align:right;">
+                    <button class="pill" data-del="${r.id}" type="button">Remove</button>
+                  </td>
+                `;
+                    tbody.appendChild(tr);
+                }
+            }
+
+            async function loadWinners() {
+                setWinnersStatus("info", "Loading winners...");
+                try {
+                    const res = await fetch(`/api/admin/raffle/winners?raffleKey=${encodeURIComponent(raffleKey)}`, {
+                        headers: { "Accept": "application/json" }
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data?.ok) {
+                        renderWinners(data.winners ?? []);
+                        setWinnersStatus("info", "Winners loaded.");
+                    } else {
+                        setWinnersStatus("error", data?.error ?? "Failed to load winners.");
+                    }
+                } catch {
+                    setWinnersStatus("error", "Failed to load winners.");
+                }
+            }
+
+            addWinnerBtn.addEventListener("click", async () => {
+                setWinnersStatus("success", "Saving...");
+                addWinnerBtn.disabled = true;
+                addWinnerBtn.setAttribute("aria-disabled", "true");
+
+                try {
+                    const payload = {
+                        raffleKey,
+                        drawDate: wDate.value.trim(),
+                        ticketNumber: wTicket.value.trim(),
+                        name: wName.value.trim(),
+                        town: wTown.value.trim(),
+                    };
+
+                    const res = await fetch("/api/admin/raffle/winners", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data?.ok) {
+                        wTicket.value = "";
+                        wName.value = "";
+                        wTown.value = "";
+                        // keep date for batch entry convenience
+                        setWinnersStatus("info", "Winner saved.");
+                        await loadWinners();
+                    } else {
+                        setWinnersStatus("error", data?.error ?? "Save failed.");
+                    }
+                } catch {
+                    setWinnersStatus("error", "Save failed.");
+                } finally {
+                    addWinnerBtn.disabled = false;
+                    addWinnerBtn.setAttribute("aria-disabled", "false");
+                }
+            });
+
+            winnersTable.addEventListener("click", async (e) => {
+                const btn = e.target?.closest?.("button[data-del]");
+                if (!btn) return;
+
+                const id = btn.getAttribute("data-del");
+                if (!id) return;
+
+                btn.disabled = true;
+                setWinnersStatus("success", "Removing...");
+
+                try {
+                    const res = await fetch("/api/admin/raffle/winners", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                        body: JSON.stringify({ action: "delete", id }),
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data?.ok) {
+                        setWinnersStatus("info", "Removed.");
+                        await loadWinners();
+                    } else {
+                        setWinnersStatus("error", data?.error ?? "Remove failed.");
+                    }
+                } catch {
+                    setWinnersStatus("error", "Remove failed.");
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+            loadWinners();
+        }
     </script>
 
     <style>
@@ -153,6 +368,45 @@ export const prerender = false;
 
         .actions{ display:flex; gap:.75rem; flex-wrap:wrap; margin-top:.25rem; }
         .status--center { text-align: center; }
+        .winnersCard{
+            margin-top: var(--section-gap);
+            padding: 1.5rem;
+        }
+
+        .winnersPanel{
+            padding: 1rem;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.20);
+        }
+
+        .winnersTableWrap{
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+        }
+
+        .winnersTable{
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        .winnersTable th,
+        .winnersTable td{
+            padding: .7rem .75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: var(--text);
+            font-size: .98rem;
+        }
+
+        .winnersTable th{
+            color: var(--text-strong);
+            font-weight: 800;
+            background: rgba(255,255,255,0.03);
+        }
+
         @media (max-width: 900px){
             .formGrid{ grid-template-columns: 1fr; }
             .span2{ grid-column: span 1; }

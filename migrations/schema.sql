@@ -61,3 +61,17 @@ CREATE TABLE IF NOT EXISTS events (
 
 CREATE INDEX IF NOT EXISTS idx_events_status_date
     ON events(status, date_start);
+
+-- migrations/0009_raffle_winners.sql
+CREATE TABLE IF NOT EXISTS raffle_winners (
+                                              id TEXT PRIMARY KEY,
+                                              raffle_key TEXT NOT NULL,
+                                              draw_date TEXT NOT NULL,          -- ISO date: YYYY-MM-DD
+                                              ticket_number INTEGER NOT NULL,
+                                              winner_name TEXT NOT NULL,
+                                              town TEXT NOT NULL,
+                                              created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    );
+
+CREATE INDEX IF NOT EXISTS idx_raffle_winners_raffle_date
+    ON raffle_winners(raffle_key, draw_date);

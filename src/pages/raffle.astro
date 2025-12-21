@@ -1,7 +1,9 @@
 ---
+import type { D1Database } from "@cloudflare/workers-types";
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 
+const raffleKey = "2025-30day-30gun";
 const facebookPageReelsUrl =
     "https://www.facebook.com/61552199315213/reels/";
 
@@ -16,8 +18,31 @@ const rules = [
 ];
 
 type LiveConfig = { latestVideoUrl: string | null; previousVideoUrl?: string | null; updatedAt: string | null };
+type WinnerRow = {
+    id: string;
+    drawDate: string;
+    ticketNumber: number;
+    name: string;
+    town: string;
+};
 
 const env = Astro.locals.runtime.env;
+const DB = env.DB as D1Database | undefined;
+
+let winners: WinnerRow[] = [];
+if (DB) {
+    const { results } = await DB.prepare(
+        `SELECT id,
+            draw_date as drawDate,
+            ticket_number as ticketNumber,
+            winner_name as name,
+            town
+     FROM raffle_winners
+     WHERE raffle_key = ?
+     ORDER BY draw_date DESC`
+    ).bind(raffleKey).all();
+    winners = (results ?? []) as any;
+}
 
 let liveConfig: LiveConfig = { latestVideoUrl: null, previousVideoUrl: null,  updatedAt: null };
 
@@ -60,8 +85,8 @@ const updatedAtLabel =
                 </p>
 
                 <div class="heroCtas">
-                    <a class="btn btn--facebook" href={facebookPageLiveUrl} target="_blank" rel="noopener noreferrer">Live videos</a>
-                    <a class="btn  btn--facebook" href={facebookPageReelsUrl} target="_blank" rel="noopener noreferrer">Winner reels</a>
+                    <a class="btn btn--facebook enter-block delay-1" href={facebookPageLiveUrl} target="_blank" rel="noopener noreferrer">Live videos</a>
+                    <a class="btn  btn--facebook enter-block delay-2" href={facebookPageReelsUrl} target="_blank" rel="noopener noreferrer">Winner reels</a>
                 </div>
 
                 <p class="fine">
@@ -70,7 +95,7 @@ const updatedAtLabel =
             </div>
 
             <div class="heroRight">
-                <div class="infoCard">
+                <div class="infoCard enter-block delay-3">
                     <div class="infoTitle">Friends of Lake Henry</div>
                     <div class="muted">P.O. Box 142, Blair, WI 54616</div>
                     <div class="muted">Phone: 608-484-9241</div>
@@ -81,10 +106,10 @@ const updatedAtLabel =
             </div>
         </section>
 
-        <section class="card liveCard enter-block delay-1">
+        <section class="card liveCard enter-block delay-3">
             <h2 class="sectionTitle">Latest Live Stream</h2>
 
-            <div class="panel livePanel">
+            <div class="panel livePanel enter-block delay-4">
                 {embedSrc ? (
                     <div class="liveFrame">
                         <iframe
@@ -114,17 +139,51 @@ const updatedAtLabel =
                 )}
 
                 {embedSrc && (
-                    <div class="liveFallback">
+                    <div class="liveFallback enter-block delay-5">
                         <a class="btn  btn--facebook" href={facebookPageLiveUrl} target="_blank" rel="noopener noreferrer">
                             Watch on Facebook
                         </a>
                     </div>
                 )}
             </div>
-
         </section>
 
-        <section class="card rules  enter-block delay-2">
+        <section class="card winnersCard enter-block delay-6">
+            <h2 class="sectionTitle">Past Winners</h2>
+
+            <div class="panel winnersPanel">
+                {winners.length ? (
+                    <div class="winnersTableWrap" role="region" aria-label="Raffle winners list">
+                        <table class="winnersTable enter-block delay-7">
+                            <thead>
+                            <tr>
+                                <th scope="col">Date</th>
+                                <th scope="col">Ticket</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Town</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {winners.map((w) => (
+                                <tr>
+                                    <td>{w.drawDate}</td>
+                                    <td>{w.ticketNumber}</td>
+                                    <td>{w.name}</td>
+                                    <td>{w.town}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p class="muted" style="margin:0;">
+                        Winners will appear here after the first drawing.
+                    </p>
+                )}
+            </div>
+        </section>
+
+        <section class="card rules  enter-block delay-8">
             <h2>Rules</h2>
             <ul>
                 {rules.map((r) => <li>{r}</li>)}
@@ -227,6 +286,45 @@ const updatedAtLabel =
         .fbBtn:hover,
         .fbBtn:focus-visible{
             border-color: rgba(24,119,242,0.55);
+        }
+
+        .winnersCard{
+            margin-top: var(--section-gap);
+            padding: 1.5rem;
+        }
+
+        .winnersPanel{
+            padding: 1rem;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.20);
+        }
+
+        .winnersTableWrap{
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+        }
+
+        .winnersTable{
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        .winnersTable th,
+        .winnersTable td{
+            padding: .7rem .75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: var(--text);
+            font-size: .98rem;
+        }
+
+        .winnersTable th{
+            color: var(--text-strong);
+            font-weight: 800;
+            background: rgba(255,255,255,0.03);
         }
 
         @media (min-width: 980px) {
