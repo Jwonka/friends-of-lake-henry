@@ -274,42 +274,42 @@ const updatedAtLabel =
                 </button>
             </nav>
             <div id="winnersPanel" class="panel winnersPanel enter-block delay-7">
-                {winners.length ? (
-                    <div class="winnersTableWrap" role="region" aria-label="Raffle winners list">
-                        <table class="winnersTable">
-                            <colgroup>
-                                <col class="colDate" />
-                                <col class="colTicket" />
-                                <col class="colName" />
-                                <col class="colTown" />
-                            </colgroup>
-                            <thead>
+                <div class="winnersTableWrap" role="region" aria-label="Raffle winners list">
+                    <table class="winnersTable">
+                        <colgroup>
+                            <col class="colDate" />
+                            <col class="colTicket" />
+                            <col class="colName" />
+                            <col class="colTown" />
+                        </colgroup>
+
+                        <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Ticket</th>
+                            <th scope="col">Name</th>
+                            <th scope="col" class="thTown">Town</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="winnersTbody">
+                        {winners.map((w) => (
                             <tr>
-                                <th scope="col">Date</th>
-                                <th scope="col">Ticket</th>
-                                <th scope="col">Name</th>
-                                <th scope="col" class="thTown">Town</th>
+                                <td>
+                                    <span class="dateYear">{w.drawDate.slice(0, 4)}-</span>{w.drawDate.slice(5)}
+                                </td>
+                                <td>{w.ticketNumber}</td>
+                                <td class="tdName">{w.name}</td>
+                                <td class="tdTown">{w.town}</td>
                             </tr>
-                            </thead>
-                            <tbody>
-                            {winners.map((w) => (
-                                <tr>
-                                    <td>
-                                        <span class="dateYear">{w.drawDate.slice(0, 4)}-</span>{w.drawDate.slice(5)}
-                                    </td>
-                                    <td>{w.ticketNumber}</td>
-                                    <td class="tdName">{w.name}</td>
-                                    <td class="tdTown">{w.town}</td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <p class="muted" id="winnersEmpty" style="margin:0;">
-                        No winners posted for {monthLabel} yet.
-                    </p>
-                )}
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="muted" id="winnersEmpty" style={winners.length ? "display:none;margin:.75rem 0 0;" : "margin:.75rem 0 0;"}>
+                    No winners posted for {monthLabel} yet.
+                </p>
             </div>
         </section>
 
@@ -349,7 +349,7 @@ const updatedAtLabel =
         const nextBtn = document.querySelector('button[data-month-nav="next"]');
         const monthLabelEl = document.getElementById("monthLabel");
         const raffleTitleEl = document.getElementById("raffleTitle");
-        const winnersPanel = document.getElementById("winnersPanel");
+       // const winnersPanel = document.getElementById("winnersPanel");
 
         function setNavDisabled(prevMonthKey, nextMonthKey) {
             if (prevBtn instanceof HTMLButtonElement) {
@@ -367,8 +367,6 @@ const updatedAtLabel =
         }
 
         function renderWinners(monthLabel, raffleTitle, winners) {
-            if (!(winnersPanel instanceof HTMLElement)) return;
-
             if (monthLabelEl) monthLabelEl.textContent = monthLabel;
 
             if (raffleTitleEl instanceof HTMLElement) {
@@ -381,43 +379,26 @@ const updatedAtLabel =
                 }
             }
 
-            winnersPanel.innerHTML = "";
+            const tbody = document.getElementById("winnersTbody");
+            const empty = document.getElementById("winnersEmpty");
+            const wrap = document.querySelector(".winnersTableWrap");
+
+            if (!(tbody instanceof HTMLTableSectionElement)) return;
+
+            // clear rows
+            tbody.innerHTML = "";
 
             if (!Array.isArray(winners) || winners.length === 0) {
-                const p = document.createElement("p");
-                p.className = "muted";
-                p.style.margin = "0";
-                p.textContent = `No winners posted for ${monthLabel} yet.`;
-                winnersPanel.appendChild(p);
+                if (wrap instanceof HTMLElement) wrap.style.display = "none";
+                if (empty instanceof HTMLElement) {
+                    empty.textContent = `No winners posted for ${monthLabel} yet.`;
+                    empty.style.display = "";
+                }
                 return;
             }
 
-            const wrap = document.createElement("div");
-            wrap.className = "winnersTableWrap";
-            wrap.setAttribute("role", "region");
-            wrap.setAttribute("aria-label", "Raffle winners list");
-
-            const table = document.createElement("table");
-            table.className = "winnersTable";
-            table.innerHTML = `
-                <colgroup>
-                  <col class="colDate" />
-                  <col class="colTicket" />
-                  <col class="colName" />
-                  <col class="colTown" />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Ticket</th>
-                    <th scope="col">Name</th>
-                    <th scope="col" class="thTown">Town</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              `;
-
-            const tbody = table.querySelector("tbody");
+            if (wrap instanceof HTMLElement) wrap.style.display = "";
+            if (empty instanceof HTMLElement) empty.style.display = "none";
 
             for (const w of winners) {
                 const drawDate = String(w.drawDate ?? "");
@@ -434,8 +415,8 @@ const updatedAtLabel =
                 tbody.appendChild(tr);
             }
 
-            wrap.appendChild(table);
-            winnersPanel.appendChild(wrap);
+            // when month changes, snap scroll back to left so Date is visible
+            if (wrap) wrap.scrollLeft = 0;
         }
 
         async function loadMonth(targetMonthKey, pushUrl = true) {
@@ -601,13 +582,20 @@ const updatedAtLabel =
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(0,0,0,0.18);
+            max-width: 980px;
+            margin: 0 auto;
         }
 
         .winnersTable{
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed; /* prevents “giant gap” and forces predictable widths */
+            table-layout: fixed;
         }
+
+        .winnersTable col.colDate   { width: 9.5rem; }
+        .winnersTable col.colTicket { width: 5.75rem; }
+        .winnersTable col.colName   { width: 22rem; }  /* key: stops name from expanding forever */
+        .winnersTable col.colTown   { width: 14rem; }
 
         .winnersTable th,
         .winnersTable td{
@@ -618,24 +606,7 @@ const updatedAtLabel =
             vertical-align: middle;
         }
 
-        .winnersTable th{
-            font-weight: 800;
-            background: rgba(0,0,0,0.22);
-        }
-
-        /* Column sizing: stop Date/Ticket cramping, stop Town floating away */
-        .winnersTable .colDate   { width: 10ch; }
-        .winnersTable .colTicket { width: 7ch; }
-        .winnersTable .colName   { width: auto; }
-        .winnersTable .colTown   { width: 16ch; } /* adjust 14–18ch to taste */
-
-        .winnersTable td:nth-child(1),
-        .winnersTable td:nth-child(2){
-            white-space: nowrap;
-        }
-
-        .tdName,
-        .tdTown{
+        .tdName, .tdTown{
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -681,14 +652,21 @@ const updatedAtLabel =
             .monthNav{gap:.5rem;}
             .monthNavCenter{min-width: 9rem;}
             .dateYear { display: none; }
+            .winnersPanel { padding: .85rem; }
+            .winnersTable{ min-width: 520px; }
 
             .winnersTable th,
             .winnersTable td{
                 padding: .65rem .7rem;
                 font-size: .93rem;
             }
-            .winnersTable{ min-width: 520px; }
-            .winnersPanel { padding: .85rem; }
+
+            /* remove “dead space” at edges */
+            .winnersTable th:first-child,
+            .winnersTable td:first-child { padding-left: .55rem; }
+
+            .winnersTable th:last-child,
+            .winnersTable td:last-child  { padding-right: .55rem; }
         }
     </style>
 </BaseLayout>
