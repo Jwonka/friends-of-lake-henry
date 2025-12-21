@@ -297,13 +297,16 @@ const updatedAtLabel =
             padding: 1rem;
             border-radius: 14px;
             border: 1px solid var(--border);
-            background: rgba(0,0,0,0.20);
+            background: rgba(0,0,0,0.28);
+            backdrop-filter: blur(2px);
         }
 
         .winnersTableWrap{
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             border-radius: 12px;
+            background: rgba(0,0,0,0.18);
+            border: 1px solid rgba(255,255,255,0.08);
         }
 
         .winnersTable{
@@ -324,7 +327,7 @@ const updatedAtLabel =
         .winnersTable th{
             color: var(--text-strong);
             font-weight: 800;
-            background: rgba(255,255,255,0.03);
+            background: rgba(0,0,0,0.22);
         }
 
         @media (min-width: 980px) {

@@ -14,12 +14,31 @@ function json(status: number, body: any) {
     });
 }
 
+const MAX_SESSION_AGE_MS = 8 * 60 * 60 * 1000; // in sync with middleware
+
 function isAuthed(request: Request, env: any): boolean {
     const cookie = request.headers.get("cookie") ?? "";
     const m = cookie.match(/(?:^|;\s*)admin_auth=([^;]+)/);
-    const token = m ? decodeURIComponent(m[1]) : "";
-    const secret = typeof env.ADMIN_SECRET === "string" ? env.ADMIN_SECRET : "";
-    return Boolean(secret && token && token === secret);
+    if (!m) return false;
+
+    let token = m[1];
+    try {
+        token = decodeURIComponent(token);
+    } catch {
+        return false;
+    }
+
+    const [secret, tsRaw] = token.split(":");
+    const ts = Number(tsRaw);
+
+    const cookieSecret =
+        typeof env.ADMIN_COOKIE_SECRET === "string" ? env.ADMIN_COOKIE_SECRET : "";
+    if (!cookieSecret || !secret || secret !== cookieSecret) return false;
+
+    if (!Number.isFinite(ts)) return false;
+
+    const age = Date.now() - ts;
+    return !(age < 0 || age > MAX_SESSION_AGE_MS);
 }
 
 function mustBeIsoDate(s: string): boolean {
