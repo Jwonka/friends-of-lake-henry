@@ -3,9 +3,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 
 const facebookPageReelsUrl =
-    "https://www.facebook.com/profile.php?id=61552199315213&sk=reels_tab";
+    "https://www.facebook.com/61552199315213/reels/";
 
-const facebookPageLiveUrl = "https://www.facebook.com/profile.php?id=61552199315213&sk=live_videos";
+const facebookPageLiveUrl = "https://www.facebook.com/61552199315213/videos/";
 
 const rules = [
     "Drawing at 6pm EVERYDAY in November.",
@@ -46,7 +46,7 @@ const embedSrc = effectiveVideoUrl
 
 const updatedAtDate = liveConfig.updatedAt ? new Date(liveConfig.updatedAt) : null;
 const updatedAtLabel =
-    updatedAtDate && Number.isFinite(updatedAtDate.getTime()) ? updatedAtDate.toLocaleString() : null;
+    updatedAtDate && Number.isFinite(updatedAtDate.getTime()) ? updatedAtDate.toLocaleString("en-US", { timeZone: "America/Chicago" }) : null;
 ---
 
 <BaseLayout title={`Raffle | Friends of Lake Henry`}>
