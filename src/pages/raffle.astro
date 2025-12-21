@@ -652,9 +652,10 @@ const updatedAtLabel =
         .rafflePage .winnersTable{
             width: max-content;
             min-width: 720px;
-            margin: 0 auto;
             border-collapse: collapse;
             table-layout: fixed;
+            margin-left: 1.25rem;
+            margin-right: auto;
         }
 
         .rafflePage .winnersTable col.colDate   { width: 8.5rem; }
@@ -670,6 +671,12 @@ const updatedAtLabel =
             font-size: .98rem;
             vertical-align: middle;
             white-space: nowrap;
+        }
+
+        /* Add a consistent inset for the first column */
+        .rafflePage .winnersTable th:first-child,
+        .rafflePage .winnersTable td:first-child {
+            padding-left: 2rem;
         }
 
         .rafflePage .tdName,
