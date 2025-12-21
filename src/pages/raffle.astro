@@ -288,7 +288,7 @@ const updatedAtLabel =
                             <tbody>
                             {winners.map((w) => (
                                 <tr>
-                                    <td>{w.drawDate}</td>
+                                    <td><time data-iso={w.drawDate}>{w.drawDate}</time></td>
                                     <td>{w.ticketNumber}</td>
                                     <td>{w.name}</td>
                                     <td>{w.town}</td>
@@ -318,6 +318,18 @@ const updatedAtLabel =
         set:html={JSON.stringify(initial)}
     ></script>
     <script type="module">
+        function formatDatesForMobile() {
+            if (!window.matchMedia("(max-width: 520px)").matches) return;
+            document.querySelectorAll('time[data-iso]').forEach((t) => {
+                const iso = t.getAttribute("data-iso");
+                const d = iso ? new Date(iso) : null;
+                if (!d || Number.isNaN(d.getTime())) return;
+                t.textContent = d.toLocaleDateString("en-US", { month: "numeric", day: "numeric" }); // M/D
+            });
+        }
+        formatDatesForMobile();
+        window.addEventListener("resize", formatDatesForMobile);
+        
         const initialEl = document.getElementById("raffleInitialState");
         const initial = /** @type {{monthKey:string, prevMonthKey:string|null, nextMonthKey:string|null}} */ (
             JSON.parse((initialEl?.textContent || "{}").trim())
@@ -572,6 +584,7 @@ const updatedAtLabel =
         }
 
         .winnersTable{
+            table-layout: fixed;
             width: 100%;
             min-width: 860px;
             border-collapse: collapse;
@@ -591,7 +604,7 @@ const updatedAtLabel =
             font-weight: 800;
             background: rgba(0,0,0,0.22);
         }
-        
+
         .winnersTable th:nth-child(1),
         .winnersTable td:nth-child(1),
         .winnersTable th:nth-child(2),
@@ -599,10 +612,8 @@ const updatedAtLabel =
             white-space: nowrap;
         }
 
-        .winnersTable td:nth-child(2),
-        .winnersTable th:nth-child(2) {
-            width: 6.5rem;
-        }
+        .winnersTable th:nth-child(1), .winnersTable td:nth-child(1) { width: 8.5rem; } /* Date */
+        .winnersTable th:nth-child(2), .winnersTable td:nth-child(2) { width: 6.5rem; } /* Ticket */
 
         .monthNav{
             display:flex;
