@@ -614,10 +614,10 @@ const updatedAtLabel =
             background: rgba(0,0,0,0.22);
         }
 
-        .winnersTable .colDate  { width: 9.5rem; }
-        .winnersTable .colTicket{ width: 5.5rem; }
-        .winnersTable .colName  { width: auto; }
-        .winnersTable .colTown  { width: 12rem; }
+        .winnersTable .colDate  { width: 10.5ch; }
+        .winnersTable .colTicket{ width: 6.5ch; }
+        .winnersTable .colName  { width: 52%; }
+        .winnersTable .colTown  { width: 28% }
 
         .winnersTable th:nth-child(1),
         .winnersTable td:nth-child(1),
@@ -628,7 +628,12 @@ const updatedAtLabel =
 
         .winnersTable th:nth-child(1), .winnersTable td:nth-child(1) { width: 8.5rem; } /* Date */
         .winnersTable th:nth-child(2), .winnersTable td:nth-child(2) { width: 6.5rem; } /* Ticket */
-
+        .winnersTable td:nth-child(3),
+        .winnersTable td:nth-child(4){
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
         .monthNav{
             display:flex;
             align-items:center;
@@ -668,9 +673,22 @@ const updatedAtLabel =
             .monthNav{gap:.5rem;}
             .monthNavCenter{min-width: 9rem;}
             .winnersTable { min-width: 560px; }
-            .winnersTable .colTown { width: 9rem; }
-            .winnersTable .colDate { width: 5.5rem; }
+            .winnersTable th,
+            .winnersTable td{
+                padding: .65rem .75rem;
+                font-size: .93rem;
+            }
+            .winnersTable .colDate  { width: 6.5ch; } /* after hiding year: MM-DD */
+            .winnersTable .colTicket{ width: 5.5ch; }
+            .winnersTable .colName  { width: 56%; }
+            .winnersTable .colTown  { width: 32%; }
+
             .dateYear { display: none; }
+
+            /* On mobile, let Name/Town wrap */
+            .winnersTable td:nth-child(3),
+            .winnersTable td:nth-child(4){
+                white-space: normal;}
         }
     </style>
 </BaseLayout>
