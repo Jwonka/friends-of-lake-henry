@@ -584,15 +584,17 @@ const updatedAtLabel =
         }
 
         .winnersTable{
-            width: 100%;
+            width: max-content;
+            min-width: 720px;
+            margin: 0 auto;
             border-collapse: collapse;
-            table-layout: fixed;
+            table-layout: auto;
         }
 
         .winnersTable col.colDate   { width: 8.5rem; } /* date */
         .winnersTable col.colTicket { width: 5.5rem; } /* ticket */
         .winnersTable col.colName   { width: 12rem; }  /* town */
-        .winnersTable col.colTown   { width: auto; } /* name */
+        .winnersTable col.colTown   { width: 12rem; } /* name */
 
         .winnersTable th,
         .winnersTable td{
@@ -672,8 +674,8 @@ const updatedAtLabel =
                 padding: .5rem .45rem;
                 font-size: .93rem;
             }
-            .winnersTable col.colDate   { width: 6rem; }
-            .winnersTable col.colTicket { width: 4.5rem; }
+            .winnersTable col.colDate   { width: 5rem; }
+            .winnersTable col.colTicket { width: 4rem; }
             .winnersTable col.colName   { width: 11rem; }
             .winnersTable col.colTown   { width: 9rem; }
             /* remove “dead space” at edges */
