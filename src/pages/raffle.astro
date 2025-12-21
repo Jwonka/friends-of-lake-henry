@@ -286,9 +286,14 @@ const updatedAtLabel =
                         <tbody id="winnersTbody">
                         {winners.map((w) => (
                             <tr>
-                                <td>
-                                    <time class="winDate" data-iso={w.drawDate} datetime={w.drawDate}>
-                                        {w.drawDate}
+                                <td class="tdDate">
+                                    <time class="winDate" datetime={w.drawDate}>
+                                        <span class="dateDesktop">
+                                          {w.drawDate.slice(5,7)}/{w.drawDate.slice(8,10)}/{w.drawDate.slice(0,4)}
+                                        </span>
+                                                                        <span class="dateMobile">
+                                          {w.drawDate.slice(5,7)}/{w.drawDate.slice(8,10)}
+                                        </span>
                                     </time>
                                 </td>
                                 <td>{w.ticketNumber}</td>
@@ -319,32 +324,6 @@ const updatedAtLabel =
         set:html={JSON.stringify(initial)}
     ></script>
     <script type="module">
-        function formatWinnerDates() {
-            const isMobile = window.matchMedia("(max-width: 520px)").matches;
-
-            document.querySelectorAll("time.winDate[data-iso]").forEach((t) => {
-                const iso = t.getAttribute("data-iso") || "";
-                const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-                if (!m) return;
-
-                const yyyy = m[1];
-                const mm = m[2];
-                const dd = m[3];
-
-                t.textContent = isMobile ? `${mm}/${dd}` : `${mm}/${dd}/${yyyy}`;
-            });
-        }
-
-        // run once on initial page load
-        formatWinnerDates();
-
-        // keep it updated (debounce prevents resize spam)
-        let _dateRaf = 0;
-        window.addEventListener("resize", () => {
-            cancelAnimationFrame(_dateRaf);
-            _dateRaf = requestAnimationFrame(formatWinnerDates);
-        });
-
         const initialEl = document.getElementById("raffleInitialState");
         const initial = /** @type {{monthKey:string, prevMonthKey:string|null, nextMonthKey:string|null}} */ (
             JSON.parse((initialEl?.textContent || "{}").trim())
@@ -408,21 +387,26 @@ const updatedAtLabel =
             if (empty instanceof HTMLElement) empty.style.display = "none";
 
             for (const w of winners) {
-                const drawDate = String(w.drawDate ?? "");
-                const yyyy = drawDate.slice(0, 4);
-                const mmdd = drawDate.slice(5);
                 const iso = String(w.drawDate ?? "");
+                const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                const yyyy = m ? m[1] : "";
+                const mm = m ? m[2] : "";
+                const dd = m ? m[3] : "";
 
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                  <td><time class="winDate" data-iso="${iso}" datetime="${iso}">${iso}</time></td>
+                   <td class="tdDate">
+                    <time class="winDate" datetime="${iso}">
+                      <span class="dateDesktop">${mm}/${dd}/${yyyy}</span>
+                      <span class="dateMobile">${mm}/${dd}</span>
+                    </time>
+                  </td>
                   <td>${w.ticketNumber ?? ""}</td>
                   <td class="tdName">${w.name ?? ""}</td>
                   <td class="tdTown">${w.town ?? ""}</td>
                 `;
                 tbody.appendChild(tr);
             }
-            formatWinnerDates();
             // when month changes, snap scroll back to left so Date is visible
             if (wrap) wrap.scrollLeft = 0;
         }
@@ -648,6 +632,9 @@ const updatedAtLabel =
             font-weight: 900;
         }
 
+        .dateMobile { display: none; }
+        .dateDesktop { display: inline; }
+
         @media (min-width: 980px) {
             .hero { grid-template-columns: 1.35fr .65fr; align-items: start; }
         }
@@ -670,7 +657,8 @@ const updatedAtLabel =
             }
             .monthNav{gap:.5rem;}
             .monthNavCenter{min-width: 9rem;}
-            .dateYear { display: none; }
+            .dateDesktop { display: none; }
+            .dateMobile { display: inline; }
             .winnersPanel { padding: .85rem; }
             .winnersTable{ min-width: 560px; width: max-content;  table-layout: fixed;}
 
