@@ -45,6 +45,14 @@ function mustBeIsoDate(s: string): boolean {
     return /^\d{4}-\d{2}-\d{2}$/.test(s);
 }
 
+function isRealIsoDate(s: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+    const d = new Date(`${s}T00:00:00Z`);
+    if (!Number.isFinite(d.getTime())) return false;
+    // Ensure it didn’t roll over (e.g., 2025-02-30 -> March 2)
+    return d.toISOString().slice(0, 10) === s;
+}
+
 export const GET: APIRoute = async ({ request, locals }) => {
     const env = locals.runtime.env as any;
     if (!isAuthed(request, env)) return json(401, { ok: false, error: "Unauthorized" });
@@ -100,6 +108,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     if (!raffleKey) return json(400, { ok: false, error: "raffleKey required" });
     if (!mustBeIsoDate(drawDate)) return json(400, { ok: false, error: "drawDate must be YYYY-MM-DD" });
+    if (!isRealIsoDate(drawDate)) return json(400, { ok: false, error: "drawDate must be a valid date" });
 
     const ticketNumber = Number(ticketNumberRaw);
     if (!Number.isFinite(ticketNumber) || ticketNumber <= 0) {
