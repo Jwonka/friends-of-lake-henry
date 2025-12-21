@@ -296,7 +296,9 @@ const updatedAtLabel =
                         {winners.map((w) => (
                             <tr>
                                 <td>
-                                    <time class="winDate" data-iso={w.drawDate}>{w.drawDate}</time>
+                                    <time class="winDate" data-iso={w.drawDate} datetime={w.drawDate}>
+                                        {w.drawDate}
+                                    </time>
                                 </td>
                                 <td>{w.ticketNumber}</td>
                                 <td class="tdName">{w.name}</td>
@@ -329,19 +331,28 @@ const updatedAtLabel =
         function formatWinnerDates() {
             const isMobile = window.matchMedia("(max-width: 520px)").matches;
 
-            document.querySelectorAll('time.winDate[data-iso]').forEach((t) => {
-                const iso = t.getAttribute("data-iso");
-                // Expect YYYY-MM-DD
-                if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
+            document.querySelectorAll("time.winDate[data-iso]").forEach((t) => {
+                const iso = t.getAttribute("data-iso") || "";
+                const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (!m) return;
 
-                const [y, m, d] = iso.split("-");
-                t.textContent = isMobile ? `${m}/${d}` : `${m}/${d}/${y}`;
+                const yyyy = m[1];
+                const mm = m[2];
+                const dd = m[3];
+
+                t.textContent = isMobile ? `${mm}/${dd}` : `${mm}/${dd}/${yyyy}`;
             });
         }
 
-        // run on load + resize
+        // run once on initial page load
         formatWinnerDates();
-        window.addEventListener("resize", formatWinnerDates);
+
+        // keep it updated (debounce prevents resize spam)
+        let _dateRaf = 0;
+        window.addEventListener("resize", () => {
+            cancelAnimationFrame(_dateRaf);
+            _dateRaf = requestAnimationFrame(formatWinnerDates);
+        });
 
         const initialEl = document.getElementById("raffleInitialState");
         const initial = /** @type {{monthKey:string, prevMonthKey:string|null, nextMonthKey:string|null}} */ (
@@ -413,7 +424,7 @@ const updatedAtLabel =
 
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                  <td><time class="winDate" data-iso="${iso}">${iso}</time></td>
+                  <td><time class="winDate" data-iso="${iso}" datetime="${iso}">${iso}</time></td>
                   <td>${w.ticketNumber ?? ""}</td>
                   <td class="tdName">${w.name ?? ""}</td>
                   <td class="tdTown">${w.town ?? ""}</td>
@@ -616,7 +627,7 @@ const updatedAtLabel =
         .winnersTable td:first-child { padding-left: 1.15rem; }
 
         .winnersTable th:last-child,
-        .winnersTable td:last-child  { padding-right: 1.0rem; }
+        .winnersTable td:last-child  { padding-right: .65rem; }
 
         .winnersTable th:nth-child(4),
         .winnersTable td:nth-child(4) { padding-left: .65rem; }
@@ -668,20 +679,23 @@ const updatedAtLabel =
             .monthNavCenter{min-width: 9rem;}
             .dateYear { display: none; }
             .winnersPanel { padding: .85rem; }
-            .winnersTable{ min-width: 460px; }
+            .winnersTable{ min-width: 560px; width: max-content;  table-layout: fixed;}
 
             .winnersTable th,
             .winnersTable td{
-                padding: .6rem .6rem;
+                padding: .5rem .5rem;
                 font-size: .93rem;
             }
-
+            .winnersTable col.colDate   { width: 6.5rem; }
+            .winnersTable col.colTicket { width: 4.5rem; }
+            .winnersTable col.colName   { width: 12rem; }
+            .winnersTable col.colTown   { width: 12rem; }
             /* remove “dead space” at edges */
             .winnersTable th:first-child,
-            .winnersTable td:first-child { padding-left: .55rem; }
+            .winnersTable td:first-child { padding-left: .35rem; }
 
             .winnersTable th:last-child,
-            .winnersTable td:last-child  { padding-right: .55rem; }
+            .winnersTable td:last-child  { padding-right: .35rem; }
         }
     </style>
 </BaseLayout>
