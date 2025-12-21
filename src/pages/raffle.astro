@@ -50,7 +50,7 @@ let raffleKey = isMonthKey(monthParam) ? monthParam : currentMonth;
 
 function monthKeyToLabel(monthKey: string) {
     const [y, m] = monthKey.split("-").map(Number);
-    const d = new Date(Date.UTC(y, m - 1, 1));
+    const d = new Date(Date.UTC(y, m - 1, 15, 12)); // 15th @ noon UTC = safe
     return new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Chicago",
         month: "long",
@@ -573,13 +573,13 @@ const updatedAtLabel =
 
         .winnersTable{
             width: 100%;
+            min-width: 860px;
             border-collapse: collapse;
-            min-width: 720px;
         }
 
         .winnersTable th,
         .winnersTable td{
-            padding: .7rem .75rem;
+            padding: .85rem 1rem;
             text-align: left;
             border-bottom: 1px solid rgba(255,255,255,0.08);
             color: var(--text);
@@ -590,6 +590,18 @@ const updatedAtLabel =
             color: var(--text-strong);
             font-weight: 800;
             background: rgba(0,0,0,0.22);
+        }
+        
+        .winnersTable th:nth-child(1),
+        .winnersTable td:nth-child(1),
+        .winnersTable th:nth-child(2),
+        .winnersTable td:nth-child(2) {
+            white-space: nowrap;
+        }
+
+        .winnersTable td:nth-child(2),
+        .winnersTable th:nth-child(2) {
+            width: 6.5rem;
         }
 
         .monthNav{

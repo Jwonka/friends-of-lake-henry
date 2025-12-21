@@ -7,7 +7,7 @@ function isMonthKey(s: string) {
 
 function monthKeyToLabel(monthKey: string) {
     const [y, m] = monthKey.split("-").map(Number);
-    const d = new Date(Date.UTC(y, m - 1, 1));
+    const d = new Date(Date.UTC(y, m - 1, 15, 12));
     return new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Chicago",
         month: "long",
