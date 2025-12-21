@@ -277,17 +277,17 @@ const updatedAtLabel =
                 {winners.length ? (
                     <div class="winnersGrid" role="region" aria-label="Raffle winners list">
                         <div class="winnersRow winnersHead enter-block delay-7" id="winnersTable">
-                            <div role="columnheader">Date</div>
-                            <div role="columnheader">Ticket</div>
-                            <div role="columnheader">Name</div>
-                            <div role="columnheader">Town</div>
+                            <div class="cellDate" role="columnheader">Date</div>
+                            <div class="cellTicket" role="columnheader">Ticket</div>
+                            <div class="cellName" role="columnheader">Name</div>
+                            <div class="cellTown" role="columnheader">Town</div>
                         </div>
                         {winners.map(w => (
                             <div class="winnersRow" role="row">
-                                <div role="cell"><span class="dateYear">{w.drawDate.slice(0,4)}-</span>{w.drawDate.slice(5)}</div>
-                                <div role="cell">{w.ticketNumber}</div>
-                                <div role="cell" class="cellName">{w.name}</div>
-                                <div role="cell" class="cellTown">{w.town}</div>
+                                <div class="cellDate" role="cell"><span class="dateYear">{w.drawDate.slice(0,4)}-</span>{w.drawDate.slice(5)}</div>
+                                <div class="cellTicket" role="cell">{w.ticketNumber}</div>
+                                <div class="cellName" role="cell">{w.name}</div>
+                                <div class="cellTown" role="cell">{w.town}</div>
                             </div>
                         ))}
                     </div>
@@ -370,39 +370,40 @@ const updatedAtLabel =
             winnersPanel.innerHTML = "";
 
             if (Array.isArray(winners) && winners.length) {
-                const wrap = document.createElement("div");
-                wrap.className = "winnersTableWrap";
-                wrap.setAttribute("role", "region");
-                wrap.setAttribute("aria-label", "Raffle winners list");
+                const grid = document.createElement("div");
+                grid.className = "winnersGrid";
+                grid.setAttribute("role", "region");
+                grid.setAttribute("aria-label", "Raffle winners list");
 
-                const table = document.createElement("table");
-                table.className = "winnersTable";
-                table.innerHTML = `
-                    <thead>
-                      <tr>
-                        <th scope="col">Date</th>
-                        <th scope="col">Ticket</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Town</th>
-                      </tr>
-                    </thead>
-                    <tbody></tbody>
+                const head = document.createElement("div");
+                head.className = "winnersRow winnersHead";
+                head.innerHTML = `
+                  <div class="cellDate" role="columnheader">Date</div>
+                  <div class="cellTicket" role="columnheader">Ticket</div>
+                  <div class="cellName" role="columnheader">Name</div>
+                  <div class="cellTown" role="columnheader">Town</div>
                 `;
+                grid.appendChild(head);
 
-                const tbody = table.querySelector("tbody");
                 for (const w of winners) {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                      <td>${w.drawDate ?? ""}</td>
-                      <td>${w.ticketNumber ?? ""}</td>
-                      <td>${w.name ?? ""}</td>
-                      <td>${w.town ?? ""}</td>
-                    `;
-                    tbody?.appendChild(tr);
+                    const row = document.createElement("div");
+                    row.className = "winnersRow";
+                    row.setAttribute("role", "row");
+
+                    const drawDate = String(w.drawDate ?? "");
+                    const yyyy = drawDate.slice(0, 4);
+                    const mmdd = drawDate.slice(5);
+
+                    row.innerHTML = `
+                        <div class="cellDate" role="cell"><span class="dateYear">${yyyy}-</span>${mmdd}</div>
+                        <div class="cellTicket" role="cell">${w.ticketNumber ?? ""}</div>
+                        <div class="cellName" role="cell">${w.name ?? ""}</div>
+                        <div class="cellTown" role="cell">${w.town ?? ""}</div>
+                      `;
+                    grid.appendChild(row);
                 }
 
-                wrap.appendChild(table);
-                winnersPanel.appendChild(wrap);
+                winnersPanel.appendChild(grid);
             } else {
                 const p = document.createElement("p");
                 p.className = "muted";
@@ -411,7 +412,7 @@ const updatedAtLabel =
                 winnersPanel.appendChild(p);
             }
         }
-
+        
         async function loadMonth(targetMonthKey, pushUrl = true) {
             const u = new URL("/api/raffle/month", window.location.origin);
             u.searchParams.set("month", targetMonthKey);
@@ -580,8 +581,13 @@ const updatedAtLabel =
 
         .winnersRow{
             display: grid;
-            grid-template-columns: 9.5rem 5.5rem 1.2fr 1fr;
+            grid-template-columns:
+                10ch                /* date */
+                7ch                 /* ticket */
+                minmax(18ch, 1.25fr)/* name */
+                minmax(14ch, 1fr);  /* town */
             column-gap: 1rem;
+            align-items: center;
             padding: .8rem .9rem;
             border-bottom: 1px solid rgba(255,255,255,0.08);
         }
@@ -589,6 +595,11 @@ const updatedAtLabel =
         .winnersHead{
             font-weight: 800;
             background: rgba(0,0,0,0.22);
+        }
+
+        .cellDate,
+        .cellTicket{
+            white-space: nowrap;
         }
 
         .cellName, .cellTown{
@@ -620,6 +631,7 @@ const updatedAtLabel =
         @media (min-width: 760px) and (max-width: 979px) {
             .hero { grid-template-columns: 1fr; }
             .heroCtas { gap: .6rem; }
+            .winnersRow { column-gap: .75rem; }
         }
 
         @media (max-width: 520px) {
@@ -638,13 +650,27 @@ const updatedAtLabel =
             .dateYear { display: none; }
 
             .winnersRow{
-                grid-template-columns: 5.25rem 4.75rem 1fr; 
+                grid-template-columns: 6ch 6ch 1fr;
+                grid-template-areas:
+      "date ticket name"
+      ".    .      town";
+                row-gap: .25rem;
+                column-gap: .75rem;
+                padding: .7rem .75rem;
             }
-            .cellTown{
-                grid-column: 3 / 4;
+
+            .cellDate   { grid-area: date; }
+            .cellTicket { grid-area: ticket; }
+            .cellName   { grid-area: name; }
+            .cellTown   {
+                grid-area: town;
                 white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
                 opacity: .92;
             }
+
+            .winnersPanel { padding: .85rem; }
         }
     </style>
 </BaseLayout>
