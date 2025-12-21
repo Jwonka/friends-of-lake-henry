@@ -296,7 +296,7 @@ const updatedAtLabel =
                         {winners.map((w) => (
                             <tr>
                                 <td>
-                                    <span class="dateYear">{w.drawDate.slice(0, 4)}-</span>{w.drawDate.slice(5)}
+                                    <time class="winDate" data-iso={w.drawDate}>{w.drawDate}</time>
                                 </td>
                                 <td>{w.ticketNumber}</td>
                                 <td class="tdName">{w.name}</td>
@@ -326,17 +326,22 @@ const updatedAtLabel =
         set:html={JSON.stringify(initial)}
     ></script>
     <script type="module">
-        function formatDatesForMobile() {
-            if (!window.matchMedia("(max-width: 520px)").matches) return;
-            document.querySelectorAll('time[data-iso]').forEach((t) => {
+        function formatWinnerDates() {
+            const isMobile = window.matchMedia("(max-width: 520px)").matches;
+
+            document.querySelectorAll('time.winDate[data-iso]').forEach((t) => {
                 const iso = t.getAttribute("data-iso");
-                const d = iso ? new Date(iso) : null;
-                if (!d || Number.isNaN(d.getTime())) return;
-                t.textContent = d.toLocaleDateString("en-US", { month: "numeric", day: "numeric" }); // M/D
+                // Expect YYYY-MM-DD
+                if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
+
+                const [y, m, d] = iso.split("-");
+                t.textContent = isMobile ? `${m}/${d}` : `${m}/${d}/${y}`;
             });
         }
-        formatDatesForMobile();
-        window.addEventListener("resize", formatDatesForMobile);
+
+        // run on load + resize
+        formatWinnerDates();
+        window.addEventListener("resize", formatWinnerDates);
 
         const initialEl = document.getElementById("raffleInitialState");
         const initial = /** @type {{monthKey:string, prevMonthKey:string|null, nextMonthKey:string|null}} */ (
@@ -404,17 +409,18 @@ const updatedAtLabel =
                 const drawDate = String(w.drawDate ?? "");
                 const yyyy = drawDate.slice(0, 4);
                 const mmdd = drawDate.slice(5);
+                const iso = String(w.drawDate ?? "");
 
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                  <td><span class="dateYear">${yyyy}-</span>${mmdd}</td>
+                  <td><time class="winDate" data-iso="${iso}">${iso}</time></td>
                   <td>${w.ticketNumber ?? ""}</td>
                   <td class="tdName">${w.name ?? ""}</td>
                   <td class="tdTown">${w.town ?? ""}</td>
                 `;
                 tbody.appendChild(tr);
             }
-
+            formatWinnerDates();
             // when month changes, snap scroll back to left so Date is visible
             if (wrap) wrap.scrollLeft = 0;
         }
@@ -592,10 +598,10 @@ const updatedAtLabel =
             table-layout: fixed;
         }
 
-        .winnersTable col.colDate   { width: 9.5rem; }
-        .winnersTable col.colTicket { width: 5.75rem; }
-        .winnersTable col.colName   { width: 22rem; }  /* key: stops name from expanding forever */
-        .winnersTable col.colTown   { width: 14rem; }
+        .winnersTable col.colDate   { width: 8.5rem; } /* date */
+        .winnersTable col.colTicket { width: 5.5rem; } /* ticket */
+        .winnersTable col.colName   { width: 12rem; }  /* town */
+        .winnersTable col.colTown   { width: auto; } /* name */
 
         .winnersTable th,
         .winnersTable td{
@@ -605,6 +611,15 @@ const updatedAtLabel =
             font-size: .98rem;
             vertical-align: middle;
         }
+
+        .winnersTable th:first-child,
+        .winnersTable td:first-child { padding-left: 1.15rem; }
+
+        .winnersTable th:last-child,
+        .winnersTable td:last-child  { padding-right: 1.0rem; }
+
+        .winnersTable th:nth-child(4),
+        .winnersTable td:nth-child(4) { padding-left: .65rem; }
 
         .tdName, .tdTown{
             overflow: hidden;
@@ -653,11 +668,11 @@ const updatedAtLabel =
             .monthNavCenter{min-width: 9rem;}
             .dateYear { display: none; }
             .winnersPanel { padding: .85rem; }
-            .winnersTable{ min-width: 520px; }
+            .winnersTable{ min-width: 460px; }
 
             .winnersTable th,
             .winnersTable td{
-                padding: .65rem .7rem;
+                padding: .6rem .6rem;
                 font-size: .93rem;
             }
 
