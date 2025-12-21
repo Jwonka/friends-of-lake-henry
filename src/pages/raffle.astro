@@ -23,6 +23,7 @@ type WinnerRow = {
     ticketNumber: number;
     name: string;
     town: string;
+    prize: string | null;
 };
 
 const env = Astro.locals.runtime.env;
@@ -45,7 +46,47 @@ const currentMonth = new Intl.DateTimeFormat("en-CA", {
     month: "2-digit",
 }).format(now).slice(0, 7); // YYYY-MM
 
-const raffleKey = isMonthKey(monthParam) ? monthParam : currentMonth;
+let raffleKey = isMonthKey(monthParam) ? monthParam : currentMonth;
+
+function monthKeyToLabel(monthKey: string) {
+    const [y, m] = monthKey.split("-").map(Number);
+    const d = new Date(Date.UTC(y, m - 1, 1));
+    return new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Chicago",
+        month: "long",
+        year: "numeric",
+    }).format(d);
+}
+
+let months: string[] = [];
+if (DB) {
+    const monthsRes = await DB.prepare(
+        `SELECT month_key as monthKey
+       FROM raffle_months
+      ORDER BY month_key DESC`
+    ).all();
+
+    months = (monthsRes.results ?? []).map((r: any) => String(r.monthKey));
+
+    if (!months.length) {
+        const derived = await DB.prepare(
+            `SELECT DISTINCT raffle_key as monthKey
+         FROM raffle_winners
+        ORDER BY raffle_key DESC`
+        ).all();
+        months = (derived.results ?? []).map((r: any) => String(r.monthKey));
+    }
+}
+months = Array.from(new Set([currentMonth, ...months])).sort((a, b) => b.localeCompare(a));
+
+if (isMonthKey(monthParam) && months.length) {
+    raffleKey = months[0];
+}
+
+const idx = months.indexOf(raffleKey);
+const prevMonthKey = idx >= 0 && idx + 1 < months.length ? months[idx + 1] : null; // because DESC
+const nextMonthKey = idx > 0 ? months[idx - 1] : null;
+const monthLabel = monthKeyToLabel(raffleKey);
 
 let winners: WinnerRow[] = [];
 
@@ -55,12 +96,24 @@ if (DB) {
             draw_date as drawDate,
             ticket_number as ticketNumber,
             winner_name as name,
-            town
+            town,
+            prize
      FROM raffle_winners
      WHERE raffle_key = ?
-     ORDER BY draw_date DESC`
+     ORDER BY draw_date DESC, created_at DESC`
     ).bind(raffleKey).all();
     winners = (results ?? []) as any;
+}
+
+let raffleTitle: string | null = null;
+
+if (DB) {
+    const metaRes = await DB.prepare(
+        `SELECT title FROM raffle_months WHERE month_key = ?`
+    ).bind(raffleKey).first();
+
+    raffleTitle = metaRes ? String((metaRes as any).title ?? "").trim() : "";
+    if (!raffleTitle) raffleTitle = null;
 }
 
 let liveConfig: LiveConfig = { latestVideoUrl: null, previousVideoUrl: null,  updatedAt: null };
@@ -169,7 +222,24 @@ const updatedAtLabel =
 
         <section class="card winnersCard enter-block delay-6">
             <h2 class="sectionTitle">Past Winners</h2>
+            <nav class="monthNav" aria-label="Select raffle month">
+                {prevMonthKey ? (
+                    <a class="pill" href={`/raffle?month=${prevMonthKey}`} aria-label={`Previous month: ${monthKeyToLabel(prevMonthKey)}`}>← Prev</a>
+                ) : (
+                    <span class="pill" aria-disabled="true" style="opacity:.5; pointer-events:none;">← Prev</span>
+                )}
 
+                <div class="monthNavCenter">
+                    <div class="monthNavLabel">{monthLabel}</div>
+                    {raffleTitle && <div class="muted">{raffleTitle}</div>}
+                </div>
+
+                {nextMonthKey ? (
+                    <a class="pill" href={`/raffle?month=${nextMonthKey}`} aria-label={`Next month: ${monthKeyToLabel(nextMonthKey)}`}>Next →</a>
+                ) : (
+                    <span class="pill" aria-disabled="true" style="opacity:.5; pointer-events:none;">Next →</span>
+                )}
+            </nav>
             <div class="panel winnersPanel">
                 {winners.length ? (
                     <div class="winnersTableWrap" role="region" aria-label="Raffle winners list">
@@ -196,7 +266,7 @@ const updatedAtLabel =
                     </div>
                 ) : (
                     <p class="muted" style="margin:0;">
-                        Winners will appear here after the first drawing.
+                        No winners posted for {monthLabel} yet.
                     </p>
                 )}
             </div>

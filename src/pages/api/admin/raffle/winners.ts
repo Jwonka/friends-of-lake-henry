@@ -67,17 +67,51 @@ export const GET: APIRoute = async ({ request, locals }) => {
         return json(400, { ok: false, error: "raffleKey (YYYY-MM) required" });
     }
 
+    const includeMonths = url.searchParams.get("includeMonths") === "1";
+    const includeMeta = url.searchParams.get("includeMeta") === "1";
+
     const { results } = await DB
         .prepare(
-            `SELECT id, raffle_key as raffleKey, draw_date as drawDate, ticket_number as ticketNumber, winner_name as name, town
+            `SELECT id, raffle_key as raffleKey, draw_date as drawDate, ticket_number as ticketNumber, winner_name as name, town, prize, created_at as createdAt
        FROM raffle_winners
        WHERE raffle_key = ?
-       ORDER BY draw_date DESC`
+       ORDER BY draw_date DESC, created_at DESC`
         )
         .bind(raffleKey)
         .all();
 
-    return json(200, { ok: true, winners: results ?? [] });
+    let months: string[] | undefined;
+    if (includeMonths) {
+        // Primary source: raffle_months (lets you show months even before winners exist)
+        const monthsRes = await DB.prepare(
+            `SELECT month_key as monthKey
+       FROM raffle_months
+      ORDER BY month_key DESC`
+        ).all();
+
+        months = (monthsRes.results ?? []).map((r: any) => String(r.monthKey));
+
+        // Fallback: if raffle_months empty, derive months from winners table
+        if (!months.length) {
+            const derived = await DB.prepare(
+                `SELECT DISTINCT raffle_key as monthKey
+         FROM raffle_winners
+        ORDER BY raffle_key DESC`
+            ).all();
+            months = (derived.results ?? []).map((r: any) => String(r.monthKey));
+        }
+    }
+
+    let meta: { title: string | null } | undefined;
+    if (includeMeta) {
+        const row = await DB.prepare(
+            `SELECT title FROM raffle_months WHERE month_key = ?`
+        ).bind(raffleKey).first();
+
+        meta = { title: row ? String((row as any).title ?? "") || null : null };
+    }
+
+    return json(200, { ok: true, winners: results ?? [],raffleKey, months, meta});
 };
 
 export const POST: APIRoute = async ({ request, locals }) => {
@@ -96,6 +130,36 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     const action = (data?.action ?? "add").toString();
 
+    if (action === "setMeta") {
+        const monthKey = (data?.raffleKey ?? "").toString().trim();
+        const titleRaw = (data?.title ?? "").toString();
+        const title = titleRaw.trim();
+
+        if (!/^\d{4}-\d{2}$/.test(monthKey)) {
+            return json(400, { ok: false, error: "raffleKey (YYYY-MM) required" });
+        }
+
+        // Allow blank to clear
+        if (!title) {
+            await DB.prepare(`DELETE FROM raffle_months WHERE month_key = ?`)
+                .bind(monthKey)
+                .run();
+            return json(200, { ok: true, meta: { title: "" } });
+        }
+
+        await DB.prepare(
+            `INSERT INTO raffle_months (month_key, title, updated_at)
+             VALUES (?, ?, (strftime('%Y-%m-%dT%H:%M:%fZ','now')))
+                 ON CONFLICT(month_key) DO UPDATE SET
+                title = excluded.title,
+                                               updated_at = excluded.updated_at`
+        )
+            .bind(monthKey, title)
+            .run();
+
+        return json(200, { ok: true, meta: { title } });
+    }
+
     if (action === "delete") {
         const id = (data?.id ?? "").toString().trim();
         if (!id) return json(400, { ok: false, error: "Missing id" });
@@ -108,7 +172,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const ticketNumberRaw = (data?.ticketNumber ?? "").toString().trim();
     const name = (data?.name ?? "").toString().trim();
     const town = (data?.town ?? "").toString().trim();
+    const prize = (data?.prize ?? "").toString().trim() || null;
 
+    if (!drawDate) return json(400, { ok: false, error: "drawDate required" });
     if (!raffleKey) return json(400, { ok: false, error: "raffleKey required" });
     if (!mustBeIsoDate(drawDate)) return json(400, { ok: false, error: "drawDate must be YYYY-MM-DD" });
     if (!isRealIsoDate(drawDate)) return json(400, { ok: false, error: "drawDate must be a valid date" });
@@ -123,13 +189,20 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Deterministic ID helps avoid duplicates; allow same ticket across different dates.
     const id = `${raffleKey}-${drawDate}-${ticketNumber}`.replace(/[^\w-]/g, "");
 
-    await DB
-        .prepare(
-            `INSERT OR REPLACE INTO raffle_winners (id, raffle_key, draw_date, ticket_number, winner_name, town)
-       VALUES (?, ?, ?, ?, ?, ?)`
+    try {
+        await DB.prepare(
+            `INSERT INTO raffle_winners (id, raffle_key, draw_date, ticket_number, winner_name, town, prize)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
         )
-        .bind(id, raffleKey, drawDate, ticketNumber, name, town)
-        .run();
+            .bind(id, raffleKey, drawDate, ticketNumber, name, town, prize)
+            .run();
+    } catch (err: any) {
+        const msg = String(err?.message ?? "");
+        if (msg.includes("UNIQUE") || msg.includes("constraint")) {
+            return json(409, { ok: false, error: "That ticket number already exists for that day/month." });
+        }
+        return json(500, { ok: false, error: "DB insert failed" });
+    }
 
     return json(200, { ok: true, id });
 };
