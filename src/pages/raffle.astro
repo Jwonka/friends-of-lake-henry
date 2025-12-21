@@ -565,6 +565,9 @@ const updatedAtLabel =
             border: 1px solid var(--border);
             background: rgba(0,0,0,0.28);
             backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .winnersTableWrap{
@@ -576,8 +579,8 @@ const updatedAtLabel =
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(0,0,0,0.18);
             max-width: 980px;
-            margin: 0 auto;
-            width: 100%;
+            margin: 0;
+            width: min(980px, 100%);
         }
 
         .winnersTable{
@@ -636,7 +639,7 @@ const updatedAtLabel =
 
         .dateMobile { display: none; }
         .dateDesktop { display: inline; }
-
+        #winnersEmpty{ width: min(980px, 100%); }
         @media (min-width: 980px) {
             .hero { grid-template-columns: 1.35fr .65fr; align-items: start; }
         }
@@ -669,10 +672,10 @@ const updatedAtLabel =
                 padding: .5rem .45rem;
                 font-size: .93rem;
             }
-            .winnersTable col.colDate   { width: 6.5rem; }
+            .winnersTable col.colDate   { width: 6rem; }
             .winnersTable col.colTicket { width: 4.5rem; }
             .winnersTable col.colName   { width: 11rem; }
-            .winnersTable col.colTown   { width: 10rem; }
+            .winnersTable col.colTown   { width: 9rem; }
             /* remove “dead space” at edges */
             .winnersTable th:first-child,
             .winnersTable td:first-child { padding-left: .35rem; }
