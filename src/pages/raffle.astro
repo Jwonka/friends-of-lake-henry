@@ -277,6 +277,12 @@ const updatedAtLabel =
                 {winners.length ? (
                     <div class="winnersTableWrap" role="region" aria-label="Raffle winners list">
                         <table class="winnersTable enter-block delay-7" id="winnersTable">
+                            <colgroup>
+                                <col class="colDate" />
+                                <col class="colTicket" />
+                                <col class="colName" />
+                                <col class="colTown" />
+                            </colgroup>
                             <thead>
                             <tr>
                                 <th scope="col">Date</th>
@@ -288,7 +294,9 @@ const updatedAtLabel =
                             <tbody>
                             {winners.map((w) => (
                                 <tr>
-                                    <td><time data-iso={w.drawDate}>{w.drawDate}</time></td>
+                                    <td>
+                                        <span class="dateYear">{w.drawDate.slice(0, 4)}-</span>{w.drawDate.slice(5)}
+                                    </td>
                                     <td>{w.ticketNumber}</td>
                                     <td>{w.name}</td>
                                     <td>{w.town}</td>
@@ -329,7 +337,7 @@ const updatedAtLabel =
         }
         formatDatesForMobile();
         window.addEventListener("resize", formatDatesForMobile);
-        
+
         const initialEl = document.getElementById("raffleInitialState");
         const initial = /** @type {{monthKey:string, prevMonthKey:string|null, nextMonthKey:string|null}} */ (
             JSON.parse((initialEl?.textContent || "{}").trim())
@@ -584,10 +592,10 @@ const updatedAtLabel =
         }
 
         .winnersTable{
-            table-layout: fixed;
             width: 100%;
-            min-width: 860px;
             border-collapse: collapse;
+            table-layout: fixed;
+            min-width: 760px;
         }
 
         .winnersTable th,
@@ -597,6 +605,7 @@ const updatedAtLabel =
             border-bottom: 1px solid rgba(255,255,255,0.08);
             color: var(--text);
             font-size: .98rem;
+            vertical-align: middle;
         }
 
         .winnersTable th{
@@ -604,6 +613,11 @@ const updatedAtLabel =
             font-weight: 800;
             background: rgba(0,0,0,0.22);
         }
+
+        .winnersTable .colDate  { width: 9.5rem; }
+        .winnersTable .colTicket{ width: 5.5rem; }
+        .winnersTable .colName  { width: auto; }
+        .winnersTable .colTown  { width: 12rem; }
 
         .winnersTable th:nth-child(1),
         .winnersTable td:nth-child(1),
@@ -653,6 +667,10 @@ const updatedAtLabel =
             }
             .monthNav{gap:.5rem;}
             .monthNavCenter{min-width: 9rem;}
+            .winnersTable { min-width: 560px; }
+            .winnersTable .colTown { width: 9rem; }
+            .winnersTable .colDate { width: 5.5rem; }
+            .dateYear { display: none; }
         }
     </style>
 </BaseLayout>
