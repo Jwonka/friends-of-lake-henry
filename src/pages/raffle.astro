@@ -273,23 +273,25 @@ const updatedAtLabel =
                     Next →
                 </button>
             </nav>
-            <div id="winnersPanel" class="panel winnersPanel">
+            <div id="winnersPanel" class="panel winnersPanel enter-block delay-7">
                 {winners.length ? (
-                    <div class="winnersGrid" role="region" aria-label="Raffle winners list">
-                        <div class="winnersRow winnersHead enter-block delay-7" id="winnersTable">
-                            <div class="cellDate" role="columnheader">Date</div>
-                            <div class="cellTicket" role="columnheader">Ticket</div>
-                            <div class="cellName" role="columnheader">Name</div>
-                            <div class="cellTown" role="columnheader">Town</div>
-                        </div>
-                        {winners.map(w => (
-                            <div class="winnersRow" role="row">
-                                <div class="cellDate" role="cell"><span class="dateYear">{w.drawDate.slice(0,4)}-</span>{w.drawDate.slice(5)}</div>
-                                <div class="cellTicket" role="cell">{w.ticketNumber}</div>
-                                <div class="cellName" role="cell">{w.name}</div>
-                                <div class="cellTown" role="cell">{w.town}</div>
+                    <div class="winnersGridWrap" role="region" aria-label="Raffle winners list">
+                        <div class="winnersGrid">
+                            <div class="winnersRow winnersHead" id="winnersTable">
+                                <div class="cellDate" role="columnheader">Date</div>
+                                <div class="cellTicket" role="columnheader">Ticket</div>
+                                <div class="cellName" role="columnheader">Name</div>
+                                <div class="cellTown" role="columnheader">Town</div>
                             </div>
-                        ))}
+                            {winners.map(w => (
+                                <div class="winnersRow" role="row">
+                                    <div class="cellDate" role="cell"><span class="dateYear">{w.drawDate.slice(0,4)}-</span>{w.drawDate.slice(5)}</div>
+                                    <div class="cellTicket" role="cell">{w.ticketNumber}</div>
+                                    <div class="cellName" role="cell">{w.name}</div>
+                                    <div class="cellTown" role="cell">{w.town}</div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 ) : (
                     <p class="muted" id="winnersEmpty" style="margin:0;">
@@ -412,7 +414,7 @@ const updatedAtLabel =
                 winnersPanel.appendChild(p);
             }
         }
-        
+
         async function loadMonth(targetMonthKey, pushUrl = true) {
             const u = new URL("/api/raffle/month", window.location.origin);
             u.searchParams.set("month", targetMonthKey);
@@ -582,10 +584,10 @@ const updatedAtLabel =
         .winnersRow{
             display: grid;
             grid-template-columns:
-                10ch                /* date */
-                7ch                 /* ticket */
-                minmax(18ch, 1.25fr)/* name */
-                minmax(14ch, 1fr);  /* town */
+                9.5rem              /* Date */
+                5.75rem             /* Ticket */
+                minmax(0, 1.35fr)   /* Name */
+                minmax(0, 0.85fr);  /* Town */
             column-gap: 1rem;
             align-items: center;
             padding: .8rem .9rem;
@@ -603,6 +605,7 @@ const updatedAtLabel =
         }
 
         .cellName, .cellTown{
+            min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -651,10 +654,6 @@ const updatedAtLabel =
 
             .winnersRow{
                 grid-template-columns: 6ch 6ch 1fr;
-                grid-template-areas:
-      "date ticket name"
-      ".    .      town";
-                row-gap: .25rem;
                 column-gap: .75rem;
                 padding: .7rem .75rem;
             }
