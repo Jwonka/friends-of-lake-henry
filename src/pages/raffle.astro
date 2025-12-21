@@ -258,6 +258,12 @@ const updatedAtLabel =
                     <div class="muted" id="raffleTitle" style={raffleTitle ? "" : "display:none"}>
                         {raffleTitle}
                     </div>
+                    <label class="srOnly" for="monthSelect">Select month</label>
+                    <select id="monthSelect" class="monthSelect">
+                        {months.map((m) => (
+                            <option value={m} selected={m === raffleKey}>{monthKeyToLabel(m)}</option>
+                        ))}
+                    </select>
                 </div>
 
                 <button class="pill" type="button" data-month-nav="next" aria-label="Next month">
@@ -335,7 +341,7 @@ const updatedAtLabel =
         const nextBtn = document.querySelector('button[data-month-nav="next"]');
         const monthLabelEl = document.getElementById("monthLabel");
         const raffleTitleEl = document.getElementById("raffleTitle");
-       // const winnersPanel = document.getElementById("winnersPanel");
+        const monthSelect = document.getElementById("monthSelect");
 
         function setNavDisabled(prevMonthKey, nextMonthKey) {
             if (prevBtn instanceof HTMLButtonElement) {
@@ -425,6 +431,8 @@ const updatedAtLabel =
                 prevMonthKey: data.prevMonthKey,
                 nextMonthKey: data.nextMonthKey,
             };
+            
+            if (monthSelect instanceof HTMLSelectElement) { monthSelect.value = state.monthKey;
 
             setNavDisabled(state.prevMonthKey, state.nextMonthKey);
             renderWinners(data.monthLabel, data.raffleTitle, data.winners);
@@ -453,9 +461,20 @@ const updatedAtLabel =
             }
         }
 
+        function bindMonthSelect() {
+            if (!(monthSelect instanceof HTMLSelectElement)) return;
+
+            monthSelect.addEventListener("change", async () => {
+                const target = monthSelect.value;
+                if (!target) return;
+                await loadMonth(target);
+            });
+        }
+
         // init: disable buttons based on SSR state, bind once
         setNavDisabled(state.prevMonthKey, state.nextMonthKey);
         bindNav();
+        bindMonthSelect();
     </script>
     <style>
         .hero {
@@ -578,6 +597,17 @@ const updatedAtLabel =
             font-weight: 900;
         }
 
+        .rafflePage .monthSelect{
+            margin-top: .5rem;
+            width: auto;
+            min-width: 14rem;
+            padding: .55rem 1.05rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--glass-dark);
+            color: var(--text-bright);
+        }
+
         .dateMobile { display: none; }
         .dateDesktop { display: inline; }
         #winnersEmpty{ width: min(980px, 100%); text-align: center; }
@@ -654,7 +684,7 @@ const updatedAtLabel =
             min-width: 720px;
             border-collapse: collapse;
             table-layout: fixed;
-            margin-left: 2rem;
+            margin-left: 5rem;
             margin-right: auto;
         }
 
