@@ -59,59 +59,50 @@ function monthKeyToLabel(monthKey: string) {
 }
 
 let months: string[] = [];
-if (DB) {
-    const monthsRes = await DB.prepare(
-        `SELECT month_key as monthKey
-       FROM raffle_months
-      ORDER BY month_key DESC`
-    ).all();
-
-    months = (monthsRes.results ?? []).map((r: any) => String(r.monthKey));
-
-    if (!months.length) {
-        const derived = await DB.prepare(
-            `SELECT DISTINCT raffle_key as monthKey
-         FROM raffle_winners
-        ORDER BY raffle_key DESC`
-        ).all();
-        months = (derived.results ?? []).map((r: any) => String(r.monthKey));
-    }
-}
-months = Array.from(new Set([currentMonth, ...months])).sort((a, b) => b.localeCompare(a));
 let defaultMonth = currentMonth;
 
-// If DB is available, find latest month that has *something* (winners OR meta)
 if (DB) {
-    // Prefer months from raffle_months first (title set counts as “active”)
     const metaMonthsRes = await DB.prepare(
         `SELECT month_key as monthKey
-     FROM raffle_months
-     ORDER BY month_key DESC`
+         FROM raffle_months
+         ORDER BY month_key DESC`
     ).all();
-    const metaMonths = (metaMonthsRes.results ?? []).map((r: any) => String(r.monthKey));
+    const metaMonths = (metaMonthsRes.results ?? [])
+        .map((r: any) => String(r.monthKey ?? "").trim())
+        .filter(isMonthKey);
 
-    // Also consider months that have winners
     const winnerMonthsRes = await DB.prepare(
         `SELECT DISTINCT raffle_key as monthKey
-     FROM raffle_winners
-     ORDER BY raffle_key DESC`
+         FROM raffle_winners
+         ORDER BY raffle_key DESC`
     ).all();
-    const winnerMonths = (winnerMonthsRes.results ?? []).map((r: any) => String(r.monthKey));
+    const winnerMonths = (winnerMonthsRes.results ?? [])
+        .map((r: any) => String(r.monthKey ?? "").trim())
+        .filter(isMonthKey);
+
+    months = Array.from(new Set([currentMonth, ...metaMonths, ...winnerMonths]))
+        .filter(isMonthKey)
+        .sort((a, b) => b.localeCompare(a)); // DESC
 
     const activeMonths = Array.from(new Set([...metaMonths, ...winnerMonths]))
-        .sort((a, b) => b.localeCompare(a));
+        .filter(isMonthKey)
+        .sort((a, b) => b.localeCompare(a)); // DESC
 
-    // Default to the latest “active” month, but keep currentMonth in months list
-    if (activeMonths.length) defaultMonth = activeMonths[0];
+    defaultMonth = activeMonths[0] ?? currentMonth;
+} else {
+    months = [currentMonth];
+    defaultMonth = currentMonth;
 }
 
-// If URL month is valid and exists in months => use it
-// Else use defaultMonth (latest active, else current)
+// pick raffleKey
 if (isMonthKey(monthParam) && months.includes(monthParam)) {
     raffleKey = monthParam;
 } else {
     raffleKey = defaultMonth;
 }
+
+// harden against mismatch
+if (!months.includes(raffleKey)) raffleKey = months[0] ?? currentMonth;
 
 const idx = months.indexOf(raffleKey);
 const prevMonthKey = idx >= 0 && idx + 1 < months.length ? months[idx + 1] : null; // because DESC
@@ -595,7 +586,9 @@ const updatedAtLabel =
 
         .winnersTableWrap{
             overflow-x: auto;
+            overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(0,0,0,0.18);

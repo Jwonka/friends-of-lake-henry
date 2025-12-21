@@ -40,17 +40,23 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const metaMonthsRes = await DB.prepare(
         `SELECT month_key as monthKey FROM raffle_months ORDER BY month_key DESC`
     ).all();
-    const metaMonths = (metaMonthsRes.results ?? []).map((r: any) => String(r.monthKey));
+    const metaMonths = (metaMonthsRes.results ?? [])
+        .map((r: any) => String(r.monthKey ?? "").trim())
+        .filter(isMonthKey);
 
     const winnerMonthsRes = await DB.prepare(
         `SELECT DISTINCT raffle_key as monthKey FROM raffle_winners ORDER BY raffle_key DESC`
     ).all();
-    const winnerMonths = (winnerMonthsRes.results ?? []).map((r: any) => String(r.monthKey));
+    const winnerMonths = (winnerMonthsRes.results ?? [])
+        .map((r: any) => String(r.monthKey ?? "").trim())
+        .filter(isMonthKey);
 
     const months = Array.from(new Set([currentMonth, ...metaMonths, ...winnerMonths]))
+        .filter(isMonthKey)
         .sort((a, b) => b.localeCompare(a)); // DESC
 
     const activeMonths = Array.from(new Set([...metaMonths, ...winnerMonths]))
+        .filter(isMonthKey)
         .sort((a, b) => b.localeCompare(a));
 
     const defaultMonth = activeMonths[0] ?? currentMonth;
@@ -61,7 +67,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     } else {
         raffleKey = defaultMonth;
     }
-
+    if (!months.includes(raffleKey)) raffleKey = months[0] ?? currentMonth;
     const idx = months.indexOf(raffleKey);
     const prevMonthKey = idx >= 0 && idx + 1 < months.length ? months[idx + 1] : null; // DESC
     const nextMonthKey = idx > 0 ? months[idx - 1] : null;
