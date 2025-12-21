@@ -247,69 +247,67 @@ const updatedAtLabel =
         </section>
 
         <section class="card winnersCard enter-block delay-6">
-            <div class="winnersInner">
-                <h2 class="sectionTitle">Past Winners</h2>
-                <nav class="monthNav" aria-label="Select raffle month">
-                    <button class="pill" type="button" data-month-nav="prev" aria-label="Previous month">
-                        ← Prev
-                    </button>
+            <h2 class="sectionTitle">Past Winners</h2>
+            <nav class="monthNav" aria-label="Select raffle month">
+                <button class="pill" type="button" data-month-nav="prev" aria-label="Previous month">
+                    ← Prev
+                </button>
 
-                    <div class="monthNavCenter" aria-live="polite">
-                        <div class="monthNavLabel" id="monthLabel">{monthLabel}</div>
-                        <div class="muted" id="raffleTitle" style={raffleTitle ? "" : "display:none"}>
-                            {raffleTitle}
-                        </div>
+                <div class="monthNavCenter" aria-live="polite">
+                    <div class="monthNavLabel" id="monthLabel">{monthLabel}</div>
+                    <div class="muted" id="raffleTitle" style={raffleTitle ? "" : "display:none"}>
+                        {raffleTitle}
                     </div>
-
-                    <button class="pill" type="button" data-month-nav="next" aria-label="Next month">
-                        Next →
-                    </button>
-                </nav>
-                <div id="winnersPanel" class="panel winnersPanel enter-block delay-7">
-                    <div class="winnersTableWrap" role="region" aria-label="Raffle winners list">
-                        <table class="winnersTable">
-                            <colgroup>
-                                <col class="colDate" />
-                                <col class="colTicket" />
-                                <col class="colName" />
-                                <col class="colTown" />
-                            </colgroup>
-
-                            <thead>
-                            <tr>
-                                <th scope="col">Date</th>
-                                <th scope="col">Ticket</th>
-                                <th scope="col">Name</th>
-                                <th scope="col" class="thTown">Town</th>
-                            </tr>
-                            </thead>
-
-                            <tbody id="winnersTbody">
-                            {winners.map((w) => (
-                                <tr>
-                                    <td class="tdDate">
-                                        <time class="winDate" datetime={w.drawDate}>
-                                            <span class="dateDesktop">
-                                              {w.drawDate.slice(5,7)}/{w.drawDate.slice(8,10)}/{w.drawDate.slice(0,4)}
-                                            </span>
-                                                                            <span class="dateMobile">
-                                              {w.drawDate.slice(5,7)}/{w.drawDate.slice(8,10)}
-                                            </span>
-                                        </time>
-                                    </td>
-                                    <td>{w.ticketNumber}</td>
-                                    <td class="tdName">{w.name}</td>
-                                    <td class="tdTown">{w.town}</td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <p class="muted" id="winnersEmpty" style={winners.length ? "display:none;margin:.75rem 0 0;" : "margin:.75rem 0 0;"}>
-                        No winners posted for {monthLabel} yet.
-                    </p>
                 </div>
+
+                <button class="pill" type="button" data-month-nav="next" aria-label="Next month">
+                    Next →
+                </button>
+            </nav>
+            <div id="winnersPanel" class="panel winnersPanel enter-block delay-7">
+                <div class="winnersTableWrap" role="region" aria-label="Raffle winners list">
+                    <table class="winnersTable">
+                        <colgroup>
+                            <col class="colDate" />
+                            <col class="colTicket" />
+                            <col class="colName" />
+                            <col class="colTown" />
+                        </colgroup>
+
+                        <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Ticket</th>
+                            <th scope="col">Name</th>
+                            <th scope="col" class="thTown">Town</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="winnersTbody">
+                        {winners.map((w) => (
+                            <tr>
+                                <td class="tdDate">
+                                    <time class="winDate" datetime={w.drawDate}>
+                                        <span class="dateDesktop">
+                                          {w.drawDate.slice(5,7)}/{w.drawDate.slice(8,10)}/{w.drawDate.slice(0,4)}
+                                        </span>
+                                                                        <span class="dateMobile">
+                                          {w.drawDate.slice(5,7)}/{w.drawDate.slice(8,10)}
+                                        </span>
+                                    </time>
+                                </td>
+                                <td>{w.ticketNumber}</td>
+                                <td class="tdName">{w.name}</td>
+                                <td class="tdTown">{w.town}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="muted" id="winnersEmpty" style={winners.length ? "display:none;margin:.75rem 0 0;" : "margin:.75rem 0 0;"}>
+                    No winners posted for {monthLabel} yet.
+                </p>
             </div>
         </section>
 
@@ -459,7 +457,6 @@ const updatedAtLabel =
         setNavDisabled(state.prevMonthKey, state.nextMonthKey);
         bindNav();
     </script>
-
     <style>
         .hero {
             margin-top: var(--section-gap);
@@ -623,7 +620,9 @@ const updatedAtLabel =
             align-items:center;
             justify-content:center;
             gap:.75rem;
-            margin-bottom: 1rem;
+            margin: 0 auto 1rem;
+            width: 100%;
+            max-width: 980px;
         }
 
         .monthNavCenter{
@@ -633,11 +632,6 @@ const updatedAtLabel =
 
         .monthNavLabel{
             font-weight: 900;
-        }
-
-        .winnersInner{
-            max-width: 980px;
-            margin: 0 auto;
         }
 
         .dateMobile { display: none; }
