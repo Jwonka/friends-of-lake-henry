@@ -3,8 +3,7 @@ import type { D1Database } from "@cloudflare/workers-types";
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 
-const facebookPageReelsUrl =
-    "https://www.facebook.com/61552199315213/reels/";
+const facebookPageUrl = "https://www.facebook.com/61552199315213/";
 
 const facebookPageLiveUrl = "https://www.facebook.com/61552199315213/videos/";
 
@@ -184,7 +183,7 @@ const updatedAtLabel =
 
                 <div class="heroCtas">
                     <a class="btn btn--facebook enter-block delay-1" href={facebookPageLiveUrl} target="_blank" rel="noopener noreferrer">Live videos</a>
-                    <a class="btn  btn--facebook enter-block delay-2" href={facebookPageReelsUrl} target="_blank" rel="noopener noreferrer">Winner reels</a>
+                    <a class="btn  btn--facebook enter-block delay-2" href={facebookPageUrl} target="_blank" rel="noopener noreferrer">Facebook</a>
                 </div>
 
                 <p class="fine">

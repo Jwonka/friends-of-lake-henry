@@ -297,6 +297,14 @@ export const prerender = false;
                 wDate.value = `${raffleMonth.value}-01`;
             }
 
+            function formatISODateMDY(iso) {
+                if (!iso) return "";
+                const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (!m) return String(iso);
+                const [, yyyy, mm, dd] = m;
+                return `${mm}/${dd}/${yyyy}`;
+            }
+
             function renderWinners(rows) {
                 const tbody = winnersTable.tBodies?.[0];
                 if (!tbody) return;
@@ -307,7 +315,7 @@ export const prerender = false;
                 for (const r of rows) {
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                  <td>${r.drawDate}</td>
+                  <td class="tdDate"><time datetime="${r.drawDate ?? ""}">${formatISODateMDY(r.drawDate)}</time></td>
                   <td>${r.ticketNumber}</td>
                   <td>${r.name}</td>
                   <td>${r.town}</td>
@@ -317,12 +325,6 @@ export const prerender = false;
                 `;
                     tbody.appendChild(tr);
                 }
-            }
-            function monthKeyFromDateValue(dateValue) {
-                // dateValue is expected to be "YYYY-MM-DD" (or "")
-                if (typeof dateValue !== "string" || dateValue.length < 7) return "";
-                const m = dateValue.slice(0, 7);
-                return /^\d{4}-\d{2}$/.test(m) ? m : "";
             }
 
             async function loadWinners() {
@@ -439,6 +441,8 @@ export const prerender = false;
                 const id = btn.getAttribute("data-del");
                 if (!id) return;
 
+                if (!confirm("Remove this winner?")) { btn.disabled = false; return; }
+
                 btn.disabled = true;
                 setWinnersStatus("success", "Removing...");
 
@@ -519,8 +523,9 @@ export const prerender = false;
 
         .winnersTable{
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
             min-width: 720px;
+            border-spacing: 0 .45rem;
         }
 
         .winnersTable th,
@@ -536,6 +541,40 @@ export const prerender = false;
             color: var(--text-strong);
             font-weight: 800;
             background: rgba(255,255,255,0.03);
+        }
+        .winnersTable tbody tr{
+            background: rgba(0,0,0,0.12);
+        }
+
+        .winnersTable tbody td{
+            border-bottom: 0;
+            padding: .65rem .75rem;
+        }
+
+        .winnersTable tbody tr td:first-child{
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+
+        .winnersTable tbody tr td:last-child{
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .winnersTable td:last-child{
+            padding-right: .6rem;
+        }
+
+        .winnersTable td:last-child .pill{
+            min-width: 6.5rem;
+            justify-content: center;
+        }
+
+        .tdDate time{
+            display: inline-block;
+            width: 10ch; /* MM/DD/YYYY */
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
         }
 
         @media (max-width: 900px){
