@@ -363,13 +363,9 @@ const updatedAtLabel =
             if (monthLabelEl) monthLabelEl.textContent = monthLabel;
 
             if (raffleTitleEl instanceof HTMLElement) {
-                if (raffleTitle) {
-                    raffleTitleEl.textContent = raffleTitle;
-                    raffleTitleEl.style.display = "";
-                } else {
-                    raffleTitleEl.textContent = "";
-                    raffleTitleEl.style.display = "none";
-                }
+                const title = (raffleTitle ?? "").trim();
+                raffleTitleEl.textContent = title;
+                raffleTitleEl.classList.toggle("isEmpty", !title);
             }
 
             const tbody = document.getElementById("winnersTbody");
@@ -586,26 +582,29 @@ const updatedAtLabel =
             width: 100%;
             max-width: 980px;
         }
-        /* Month label bigger (desktop + mobile) */
+
+        .monthMeta { text-align: center; }
         .monthNavLabel{
             font-weight: 900;
-            font-size: clamp(1.35rem, 1.6vw + 0.95rem, 1.85rem);
+            font-size: clamp(1.55rem, 1.7vw + 0.96rem, 2rem);
             line-height: 1.1;
         }
 
         /* Reserve space for title even if empty */
         .monthTitle{
-            min-height: 1.15em;
-            margin-top: .15rem;
+            min-height: 1.25em;
+            margin-top: .3rem;
             font-size: 1rem;
             color: var(--text-soft);
             opacity: 0.95;
         }
+        /* If empty, keep space but visually hide */
+        .monthTitle.isEmpty { opacity: 0; }
 
         /* Controls row: Prev | Select | Next */
         .monthControls{
             display: grid;
-            grid-template-columns: auto minmax(180px, 260px) auto;
+            grid-template-columns: auto minmax(12rem, 18rem) auto;
             align-items: center;
             justify-content: center;
             gap: .75rem;
@@ -614,7 +613,7 @@ const updatedAtLabel =
         .monthSelect{
             width: 100%;
             min-width: 0;
-            padding: .55rem 1.05rem;
+            padding: .5rem 1rem;
             border-radius: 999px;
             border: 1px solid var(--border);
             background: var(--glass-dark);
@@ -707,7 +706,8 @@ const updatedAtLabel =
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(0,0,0,0.18);
             width: min(980px, 100%);
-            padding: 0 0.75rem 0 2.5rem;
+            padding-left: 2rem;
+            padding-right: .75rem;
         }
 
         .rafflePage .winnersTable{
@@ -732,7 +732,10 @@ const updatedAtLabel =
             vertical-align: middle;
             white-space: nowrap;
         }
-        
+        .rafflePage .winnersTable th:first-child,
+        .rafflePage .winnersTable td:first-child {
+            padding-left: 0;
+        }
         .rafflePage .tdName,
         .rafflePage .tdTown{
             overflow: hidden;
@@ -745,6 +748,22 @@ const updatedAtLabel =
         .rafflePage .dateDesktop{ display:inline; }
 
         @media (max-width:520px){
+            .rafflePage .winnersTableWrap {
+                padding-left: .75rem;
+                padding-right: .5rem;
+            }
+
+            .rafflePage .winnersTable th,
+            .rafflePage .winnersTable td {
+                padding: .5rem .45rem;
+                font-size: .93rem;
+            }
+
+  
+            .rafflePage .winnersTable th:first-child,
+            .rafflePage .winnersTable td:first-child {
+                padding-left: 0;
+            }
             .rafflePage .dateDesktop{ display:none; }
             .rafflePage .dateMobile{ display:inline; }
         }
