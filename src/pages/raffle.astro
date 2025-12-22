@@ -3,8 +3,6 @@ import type { D1Database } from "@cloudflare/workers-types";
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 
-const facebookPageUrl = "https://www.facebook.com/61552199315213/";
-
 const facebookPageLiveUrl = "https://www.facebook.com/61552199315213/videos/";
 
 const rules = [
@@ -180,11 +178,6 @@ const updatedAtLabel =
                 <p class="lead">
                     Watch drawings on Facebook Live and see winners from past raffles.
                 </p>
-
-                <div class="heroCtas">
-                    <a class="btn btn--facebook enter-block delay-1" href={facebookPageLiveUrl} target="_blank" rel="noopener noreferrer">Live videos</a>
-                    <a class="btn  btn--facebook enter-block delay-2" href={facebookPageUrl} target="_blank" rel="noopener noreferrer">Facebook</a>
-                </div>
 
                 <p class="fine">
                     Ticket sales and raffle details will be posted when available.
@@ -483,7 +476,6 @@ const updatedAtLabel =
         .kicker { color: var(--muted); font-weight: 800; letter-spacing: .3px; }
         .lead { margin: 0; max-width: 70ch; }
 
-        .heroCtas { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: var(--section-gap); }
         .fine { margin: .75rem 0 0; color: var(--muted); font-size: .95rem; }
 
         .infoCard {
@@ -634,7 +626,6 @@ const updatedAtLabel =
         }
         @media (min-width: 760px) and (max-width: 979px) {
             .hero { grid-template-columns: 1fr; }
-            .heroCtas { gap: .6rem; }
             .winnersRow { column-gap: .75rem; }
         }
         /* Hide select below ~720px */
@@ -652,8 +643,6 @@ const updatedAtLabel =
             }
         }
         @media (max-width: 520px) {
-            .heroCtas { flex-direction: column; align-items: stretch; }
-            .heroCtas .btn { width: 100%; }
             .liveFallback{
                 flex-direction: column;
                 align-items: stretch;

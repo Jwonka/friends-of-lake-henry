@@ -594,6 +594,24 @@ export const prerender = false;
                 text-align: center;
             }
         }
+        @media (max-width: 520px){
+            .winnersTable td:nth-child(4),  /* Town */
+            .winnersTable th:nth-child(4){
+                padding-right: .35rem;
+            }
+
+            .winnersTable td:last-child,
+            .winnersTable th:last-child{
+                padding-left: .35rem;
+                padding-right: .35rem;
+                width: 1%;
+                white-space: nowrap;
+            }
+
+            .winnersTable td:last-child .pill{
+                padding: .35rem .65rem; /* smaller pill */
+            }
+        }
     </style>
 </BaseLayout>
 
