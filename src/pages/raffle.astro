@@ -249,26 +249,27 @@ const updatedAtLabel =
         <section class="card winnersCard enter-block delay-6">
             <h2 class="sectionTitle">Past Winners</h2>
             <nav class="monthNav" aria-label="Select raffle month">
-                <button class="pill" type="button" data-month-nav="prev" aria-label="Previous month">
-                    ← Prev
-                </button>
-
-                <div class="monthNavCenter" aria-live="polite">
+                <div class="monthMeta" aria-live="polite">
                     <div class="monthNavLabel" id="monthLabel">{monthLabel}</div>
-                    <div class="muted" id="raffleTitle" style={raffleTitle ? "" : "display:none"}>
-                        {raffleTitle}
+                    {/* Reserve space even when empty (no layout jump) */}
+                    <div class="monthTitle" id="raffleTitle">
+                        {raffleTitle ?? ""}
                     </div>
+                </div>
+                <div class="monthControls">
+                    <button class="pill" type="button" data-month-nav="prev" aria-label="Previous month">
+                        ← Prev
+                    </button>
                     <label class="srOnly" for="monthSelect">Select month</label>
                     <select id="monthSelect" class="monthSelect">
                         {months.map((m) => (
-                            <option value={m} selected={m === raffleKey}>{monthKeyToLabel(m)}</option>
+                                <option value={m} selected={m === raffleKey}>{monthKeyToLabel(m)}</option>
                         ))}
                     </select>
+                    <button class="pill" type="button" data-month-nav="next" aria-label="Next month">
+                        Next →
+                    </button>
                 </div>
-
-                <button class="pill" type="button" data-month-nav="next" aria-label="Next month">
-                    Next →
-                </button>
             </nav>
             <div id="winnersPanel" class="panel winnersPanel enter-block delay-7">
                 <div class="winnersTableWrap" role="region" aria-label="Raffle winners list">
@@ -580,48 +581,50 @@ const updatedAtLabel =
 
         .monthNav{
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            gap: .75rem;
+            gap: .6rem;
             margin: 0 auto 1rem;
             width: 100%;
             max-width: 980px;
         }
-        .monthNav > button[data-month-nav="prev"]{ justify-self: end; }
-        .monthNav > button[data-month-nav="next"]{ justify-self: start; }
-
-        .monthNavCenter{
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            gap: .35rem;
-            min-width: 16rem;
-        }
-
+        /* Month label bigger (desktop + mobile) */
         .monthNavLabel{
             font-weight: 900;
-            font-size: clamp(1.15rem, 1.2vw + 0.9rem, 1.55rem);
+            font-size: clamp(1.35rem, 1.6vw + 0.95rem, 1.85rem);
             line-height: 1.1;
+        }
+
+        /* Reserve space for title even if empty */
+        .monthTitle{
+            min-height: 1.15em;
+            margin-top: .15rem;
+            font-size: 1rem;
+            color: var(--text-soft);
+            opacity: 0.95;
+        }
+
+        /* Controls row: Prev | Select | Next */
+        .monthControls{
+            display: grid;
+            grid-template-columns: auto minmax(180px, 260px) auto;
+            align-items: center;
+            justify-content: center;
+            gap: .75rem;
+        }
+
+        .monthSelect{
+            width: 100%;
+            min-width: 0;
+            padding: .55rem 1.05rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--glass-dark);
+            color: var(--text-bright);
         }
 
         #raffleTitle{
             margin-top: .1rem;
             font-size: 1rem;
             color: var(--text-soft);
-        }
-
-        .monthSelect{
-            margin-top: .5rem;
-            width: auto;
-            max-width: 100%;
-            min-width: 16rem;
-            padding: .55rem 1.05rem;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: var(--glass-dark);
-            color: var(--text-bright);
         }
 
         .dateMobile { display: none; }
@@ -635,7 +638,20 @@ const updatedAtLabel =
             .heroCtas { gap: .6rem; }
             .winnersRow { column-gap: .75rem; }
         }
+        /* Hide select below ~720px */
+        @media (max-width: 720px){
+            .monthControls{
+                grid-template-columns: 1fr 1fr;  /* just Prev / Next */
+                gap: .6rem;
+            }
+            .monthSelect{ display: none; }
 
+            /* keep buttons full size */
+            .monthControls > button{
+                width: 100%;
+                justify-content: center;
+            }
+        }
         @media (max-width: 520px) {
             .heroCtas { flex-direction: column; align-items: stretch; }
             .heroCtas .btn { width: 100%; }
@@ -669,10 +685,6 @@ const updatedAtLabel =
 
             .winnersTable th:last-child,
             .winnersTable td:last-child  { padding-right: .25rem; }
-
-            /* hide select */
-            .monthSelect{ display: none; }
-            .monthNavCenter{ min-width: 10rem; }
         }
     </style>
     <style is:global>
@@ -695,7 +707,7 @@ const updatedAtLabel =
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(0,0,0,0.18);
             width: min(980px, 100%);
-            padding: 0 0.75rem 0 2rem;
+            padding: 0 0.75rem 0 2.5rem;
         }
 
         .rafflePage .winnersTable{
@@ -720,13 +732,7 @@ const updatedAtLabel =
             vertical-align: middle;
             white-space: nowrap;
         }
-
-        /* Add a consistent inset for the first column */
-        .rafflePage .winnersTable th:first-child,
-        .rafflePage .winnersTable td:first-child {
-            padding-left: 2rem;
-        }
-
+        
         .rafflePage .tdName,
         .rafflePage .tdTown{
             overflow: hidden;
