@@ -431,8 +431,8 @@ const updatedAtLabel =
                 prevMonthKey: data.prevMonthKey,
                 nextMonthKey: data.nextMonthKey,
             };
-            
-            if (monthSelect instanceof HTMLSelectElement) { monthSelect.value = state.monthKey;
+
+            if (monthSelect instanceof HTMLSelectElement) { monthSelect.value = state.monthKey; }
 
             setNavDisabled(state.prevMonthKey, state.nextMonthKey);
             renderWinners(data.monthLabel, data.raffleTitle, data.winners);
@@ -579,28 +579,44 @@ const updatedAtLabel =
         }
 
         .monthNav{
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            gap:.75rem;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: .75rem;
             margin: 0 auto 1rem;
             width: 100%;
             max-width: 980px;
         }
+        .monthNav > button[data-month-nav="prev"]{ justify-self: end; }
+        .monthNav > button[data-month-nav="next"]{ justify-self: start; }
 
         .monthNavCenter{
-            text-align:center;
-            min-width: 12rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: .35rem;
+            min-width: 16rem;
         }
 
         .monthNavLabel{
             font-weight: 900;
+            font-size: clamp(1.15rem, 1.2vw + 0.9rem, 1.55rem);
+            line-height: 1.1;
         }
 
-        .rafflePage .monthSelect{
+        #raffleTitle{
+            margin-top: .1rem;
+            font-size: 1rem;
+            color: var(--text-soft);
+        }
+
+        .monthSelect{
             margin-top: .5rem;
             width: auto;
-            min-width: 14rem;
+            max-width: 100%;
+            min-width: 16rem;
             padding: .55rem 1.05rem;
             border-radius: 999px;
             border: 1px solid var(--border);
@@ -653,6 +669,10 @@ const updatedAtLabel =
 
             .winnersTable th:last-child,
             .winnersTable td:last-child  { padding-right: .25rem; }
+
+            /* hide select */
+            .monthSelect{ display: none; }
+            .monthNavCenter{ min-width: 10rem; }
         }
     </style>
     <style is:global>
@@ -671,12 +691,11 @@ const updatedAtLabel =
             overflow-x: auto;
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
-            touch-action: pan-x;
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(0,0,0,0.18);
             width: min(980px, 100%);
-            padding: 0 0.75rem 0 1.25rem;
+            padding: 0 0.75rem 0 2rem;
         }
 
         .rafflePage .winnersTable{
@@ -684,8 +703,7 @@ const updatedAtLabel =
             min-width: 720px;
             border-collapse: collapse;
             table-layout: fixed;
-            margin-left: 5rem;
-            margin-right: auto;
+            margin: 0;
         }
 
         .rafflePage .winnersTable col.colDate   { width: 8.5rem; }
