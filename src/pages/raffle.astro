@@ -707,7 +707,7 @@ const updatedAtLabel =
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(0,0,0,0.18);
             width: min(980px, 100%);
-            padding: 0 .75rem;
+            padding: 0 1.25rem;
             display: flex;
             justify-content: center;
         }
@@ -748,6 +748,12 @@ const updatedAtLabel =
         /* Date format toggle must be global because spans are injected */
         .rafflePage .dateMobile{ display:none; }
         .rafflePage .dateDesktop{ display:inline; }
+
+        @media (min-width: 721px){
+            .rafflePage .winnersTable{
+                transform: translateX(0.75rem);
+            }
+        }
 
         @media (max-width:520px){
             .rafflePage .winnersTableWrap {
