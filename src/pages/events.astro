@@ -19,6 +19,18 @@ type EventRow = {
     poster_alt: string | null;
 };
 
+type WeekdayShort = "Sun" | "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat";
+
+const WEEKDAY_INDEX: Record<WeekdayShort, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+};
+
 const env = (Astro.locals as any).runtime?.env as { DB?: D1Database } | undefined;
 const DB = env?.DB;
 if (!DB) throw new Error("DB binding missing (Astro.locals.runtime.env.DB).");
@@ -62,20 +74,18 @@ function monthKey(year: number, monthIndex: number) {
     return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 }
 
-function monthLabel(d: Date) {
-    return d.toLocaleString("en-US", { month: "long", year: "numeric" });
-}
-
-function safeDate(dateStr: string | null) {
-    if (!dateStr) return null;
-    const d = new Date(dateStr); // works for YYYY-MM-DD and YYYY-MM-DDTHH:mm
-    return Number.isNaN(d.getTime()) ? null : d;
-}
-
 function dayKeyChicagoFromDateStart(dateStr: string | null) {
     if (!dateStr) return null;
-    const m = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
-    return m ? m[1] : null;
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return null;
+
+    // YYYY-MM-DD in America/Chicago
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: TZ,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).format(d);
 }
 
 function isMonthKey(s: string) {
@@ -88,6 +98,20 @@ function chicagoCurrentMonthKey(d = new Date()) {
         year: "numeric",
         month: "2-digit",
     }).format(d).slice(0, 7);
+}
+
+function chicagoWeekdayIndexForMonthStart(monthKeyStr: string) {
+    const [y, m] = monthKeyStr.split("-").map(Number);
+
+    // Anchor at UTC noon on the 1st to avoid DST edges
+    const first = new Date(Date.UTC(y, m - 1, 1, 12));
+
+    const wk = new Intl.DateTimeFormat("en-US", {
+        timeZone: TZ,
+        weekday: "short",
+    }).format(first) as WeekdayShort;
+
+    return WEEKDAY_INDEX[wk];
 }
 
 const url = new URL(Astro.request.url);
@@ -128,24 +152,19 @@ const idx = months.indexOf(ssrMonthKey);
 const prevMonthKey = idx >= 0 && idx + 1 < months.length ? months[idx + 1] : null;
 const nextMonthKey = idx > 0 ? months[idx - 1] : null;
 
-const prevHref = prevMonthKey ? `/events?month=${prevMonthKey}` : "/events";
-const nextHref = nextMonthKey ? `/events?month=${nextMonthKey}` : "/events";
-const thisHref = `/events?month=${currentMonthKey}`;
-
 // 4) Use ssrMonthKey for calendar math + queries
 const [yearStr, monthStr] = ssrMonthKey.split("-");
 const year = Number(yearStr);
 const monthIndex = Number(monthStr) - 1;
 
-const firstOfMonth = new Date(year, monthIndex, 1);
 const nextMonth = new Date(year, monthIndex + 1, 1);
 
 const monthStartISO = `${ssrMonthKey}-01`;
 const nextMonthStartISO = `${monthKey(nextMonth.getFullYear(), nextMonth.getMonth())}-01`;
 
 const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const startDow = firstOfMonth.getDay();
-const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+const startDow = chicagoWeekdayIndexForMonthStart(ssrMonthKey);
+const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0, 12)).getUTCDate();
 
 // Query: month events (published, not TBD, within month)
 const monthRes = await DB.prepare(`
@@ -207,7 +226,7 @@ for (const e of monthEvents) {
                         </div>
                     </div>
                     <div class="calNav">
-                        <a class="pill" id="eventsPrevBtn" href={prevMonthKey ? prevHref : "#"} aria-disabled={prevMonthKey ? "false" : "true"}>← Prev</a>
+                        <button class="pill" id="eventsPrevBtn" type="button" aria-label="Previous month">← Prev</button>
 
                         <label class="srOnly" for="eventsMonthSelect">Select month</label>
                         <select id="eventsMonthSelect" class="monthSelect">
@@ -216,7 +235,7 @@ for (const e of monthEvents) {
                             ))}
                         </select>
 
-                        <a class="pill" id="eventsNextBtn" href={nextMonthKey ? nextHref : "#"} aria-disabled={nextMonthKey ? "false" : "true"}>Next →</a>
+                        <button class="pill" id="eventsNextBtn" type="button" aria-label="Next month">Next →</button>
                     </div>
                 </div>
                 <p id="eventsAjaxStatus" class="muted small" aria-live="polite" style="margin: .75rem 0 0;"></p>
@@ -348,6 +367,15 @@ for (const e of monthEvents) {
             </div>
         </section>
     </div>
+    <script
+            id="eventsInitialState"
+            type="application/json"
+            set:html={JSON.stringify({
+                monthKey: ssrMonthKey,
+                prevMonthKey,
+                nextMonthKey,
+            })}
+    ></script>
     <script type="module">
         const tz = "America/Chicago";
 
@@ -357,40 +385,142 @@ for (const e of monthEvents) {
          * @typedef {{ok:boolean, monthKey:string, monthLabel:string, prevMonthKey:(string|null), nextMonthKey:(string|null), monthEvents: MonthEvent[], months?: MonthOption[]}} MonthApiResponse
          */
 
+        const initialEl = document.getElementById("eventsInitialState");
+        const initial = JSON.parse((initialEl?.textContent || "{}").trim());
 
+        let state = {
+            monthKey: initial.monthKey,
+            prevMonthKey: initial.prevMonthKey ?? null,
+            nextMonthKey: initial.nextMonthKey ?? null,
+        };
+
+        const prevBtn = document.getElementById("eventsPrevBtn");
+        const nextBtn = document.getElementById("eventsNextBtn");
+        const monthSelect = document.getElementById("eventsMonthSelect");
         const elMonthLabel = document.getElementById("eventsMonthLabel");
         const elHint = document.getElementById("eventsMonthHint");
-        const elPrev = document.getElementById("eventsPrevBtn");
-        const elNext = document.getElementById("eventsNextBtn");
-        const elSelect = document.getElementById("eventsMonthSelect");
+        const elStatus = document.getElementById("eventsAjaxStatus");
         const elGrid = document.getElementById("eventsCalendarGrid");
         const elListWrap = document.getElementById("eventsMonthListWrap");
         const elList = document.getElementById("eventsMonthList");
-        const elStatus = document.getElementById("eventsAjaxStatus");
 
-        if (!(elPrev instanceof HTMLAnchorElement) ||
-            !(elNext instanceof HTMLAnchorElement) ||
-            !(elSelect instanceof HTMLSelectElement) ||
-            !(elGrid instanceof HTMLElement) ||
-            !(elListWrap instanceof HTMLElement) ||
-            !(elList instanceof HTMLElement) ||
+        if (
+            !(prevBtn instanceof HTMLButtonElement) ||
+            !(nextBtn instanceof HTMLButtonElement) ||
+            !(monthSelect instanceof HTMLSelectElement) ||
             !(elMonthLabel instanceof HTMLElement) ||
             !(elHint instanceof HTMLElement) ||
-            !(elStatus instanceof HTMLElement)
+            !(elStatus instanceof HTMLElement) ||
+            !(elGrid instanceof HTMLElement) ||
+            !(elListWrap instanceof HTMLElement) ||
+            !(elList instanceof HTMLElement)
         ) {
-            // If markup changes, fail safely (SSR links still work).
             console.warn("[events] missing DOM hooks; ajax month switch disabled");
         } else {
-            const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+            const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-            function isMonthKey(s) {
-                return /^\d{4}-\d{2}$/.test(s);
+            function setNavDisabled(prevKey, nextKey) {
+                if (prevBtn instanceof HTMLButtonElement) {
+                    prevBtn.disabled = !prevKey;
+                    prevBtn.style.opacity = prevBtn.disabled ? ".5" : "";
+                    prevBtn.style.pointerEvents = prevBtn.disabled ? "none" : "";
+                    prevBtn.dataset.targetMonth = prevKey || "";
+                }
+                if (nextBtn instanceof HTMLButtonElement) {
+                    nextBtn.disabled = !nextKey;
+                    nextBtn.style.opacity = nextBtn.disabled ? ".5" : "";
+                    nextBtn.style.pointerEvents = nextBtn.disabled ? "none" : "";
+                    nextBtn.dataset.targetMonth = nextKey || "";
+                }
             }
 
-            function monthKeyToDateParts(monthKey) {
-                const [y, m] = monthKey.split("-").map(Number);
-                return { y, m }; // m: 1-12
+            function buildHint(count) {
+                if (count === 0) return "No published events this month yet.";
+                if (count === 1) return "1 published event this month.";
+                return `${count} published events this month.`;
             }
+
+            async function loadMonth(targetMonthKey, pushUrl = true) {
+                if (!/^\d{4}-\d{2}$/.test(targetMonthKey)) return;
+
+                elStatus.textContent = "Loading…";
+
+                const res = await fetch(`/api/events/month?month=${encodeURIComponent(targetMonthKey)}`, {
+                    headers: {accept: "application/json"},
+                });
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data?.ok) {
+                    elStatus.textContent = "Could not load this month. Please try again.";
+                    return;
+                }
+
+                state = {
+                    monthKey: data.monthKey,
+                    prevMonthKey: data.prevMonthKey ?? null,
+                    nextMonthKey: data.nextMonthKey ?? null,
+                };
+
+                if (elMonthLabel instanceof HTMLElement) elMonthLabel.textContent = data.monthLabel ?? state.monthKey;
+                if (elHint instanceof HTMLElement) elHint.textContent = buildHint((data.monthEvents ?? []).length);
+
+                if (monthSelect instanceof HTMLSelectElement) {
+                    monthSelect.value = state.monthKey;
+                    // optional: if API sends months list, rebuild options here
+                    if (Array.isArray(data.months)) {
+                        monthSelect.innerHTML = "";
+                        for (const m of data.months) {
+                            const opt = document.createElement("option");
+                            opt.value = m.key;
+                            opt.textContent = m.label ?? m.key;
+                            monthSelect.appendChild(opt);
+                        }
+                        monthSelect.value = state.monthKey;
+                    }
+                }
+
+                setNavDisabled(state.prevMonthKey, state.nextMonthKey);
+
+                const monthEvents = data.monthEvents ?? [];
+                buildCalendarGrid(state.monthKey, monthEvents);
+                buildMonthList(monthEvents);
+
+                if (pushUrl) {
+                    const u = new URL(window.location.href);
+                    u.searchParams.set("month", state.monthKey);
+                    window.history.replaceState({}, "", u.pathname + u.search + u.hash);
+                }
+
+                elStatus.textContent = "";
+            }
+
+            setNavDisabled(state.prevMonthKey, state.nextMonthKey);
+
+            if (prevBtn instanceof HTMLButtonElement) {
+                prevBtn.addEventListener("click", () => {
+                    const target = prevBtn.dataset.targetMonth;
+                    if (target) loadMonth(target, true);
+                });
+            }
+            if (nextBtn instanceof HTMLButtonElement) {
+                nextBtn.addEventListener("click", () => {
+                    const target = nextBtn.dataset.targetMonth;
+                    if (target) loadMonth(target, true);
+                });
+            }
+
+            if (monthSelect instanceof HTMLSelectElement) {
+                monthSelect.addEventListener("change", () => {
+                    const target = monthSelect.value;
+                    if (target) loadMonth(target, true);
+                });
+            }
+
+            window.addEventListener("popstate", () => {
+                    const u = new URL(window.location.href);
+                    const mk = (u.searchParams.get("month") ?? "").trim();
+                    if (/^\d{4}-\d{2}$/.test(mk)) loadMonth(mk, false);
+            });
 
             function fmtChicagoISODate(dateStr) {
                 // returns YYYY-MM-DD in America/Chicago, for bucketing and display
@@ -401,17 +531,6 @@ for (const e of monthEvents) {
                     year: "numeric",
                     month: "2-digit",
                     day: "2-digit",
-                }).format(d);
-            }
-
-            function fmtNiceDate(dateStr) {
-                const d = new Date(dateStr);
-                if (Number.isNaN(d.getTime())) return "Date TBD";
-                return new Intl.DateTimeFormat("en-US", {
-                    timeZone: tz,
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
                 }).format(d);
             }
 
@@ -426,45 +545,20 @@ for (const e of monthEvents) {
                 return raw.replace(":00", "");
             }
 
-            function setNavLink(a, monthKey) {
-                if (!monthKey) {
-                    a.setAttribute("aria-disabled", "true");
-                    a.style.pointerEvents = "none";
-                    a.style.opacity = "0.55";
-                    // keep href as-is for no-JS fallback?  blank it to avoid confusion
-                    a.setAttribute("data-month", "");
-                    return;
-                }
-                a.setAttribute("aria-disabled", "false");
-                a.style.pointerEvents = "";
-                a.style.opacity = "";
-                a.href = `/events?month=${monthKey}`;
-                a.setAttribute("data-month", monthKey);
+            function fmtNiceDate(dateStr) {
+                const d = new Date(dateStr);
+                if (Number.isNaN(d.getTime())) return "Date TBD";
+                return new Intl.DateTimeFormat("en-US", {
+                    timeZone: tz,
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                }).format(d);
             }
 
-            function syncSelectValue(monthKey) {
-                if (!elSelect) return;
-                elSelect.value = monthKey;
-            }
-
-            function rebuildSelectOptions(months, selectedKey) {
-                if (!elSelect || !Array.isArray(months)) return;
-
-                // months is [{key,label}, ...] from the API
-                elSelect.innerHTML = "";
-                for (const m of months) {
-                    const opt = document.createElement("option");
-                    opt.value = m.key;
-                    opt.textContent = m.label ?? m.key;
-                    if (m.key === selectedKey) opt.selected = true;
-                    elSelect.appendChild(opt);
-                }
-            }
-
-            function buildHint(count) {
-                if (count === 0) return "No published events this month yet.";
-                if (count === 1) return "1 published event this month.";
-                return `${count} published events this month.`;
+            function monthKeyToDateParts(monthKey) {
+                const [y, m] = monthKey.split("-").map(Number);
+                return {y, m}; // m: 1-12
             }
 
             function buildCalendarGrid(monthKey, monthEvents) {
@@ -480,13 +574,13 @@ for (const e of monthEvents) {
                     elGrid.appendChild(div);
                 }
 
-                const { y, m } = monthKeyToDateParts(monthKey);
+                const {y, m} = monthKeyToDateParts(monthKey);
                 const first = new Date(Date.UTC(y, m - 1, 1, 12));
 
                 // compute startDow using a Chicago-local date rendered as day index by shifting with formatter.
                 // create a Date at noon local Chicago by using UTC noon and format weekday, then map to index.
-                const wk = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short" }).format(first);
-                const dowIndex = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 }[wk] ?? 0;
+                const wk = new Intl.DateTimeFormat("en-US", {timeZone: tz, weekday: "short"}).format(first);
+                const dowIndex = {Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6}[wk] ?? 0;
 
                 const daysInMonth = new Date(Date.UTC(y, m, 0, 12)).getUTCDate();
 
@@ -651,116 +745,6 @@ for (const e of monthEvents) {
                     elList.appendChild(details);
                 }
             }
-
-            let inflight = null;
-
-            async function loadMonth(monthKey, { push = true } = {}) {
-                if (!isMonthKey(monthKey)) return;
-
-                // cancel prior request (best-effort)
-                if (inflight?.abort) inflight.abort();
-                const ac = new AbortController();
-                inflight = ac;
-
-                elStatus.textContent = "Loading…";
-
-                const res = await fetch(`/api/events/month?month=${encodeURIComponent(monthKey)}`, {
-                    signal: ac.signal,
-                    headers: { "accept": "application/json" },
-                });
-
-                if (!res.ok) {
-                    elStatus.textContent = "Could not load this month. Please try again.";
-                    return;
-                }
-
-                /** @type {MonthApiResponse} */
-                const data = await res.json();
-                if (!data?.ok) {
-                    elStatus.textContent = "Could not load this month. Please try again.";
-                    return;
-                }
-
-                // Update heading + hint text (keep This Month button)
-                elMonthLabel.textContent = data.monthLabel ?? monthKey;
-
-                const hintText = buildHint((data.monthEvents ?? []).length);
-                // Keep existing This Month link node; just replace leading text safely.
-                // Easiest: clear and rebuild hint container.
-                elHint.innerHTML = "";
-                elHint.append(document.createTextNode(hintText + " "));
-
-                // restore This Month link (keeps CSS + mobile hiding rules)
-                const nowKey = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year:"numeric", month:"2-digit" })
-                    .format(new Date()).slice(0, 7);
-
-                // Update nav links + disabled state
-                setNavLink(elPrev, data.prevMonthKey);
-                setNavLink(elNext, data.nextMonthKey);
-
-                // Update dropdown (include current month even if empty)
-                if (data.months) {
-                    rebuildSelectOptions(data.months, data.monthKey);
-                } else {
-                    // fallback: just sync selected value if API doesn't provide list
-                    syncSelectValue(data.monthKey);
-                }
-                syncSelectValue(data.monthKey);
-
-                // Rebuild grid + list
-                const monthEvents = data.monthEvents ?? [];
-                buildCalendarGrid(data.monthKey, monthEvents);
-                buildMonthList(monthEvents);
-
-                // URL + history
-                if (push) {
-                    const u = new URL(window.location.href);
-                    u.searchParams.set("month", data.monthKey);
-                    window.history.pushState({ month: data.monthKey }, "", u.pathname + u.search + u.hash);
-                }
-
-                elStatus.textContent = "";
-            }
-
-            function interceptNav(a) {
-                a.addEventListener("click", (e) => {
-                    // Always prevent default if link is disabled or has no target
-                    const disabled = a.getAttribute("aria-disabled") === "true";
-                    const mk =
-                        a.getAttribute("data-month") ||
-                        (a.href ? new URL(a.href).searchParams.get("month") : "") ||
-                        "";
-
-                    if (disabled || !isMonthKey(mk)) {
-                        e.preventDefault();
-                        return;
-                    }
-
-                    e.preventDefault();
-                    loadMonth(mk, { push: true });
-                });
-            }
-
-            // Initial wire-up: store month keys on the anchors so they disable/enable cleanly
-            const initialPrev = new URL(elPrev.href, window.location.origin).searchParams.get("month");
-            const initialNext = new URL(elNext.href, window.location.origin).searchParams.get("month");
-            if (isMonthKey(initialPrev)) elPrev.setAttribute("data-month", initialPrev);
-            if (isMonthKey(initialNext)) elNext.setAttribute("data-month", initialNext);
-
-            interceptNav(elPrev);
-            interceptNav(elNext);
-
-            elSelect.addEventListener("change", () => {
-                const mk = String(elSelect.value ?? "");
-                if (!isMonthKey(mk)) return;
-                loadMonth(mk, { push: true });
-            });
-
-            window.addEventListener("popstate", (e) => {
-                const u = new URL(window.location.href);
-                const mk = (u.searchParams.get("month") ?? "").trim();
-                if (isMonthKey(mk)) loadMonth(mk, { push: false });
-            });
         }
     </script>
 
@@ -770,7 +754,20 @@ for (const e of monthEvents) {
         .calendarPanel { padding: 1.25rem; background: var(--panel-bg-dense); border-color: rgba(255,255,255,0.14); }
         .calHead { display:flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
         .calHint { font-size: .95rem; display: flex;align-items: center;gap: .6rem;flex-wrap: wrap;}
-        .calNav { display:flex; align-items: center; justify-content: center; gap: .5rem; flex-wrap: nowrap;; }
+        .calNav { display:flex; align-items: center; position: relative; gap: .5rem; }
+        .calNav .monthSelect{
+            width: auto;
+            max-width: 13rem;
+            min-width: 10.5rem;
+            border-radius: 999px;
+            padding: .45rem 2.25rem .45rem 1rem;
+            border: 1px solid var(--border-strong);
+            background: var(--glass-dark);
+            color: var(--text-on-glass);
+            font-weight: 700;
+            line-height: 1;
+            appearance: none;
+        }
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -884,11 +881,6 @@ for (const e of monthEvents) {
             opacity: .55;
             pointer-events: none;
             cursor: default;
-        }
-
-        .calNav .monthSelect{
-            width: 220px;
-            max-width: 260px;
         }
 
         @media (max-width: 760px){
