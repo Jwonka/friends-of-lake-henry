@@ -519,6 +519,9 @@ export const prerender = false;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             border-radius: 12px;
+            padding-left: 1.25rem;
+            padding-right: .75rem;
+            background: rgba(0,0,0,0.10);
         }
 
         .winnersTable{
@@ -565,6 +568,13 @@ export const prerender = false;
             padding-right: .6rem;
         }
 
+        .winnersTable th:last-child,
+        .winnersTable td:last-child {
+            width: 1%;
+            white-space: nowrap;
+        }
+
+
         .winnersTable td:last-child .pill{
             min-width: 6.5rem;
             justify-content: center;
@@ -595,6 +605,11 @@ export const prerender = false;
             }
         }
         @media (max-width: 520px){
+            .winnersTable th,
+            .winnersTable td {
+                padding: .6rem .55rem;
+            }
+
             .winnersTable td:nth-child(4),  /* Town */
             .winnersTable th:nth-child(4){
                 padding-right: .35rem;
@@ -603,7 +618,7 @@ export const prerender = false;
             .winnersTable td:last-child,
             .winnersTable th:last-child{
                 padding-left: .35rem;
-                padding-right: .35rem;
+                padding-right: .25rem;
                 width: 1%;
                 white-space: nowrap;
             }
