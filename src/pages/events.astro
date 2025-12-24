@@ -204,8 +204,6 @@ for (const e of monthEvents) {
                                 : monthEvents.length === 1
                                     ? "1 published event this month."
                                     : `${monthEvents.length} published events this month.`}
-
-                            <a class="pill thisMonthBtn" id="eventsThisMonthBtn" href={thisHref} aria-label="Current month">This month</a>
                         </div>
                     </div>
                     <div class="calNav">
@@ -365,13 +363,21 @@ for (const e of monthEvents) {
         const elPrev = document.getElementById("eventsPrevBtn");
         const elNext = document.getElementById("eventsNextBtn");
         const elSelect = document.getElementById("eventsMonthSelect");
-        const elThis = document.getElementById("eventsThisMonthBtn");
         const elGrid = document.getElementById("eventsCalendarGrid");
         const elListWrap = document.getElementById("eventsMonthListWrap");
         const elList = document.getElementById("eventsMonthList");
         const elStatus = document.getElementById("eventsAjaxStatus");
 
-        if (!elMonthLabel || !elHint || !elPrev || !elNext || !elSelect || !elThis || !elGrid || !elListWrap || !elList || !elStatus) {
+        if (!(elPrev instanceof HTMLAnchorElement) ||
+            !(elNext instanceof HTMLAnchorElement) ||
+            !(elSelect instanceof HTMLSelectElement) ||
+            !(elGrid instanceof HTMLElement) ||
+            !(elListWrap instanceof HTMLElement) ||
+            !(elList instanceof HTMLElement) ||
+            !(elMonthLabel instanceof HTMLElement) ||
+            !(elHint instanceof HTMLElement) ||
+            !(elStatus instanceof HTMLElement)
+        ) {
             // If markup changes, fail safely (SSR links still work).
             console.warn("[events] missing DOM hooks; ajax month switch disabled");
         } else {
@@ -688,14 +694,6 @@ for (const e of monthEvents) {
                 const nowKey = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year:"numeric", month:"2-digit" })
                     .format(new Date()).slice(0, 7);
 
-                const thisBtn = elThis.cloneNode(true);
-                thisBtn.href = `/events?month=${nowKey}`;
-                thisBtn.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    loadMonth(nowKey, { push: true });
-                });
-                elHint.appendChild(thisBtn);
-
                 // Update nav links + disabled state
                 setNavLink(elPrev, data.prevMonthKey);
                 setNavLink(elNext, data.nextMonthKey);
@@ -726,8 +724,18 @@ for (const e of monthEvents) {
 
             function interceptNav(a) {
                 a.addEventListener("click", (e) => {
-                    const mk = a.getAttribute("data-month") || (new URL(a.href).searchParams.get("month") ?? "");
-                    if (!isMonthKey(mk)) return; // fallback to normal navigation
+                    // Always prevent default if link is disabled or has no target
+                    const disabled = a.getAttribute("aria-disabled") === "true";
+                    const mk =
+                        a.getAttribute("data-month") ||
+                        (a.href ? new URL(a.href).searchParams.get("month") : "") ||
+                        "";
+
+                    if (disabled || !isMonthKey(mk)) {
+                        e.preventDefault();
+                        return;
+                    }
+
                     e.preventDefault();
                     loadMonth(mk, { push: true });
                 });
@@ -748,13 +756,6 @@ for (const e of monthEvents) {
                 loadMonth(mk, { push: true });
             });
 
-            elThis.addEventListener("click", (e) => {
-                e.preventDefault();
-                const nowKey = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year:"numeric", month:"2-digit" })
-                    .format(new Date()).slice(0, 7);
-                loadMonth(nowKey, { push: true });
-            });
-
             window.addEventListener("popstate", (e) => {
                 const u = new URL(window.location.href);
                 const mk = (u.searchParams.get("month") ?? "").trim();
@@ -769,7 +770,7 @@ for (const e of monthEvents) {
         .calendarPanel { padding: 1.25rem; background: var(--panel-bg-dense); border-color: rgba(255,255,255,0.14); }
         .calHead { display:flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
         .calHint { font-size: .95rem; display: flex;align-items: center;gap: .6rem;flex-wrap: wrap;}
-        .calNav { display:flex; gap: .5rem; flex-wrap: wrap; }
+        .calNav { display:flex; align-items: center; justify-content: center; gap: .5rem; flex-wrap: nowrap;; }
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -883,6 +884,11 @@ for (const e of monthEvents) {
             opacity: .55;
             pointer-events: none;
             cursor: default;
+        }
+
+        .calNav .monthSelect{
+            width: 220px;
+            max-width: 260px;
         }
 
         @media (max-width: 760px){
