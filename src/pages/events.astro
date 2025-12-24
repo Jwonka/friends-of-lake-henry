@@ -176,7 +176,7 @@ const tbdRes = await DB.prepare(`
 const tbdEvents = tbdRes.results ?? [];
 
 // Bucket month events by day
-const byDay = new Map();
+const byDay = new Map<string, EventRow[]>();
 for (const e of monthEvents) {
     const key = dayKeyChicagoFromDateStart(e.date_start);
     if (!key) continue;
@@ -210,6 +210,14 @@ for (const e of monthEvents) {
                     </div>
                     <div class="calNav">
                         <a class="pill" id="eventsPrevBtn" href={prevMonthKey ? prevHref : "#"} aria-disabled={prevMonthKey ? "false" : "true"}>← Prev</a>
+
+                        <label class="srOnly" for="eventsMonthSelect">Select month</label>
+                        <select id="eventsMonthSelect" class="monthSelect">
+                            {months.map((m) => (
+                                    <option value={m} selected={m === ssrMonthKey}>{monthLabelFromKey(m)}</option>
+                            ))}
+                        </select>
+
                         <a class="pill" id="eventsNextBtn" href={nextMonthKey ? nextHref : "#"} aria-disabled={nextMonthKey ? "false" : "true"}>Next →</a>
                     </div>
                 </div>
@@ -345,17 +353,25 @@ for (const e of monthEvents) {
     <script type="module">
         const tz = "America/Chicago";
 
+        /**
+         * @typedef {{id:string, title:string, kind:string, date_start:string|null, location:string|null, summary:string|null, url:string|null, url_label:string|null, poster_key:string|null, poster_alt:string|null}} MonthEvent
+         * @typedef {{key:string, label:string}} MonthOption
+         * @typedef {{ok:boolean, monthKey:string, monthLabel:string, prevMonthKey:(string|null), nextMonthKey:(string|null), monthEvents: MonthEvent[], months?: MonthOption[]}} MonthApiResponse
+         */
+
+
         const elMonthLabel = document.getElementById("eventsMonthLabel");
         const elHint = document.getElementById("eventsMonthHint");
         const elPrev = document.getElementById("eventsPrevBtn");
         const elNext = document.getElementById("eventsNextBtn");
+        const elSelect = document.getElementById("eventsMonthSelect");
         const elThis = document.getElementById("eventsThisMonthBtn");
         const elGrid = document.getElementById("eventsCalendarGrid");
         const elListWrap = document.getElementById("eventsMonthListWrap");
         const elList = document.getElementById("eventsMonthList");
         const elStatus = document.getElementById("eventsAjaxStatus");
 
-        if (!elMonthLabel || !elHint || !elPrev || !elNext || !elThis || !elGrid || !elListWrap || !elList || !elStatus) {
+        if (!elMonthLabel || !elHint || !elPrev || !elNext || !elSelect || !elThis || !elGrid || !elListWrap || !elList || !elStatus) {
             // If markup changes, fail safely (SSR links still work).
             console.warn("[events] missing DOM hooks; ajax month switch disabled");
         } else {
@@ -420,6 +436,25 @@ for (const e of monthEvents) {
                 a.setAttribute("data-month", monthKey);
             }
 
+            function syncSelectValue(monthKey) {
+                if (!elSelect) return;
+                elSelect.value = monthKey;
+            }
+
+            function rebuildSelectOptions(months, selectedKey) {
+                if (!elSelect || !Array.isArray(months)) return;
+
+                // months is [{key,label}, ...] from the API
+                elSelect.innerHTML = "";
+                for (const m of months) {
+                    const opt = document.createElement("option");
+                    opt.value = m.key;
+                    opt.textContent = m.label ?? m.key;
+                    if (m.key === selectedKey) opt.selected = true;
+                    elSelect.appendChild(opt);
+                }
+            }
+
             function buildHint(count) {
                 if (count === 0) return "No published events this month yet.";
                 if (count === 1) return "1 published event this month.";
@@ -449,8 +484,10 @@ for (const e of monthEvents) {
 
                 const daysInMonth = new Date(Date.UTC(y, m, 0, 12)).getUTCDate();
 
-                // Bucket events by YYYY-MM-DD (Chicago)
+                // Bucket month events by day
+                /** @type {Map<string, MonthEvent[]>} */
                 const byDay = new Map();
+
                 for (const ev of monthEvents) {
                     if (!ev?.date_start) continue;
                     const key = fmtChicagoISODate(ev.date_start); // YYYY-MM-DD
@@ -486,7 +523,7 @@ for (const e of monthEvents) {
                         const chips = document.createElement("div");
                         chips.className = "chips";
 
-                        dayEvents.slice(0, 3).forEach((ev) => {
+                        dayEvents.slice(0, 3).forEach((/** @type {MonthEvent} */ ev) => {
                             const a = document.createElement("a");
                             a.className = "chip";
                             a.href = ev.url ?? "#";
@@ -631,6 +668,7 @@ for (const e of monthEvents) {
                     return;
                 }
 
+                /** @type {MonthApiResponse} */
                 const data = await res.json();
                 if (!data?.ok) {
                     elStatus.textContent = "Could not load this month. Please try again.";
@@ -661,6 +699,15 @@ for (const e of monthEvents) {
                 // Update nav links + disabled state
                 setNavLink(elPrev, data.prevMonthKey);
                 setNavLink(elNext, data.nextMonthKey);
+
+                // Update dropdown (include current month even if empty)
+                if (data.months) {
+                    rebuildSelectOptions(data.months, data.monthKey);
+                } else {
+                    // fallback: just sync selected value if API doesn't provide list
+                    syncSelectValue(data.monthKey);
+                }
+                syncSelectValue(data.monthKey);
 
                 // Rebuild grid + list
                 const monthEvents = data.monthEvents ?? [];
@@ -694,6 +741,12 @@ for (const e of monthEvents) {
 
             interceptNav(elPrev);
             interceptNav(elNext);
+
+            elSelect.addEventListener("change", () => {
+                const mk = String(elSelect.value ?? "");
+                if (!isMonthKey(mk)) return;
+                loadMonth(mk, { push: true });
+            });
 
             elThis.addEventListener("click", (e) => {
                 e.preventDefault();
@@ -836,7 +889,7 @@ for (const e of monthEvents) {
             .calendar { gap: .4rem; }
             /* Hide calendar grid on phones; keep month list */
             .calendarWrap { display: none; }
-            .thisMonthBtn { display:none; }
+            .calNav .monthSelect { display: none; }
             .dow { display:none; }
             .cell { min-height: 92px; padding: .55rem; }
             .chipTitle { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
