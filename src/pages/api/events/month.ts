@@ -100,38 +100,19 @@ export const GET: APIRoute = async ({ locals, url }) => {
     // Final hardening (shouldn’t be needed, but keeps behavior predictable)
     if (!isMonthKey(monthKey)) monthKey = defaultMonthKey;
 
-    // 4) Prev/Next logic (raffle-like)
-    //    - If viewing an active month: prev/next within active months
-    //    - Special: if viewing latest active month and current month is NOT active, next => currentMonthKey
-    //    - If viewing current month but it is NOT active: prev => latest active month, next => null
-    let prevMonthKey: string | null = null;
-    let nextMonthKey: string | null = null;
+    // 4) Prev/Next logic
+    //    - Build "allowed" months
+    //    - active months (months with data) plus current month (even if no data)
+    //    - Sorted DESC (newest -> oldest)
+    const allowedMonths = Array.from(new Set([currentMonthKey, ...activeMonths]))
+        .filter(isMonthKey)
+        .sort((a, b) => b.localeCompare(a)); // DESC
 
-    const idx = activeMonths.indexOf(monthKey);
+    const idx = allowedMonths.indexOf(monthKey);
 
-    if (idx !== -1) {
-        // Month is active (has data)
-        prevMonthKey = idx + 1 < activeMonths.length ? activeMonths[idx + 1] : null;
-
-        const hasCurrentAsActive = activeMonths.includes(currentMonthKey);
-
-        if (idx === 0 && !hasCurrentAsActive && monthKey !== currentMonthKey) {
-            // viewing latest active month; allow Next => current month (even if empty)
-            nextMonthKey = currentMonthKey;
-        } else {
-            nextMonthKey = idx > 0 ? activeMonths[idx - 1] : null;
-        }
-    } else if (monthKey === currentMonthKey) {
-        // Viewing current month which is not active (no data)
-        prevMonthKey = activeMonths[0] ?? null; // latest active month (DESC list)
-        nextMonthKey = null;
-    } else {
-        // Shouldn’t happen, but keep sane fallbacks
-        monthKey = defaultMonthKey;
-        const i2 = activeMonths.indexOf(monthKey);
-        prevMonthKey = i2 !== -1 && i2 + 1 < activeMonths.length ? activeMonths[i2 + 1] : null;
-        nextMonthKey = i2 > 0 ? activeMonths[i2 - 1] : null;
-    }
+    // Prev = older (move down the DESC list), Next = newer (move up)
+    const prevMonthKey = idx >= 0 && idx + 1 < allowedMonths.length ? allowedMonths[idx + 1] : null;
+    const nextMonthKey = idx > 0 ? allowedMonths[idx - 1] : null;
 
     // 5) Query events for resolved monthKey (published only)
     const { start, end } = monthStartEnd(monthKey);
@@ -154,11 +135,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     const monthEvents = monthRes.results ?? [];
 
     // 6) Dropdown list = active months + current month (even if empty)
-    const monthKeysForDropdown = Array.from(new Set([...activeMonths, currentMonthKey]))
-        .filter(isMonthKey)
-        .sort((a, b) => b.localeCompare(a)); // DESC
-
-    const months = monthKeysForDropdown.map((k) => ({ key: k, label: monthKeyToLabel(k) }));
+    const months = allowedMonths.map((k) => ({ key: k, label: monthKeyToLabel(k) }));
 
     return new Response(
         JSON.stringify({
