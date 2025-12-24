@@ -401,6 +401,7 @@ for (const e of monthEvents) {
         const elHint = document.getElementById("eventsMonthHint");
         const elStatus = document.getElementById("eventsAjaxStatus");
         const elGrid = document.getElementById("eventsCalendarGrid");
+        // OPTIONAL (may not exist when monthEvents.length === 0)
         const elListWrap = document.getElementById("eventsMonthListWrap");
         const elList = document.getElementById("eventsMonthList");
 
@@ -411,9 +412,7 @@ for (const e of monthEvents) {
             !(elMonthLabel instanceof HTMLElement) ||
             !(elHint instanceof HTMLElement) ||
             !(elStatus instanceof HTMLElement) ||
-            !(elGrid instanceof HTMLElement) ||
-            !(elListWrap instanceof HTMLElement) ||
-            !(elList instanceof HTMLElement)
+            !(elGrid instanceof HTMLElement)
         ) {
             console.warn("[events] missing DOM hooks; ajax month switch disabled");
         } else {
@@ -433,6 +432,9 @@ for (const e of monthEvents) {
                     nextBtn.dataset.targetMonth = nextKey || "";
                 }
             }
+
+            // Initialize nav target months for first render
+            setNavDisabled(state.prevMonthKey, state.nextMonthKey);
 
             function buildHint(count) {
                 if (count === 0) return "No published events this month yet.";
@@ -494,17 +496,15 @@ for (const e of monthEvents) {
                 elStatus.textContent = "";
             }
 
-            setNavDisabled(state.prevMonthKey, state.nextMonthKey);
-
             if (prevBtn instanceof HTMLButtonElement) {
                 prevBtn.addEventListener("click", () => {
-                    const target = prevBtn.dataset.targetMonth;
+                    const target = prevBtn.dataset.targetMonth || state.prevMonthKey;
                     if (target) loadMonth(target, true);
                 });
             }
             if (nextBtn instanceof HTMLButtonElement) {
                 nextBtn.addEventListener("click", () => {
-                    const target = nextBtn.dataset.targetMonth;
+                    const target = nextBtn.dataset.targetMonth || state.nextMonthKey;
                     if (target) loadMonth(target, true);
                 });
             }
@@ -669,6 +669,9 @@ for (const e of monthEvents) {
             }
 
             function buildMonthList(monthEvents) {
+                // Month list is optional (not rendered when there are no events)
+                if (!(elListWrap instanceof HTMLElement) || !(elList instanceof HTMLElement)) return;
+
                 elList.innerHTML = "";
                 if (!monthEvents.length) {
                     elListWrap.style.display = "none";
