@@ -755,7 +755,7 @@ for (const e of monthEvents) {
         .calHead { display:flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
         .calHint { font-size: .95rem; display: flex;align-items: center;gap: .6rem;flex-wrap: wrap;}
         .calNav { display:flex; align-items: center; position: relative; gap: .5rem; }
-        .calNav .monthSelect{
+        .calNav .monthSelect {
             width: auto;
             max-width: 13rem;
             min-width: 10.5rem;
@@ -766,13 +766,6 @@ for (const e of monthEvents) {
             color: var(--text-on-glass);
             font-weight: 700;
             line-height: 1;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.9rem center;
-            background-size: 0.9rem;
         }
         .calendar {
             display: grid;
@@ -906,10 +899,10 @@ for (const e of monthEvents) {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: .5rem;
-                width: 80%;
+                width: 100%;
             }
             .calNav .pill{
-                width: 80%;
+                width: 100%;
                 justify-content: center;
             }
        }
