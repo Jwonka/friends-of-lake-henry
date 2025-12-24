@@ -525,10 +525,11 @@ export const prerender = false;
         }
 
         .winnersTable{
-            width: 100%;
+            width: max-content;
             border-collapse: separate;
             min-width: 720px;
             border-spacing: 0 .45rem;
+            margin: 0;
         }
 
         .winnersTable th,
@@ -540,18 +541,16 @@ export const prerender = false;
             font-size: .98rem;
         }
 
-        .winnersTable th{
+        .winnersTable th {
             color: var(--text-strong);
             font-weight: 800;
-            background: rgba(255,255,255,0.03);
-        }
-        .winnersTable tbody tr{
-            background: rgba(0,0,0,0.12);
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .winnersTable tbody td{
             border-bottom: 0;
             padding: .65rem .75rem;
+            background: rgba(0,0,0,0.12);
         }
 
         .winnersTable tbody tr td:first-child{
@@ -592,6 +591,10 @@ export const prerender = false;
             .span2{ grid-column: span 1; }
         }
 
+        @media (min-width: 721px){
+            .winnersTable{ transform: translateX(.5rem); }
+        }
+
         @media (max-width: 680px){
             .actions{
                 flex-direction: column;
@@ -612,19 +615,19 @@ export const prerender = false;
 
             .winnersTable td:nth-child(4),  /* Town */
             .winnersTable th:nth-child(4){
-                padding-right: .35rem;
+                padding-right: .2rem;
             }
 
             .winnersTable td:last-child,
             .winnersTable th:last-child{
-                padding-left: .35rem;
+                padding-left: .2rem;
                 padding-right: .25rem;
                 width: 1%;
                 white-space: nowrap;
             }
 
             .winnersTable td:last-child .pill{
-                padding: .35rem .65rem; /* smaller pill */
+                padding: .35rem .65rem;
             }
         }
     </style>
