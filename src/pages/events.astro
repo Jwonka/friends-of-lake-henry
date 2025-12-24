@@ -23,15 +23,39 @@ const env = (Astro.locals as any).runtime?.env as { DB?: D1Database } | undefine
 const DB = env?.DB;
 if (!DB) throw new Error("DB binding missing (Astro.locals.runtime.env.DB).");
 
-function parseMonthParam(raw: string | null) {
-    // Accept: YYYY-MM
-    if (!raw) return null;
-    const m = raw.match(/^(\d{4})-(\d{2})$/);
-    if (!m) return null;
-    const year = Number(m[1]);
-    const month = Number(m[2]); // 1-12
-    if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) return null;
-    return { year, monthIndex: month - 1 };
+const TZ = "America/Chicago";
+
+function monthLabelFromKey(monthKey: string) {
+    const [y, m] = monthKey.split("-").map(Number);
+    const d = new Date(Date.UTC(y, m - 1, 15, 12)); // mid-month, noon UTC avoids DST edges
+    return new Intl.DateTimeFormat("en-US", {
+        timeZone: TZ,
+        month: "long",
+        year: "numeric",
+    }).format(d);
+}
+
+function fmtNiceDateSSR(dateStr: string | null) {
+    if (!dateStr) return "Date TBD";
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return "Date TBD";
+    return new Intl.DateTimeFormat("en-US", {
+        timeZone: TZ,
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+    }).format(d);
+}
+
+function fmtNiceTimeSSR(dateStr: string | null) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return null;
+    return new Intl.DateTimeFormat("en-US", {
+        timeZone: TZ,
+        hour: "numeric",
+        minute: "2-digit",
+    }).format(d).replace(":00", "");
 }
 
 function monthKey(year: number, monthIndex: number) {
@@ -42,41 +66,85 @@ function monthLabel(d: Date) {
     return d.toLocaleString("en-US", { month: "long", year: "numeric" });
 }
 
-function toISODate(d: Date) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-}
-
 function safeDate(dateStr: string | null) {
     if (!dateStr) return null;
     const d = new Date(dateStr); // works for YYYY-MM-DD and YYYY-MM-DDTHH:mm
     return Number.isNaN(d.getTime()) ? null : d;
 }
 
-const url = new URL(Astro.request.url);
-const m = parseMonthParam(url.searchParams.get("month"));
+function dayKeyChicagoFromDateStart(dateStr: string | null) {
+    if (!dateStr) return null;
+    const m = dateStr.match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : null;
+}
 
-const now = new Date();
-const year = m?.year ?? now.getFullYear();
-const monthIndex = m?.monthIndex ?? now.getMonth();
+function isMonthKey(s: string) {
+    return /^\d{4}-\d{2}$/.test(s);
+}
+
+function chicagoCurrentMonthKey(d = new Date()) {
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Chicago",
+        year: "numeric",
+        month: "2-digit",
+    }).format(d).slice(0, 7);
+}
+
+const url = new URL(Astro.request.url);
+const monthParamRaw = (url.searchParams.get("month") ?? "").trim();
+
+const currentMonthKey = chicagoCurrentMonthKey(new Date());
+
+// 1) Build allowed months from DB (data months) + current month
+const monthsRes = await DB.prepare(`
+  SELECT DISTINCT substr(date_start, 1, 7) AS monthKey
+  FROM events
+  WHERE status = 'published'
+    AND is_tbd = 0
+    AND date_start IS NOT NULL
+    AND date_start != ''
+  ORDER BY monthKey DESC
+`).all();
+
+const dbMonths = (monthsRes.results ?? [])
+    .map((r: any) => String(r.monthKey ?? "").trim())
+    .filter(isMonthKey);
+
+const months = Array.from(new Set([currentMonthKey, ...dbMonths]))
+    .sort((a, b) => b.localeCompare(a)); // DESC
+
+const activeMonths = dbMonths.slice().sort((a, b) => b.localeCompare(a)); // DESC
+const defaultMonthKey = activeMonths[0] ?? currentMonthKey;
+
+// 2) Choose SSR month (clamp to allowed)
+let ssrMonthKey = defaultMonthKey;
+if (isMonthKey(monthParamRaw) && months.includes(monthParamRaw)) {
+    ssrMonthKey = monthParamRaw;
+}
+if (!months.includes(ssrMonthKey)) ssrMonthKey = months[0] ?? currentMonthKey;
+
+// 3) Prev/Next restricted to allowed months
+const idx = months.indexOf(ssrMonthKey);
+const prevMonthKey = idx >= 0 && idx + 1 < months.length ? months[idx + 1] : null;
+const nextMonthKey = idx > 0 ? months[idx - 1] : null;
+
+const prevHref = prevMonthKey ? `/events?month=${prevMonthKey}` : "/events";
+const nextHref = nextMonthKey ? `/events?month=${nextMonthKey}` : "/events";
+const thisHref = `/events?month=${currentMonthKey}`;
+
+// 4) Use ssrMonthKey for calendar math + queries
+const [yearStr, monthStr] = ssrMonthKey.split("-");
+const year = Number(yearStr);
+const monthIndex = Number(monthStr) - 1;
 
 const firstOfMonth = new Date(year, monthIndex, 1);
 const nextMonth = new Date(year, monthIndex + 1, 1);
 
-const monthStartISO = `${monthKey(year, monthIndex)}-01`;             // YYYY-MM-01
+const monthStartISO = `${ssrMonthKey}-01`;
 const nextMonthStartISO = `${monthKey(nextMonth.getFullYear(), nextMonth.getMonth())}-01`;
 
-const prev = new Date(year, monthIndex - 1, 1);
-const next = new Date(year, monthIndex + 1, 1);
-
-const prevHref = `/events?month=${monthKey(prev.getFullYear(), prev.getMonth())}`;
-const nextHref = `/events?month=${monthKey(next.getFullYear(), next.getMonth())}`;
-const thisHref = `/events?month=${monthKey(now.getFullYear(), now.getMonth())}`;
-
 const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const startDow = firstOfMonth.getDay(); // 0=Sun
+const startDow = firstOfMonth.getDay();
 const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
 
 // Query: month events (published, not TBD, within month)
@@ -87,6 +155,7 @@ const monthRes = await DB.prepare(`
   WHERE status = 'published'
     AND is_tbd = 0
     AND date_start IS NOT NULL
+    AND date_start != ''
     AND date_start >= ?
     AND date_start < ?
   ORDER BY date_start ASC, title ASC
@@ -107,11 +176,10 @@ const tbdRes = await DB.prepare(`
 const tbdEvents = tbdRes.results ?? [];
 
 // Bucket month events by day
-const byDay = new Map<string, EventRow[]>();
+const byDay = new Map();
 for (const e of monthEvents) {
-    const d = safeDate(e.date_start);
-    if (!d) continue;
-    const key = toISODate(d);
+    const key = dayKeyChicagoFromDateStart(e.date_start);
+    if (!key) continue;
     const arr = byDay.get(key) ?? [];
     arr.push(e);
     byDay.set(key, arr);
@@ -129,26 +197,25 @@ for (const e of monthEvents) {
             <div class="panel calendarPanel enter-block delay-1" aria-label="Events calendar">
                 <div class="calHead">
                     <div>
-                        <h2 class="h2-zero">{monthLabel(firstOfMonth)}</h2>
-                        <div class="muted calHint">
+                        <h2 class="h2-zero" id="eventsMonthLabel">{monthLabelFromKey(ssrMonthKey)}</h2>
+                        <div class="muted calHint" id="eventsMonthHint">
                             {monthEvents.length === 0
                                 ? "No published events this month yet."
                                 : monthEvents.length === 1
                                     ? "1 published event this month."
                                     : `${monthEvents.length} published events this month.`}
 
-                            <a class="pill thisMonthBtn" href={thisHref} aria-label="Current month">This month</a>
+                            <a class="pill thisMonthBtn" id="eventsThisMonthBtn" href={thisHref} aria-label="Current month">This month</a>
                         </div>
                     </div>
-
                     <div class="calNav">
-                        <a class="pill" href={prevHref} aria-label="Previous month">← Prev</a>
-                        <a class="pill" href={nextHref} aria-label="Next month">Next →</a>
+                        <a class="pill" id="eventsPrevBtn" href={prevMonthKey ? prevHref : "#"} aria-disabled={prevMonthKey ? "false" : "true"}>← Prev</a>
+                        <a class="pill" id="eventsNextBtn" href={nextMonthKey ? nextHref : "#"} aria-disabled={nextMonthKey ? "false" : "true"}>Next →</a>
                     </div>
                 </div>
-
+                <p id="eventsAjaxStatus" class="muted small" aria-live="polite" style="margin: .75rem 0 0;"></p>
                 <div class="calendarWrap" aria-hidden="false">
-                    <div class="calendar" role="grid" aria-label={`Calendar for ${monthLabel(firstOfMonth)}`}>
+                    <div class="calendar" id="eventsCalendarGrid" role="grid" aria-label={`Calendar for ${monthLabelFromKey(ssrMonthKey)}`}>
                         {dow.map((d) => (
                                 <div class="dow" role="columnheader">{d}</div>
                         ))}
@@ -195,17 +262,11 @@ for (const e of monthEvents) {
 
                 {/* Month list (good for readability + mobile + SEO) */}
                 {monthEvents.length > 0 && (
-                    <div class="monthList">
-                        <div class="list">
+                    <div class="monthList" id="eventsMonthListWrap">
+                        <div class="list" id="eventsMonthList">
                             {monthEvents.map((e) => {
-                                const d = safeDate(e.date_start);
-                                const nice = d
-                                    ? d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
-                                    : "Date TBD";
-
-                                const time = d
-                                    ? d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).replace(":00", "")
-                                    : null;
+                                const nice = fmtNiceDateSSR(e.date_start);
+                                const time = fmtNiceTimeSSR(e.date_start);
 
                                 return (
                                     <details class="panel item eventDetails">
@@ -281,6 +342,373 @@ for (const e of monthEvents) {
             </div>
         </section>
     </div>
+    <script type="module">
+        const tz = "America/Chicago";
+
+        const elMonthLabel = document.getElementById("eventsMonthLabel");
+        const elHint = document.getElementById("eventsMonthHint");
+        const elPrev = document.getElementById("eventsPrevBtn");
+        const elNext = document.getElementById("eventsNextBtn");
+        const elThis = document.getElementById("eventsThisMonthBtn");
+        const elGrid = document.getElementById("eventsCalendarGrid");
+        const elListWrap = document.getElementById("eventsMonthListWrap");
+        const elList = document.getElementById("eventsMonthList");
+        const elStatus = document.getElementById("eventsAjaxStatus");
+
+        if (!elMonthLabel || !elHint || !elPrev || !elNext || !elThis || !elGrid || !elListWrap || !elList || !elStatus) {
+            // If markup changes, fail safely (SSR links still work).
+            console.warn("[events] missing DOM hooks; ajax month switch disabled");
+        } else {
+            const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+            function isMonthKey(s) {
+                return /^\d{4}-\d{2}$/.test(s);
+            }
+
+            function monthKeyToDateParts(monthKey) {
+                const [y, m] = monthKey.split("-").map(Number);
+                return { y, m }; // m: 1-12
+            }
+
+            function fmtChicagoISODate(dateStr) {
+                // returns YYYY-MM-DD in America/Chicago, for bucketing and display
+                const d = new Date(dateStr);
+                if (Number.isNaN(d.getTime())) return null;
+                return new Intl.DateTimeFormat("en-CA", {
+                    timeZone: tz,
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                }).format(d);
+            }
+
+            function fmtNiceDate(dateStr) {
+                const d = new Date(dateStr);
+                if (Number.isNaN(d.getTime())) return "Date TBD";
+                return new Intl.DateTimeFormat("en-US", {
+                    timeZone: tz,
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                }).format(d);
+            }
+
+            function fmtNiceTime(dateStr) {
+                const d = new Date(dateStr);
+                if (Number.isNaN(d.getTime())) return null;
+                const raw = new Intl.DateTimeFormat("en-US", {
+                    timeZone: tz,
+                    hour: "numeric",
+                    minute: "2-digit",
+                }).format(d);
+                return raw.replace(":00", "");
+            }
+
+            function setNavLink(a, monthKey) {
+                if (!monthKey) {
+                    a.setAttribute("aria-disabled", "true");
+                    a.style.pointerEvents = "none";
+                    a.style.opacity = "0.55";
+                    // keep href as-is for no-JS fallback?  blank it to avoid confusion
+                    a.setAttribute("data-month", "");
+                    return;
+                }
+                a.setAttribute("aria-disabled", "false");
+                a.style.pointerEvents = "";
+                a.style.opacity = "";
+                a.href = `/events?month=${monthKey}`;
+                a.setAttribute("data-month", monthKey);
+            }
+
+            function buildHint(count) {
+                if (count === 0) return "No published events this month yet.";
+                if (count === 1) return "1 published event this month.";
+                return `${count} published events this month.`;
+            }
+
+            function buildCalendarGrid(monthKey, monthEvents) {
+                // Clear and rebuild header + blanks + days
+                elGrid.innerHTML = "";
+
+                // DOW header
+                for (const d of dow) {
+                    const div = document.createElement("div");
+                    div.className = "dow";
+                    div.setAttribute("role", "columnheader");
+                    div.textContent = d;
+                    elGrid.appendChild(div);
+                }
+
+                const { y, m } = monthKeyToDateParts(monthKey);
+                const first = new Date(Date.UTC(y, m - 1, 1, 12));
+
+                // compute startDow using a Chicago-local date rendered as day index by shifting with formatter.
+                // create a Date at noon local Chicago by using UTC noon and format weekday, then map to index.
+                const wk = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short" }).format(first);
+                const dowIndex = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 }[wk] ?? 0;
+
+                const daysInMonth = new Date(Date.UTC(y, m, 0, 12)).getUTCDate();
+
+                // Bucket events by YYYY-MM-DD (Chicago)
+                const byDay = new Map();
+                for (const ev of monthEvents) {
+                    if (!ev?.date_start) continue;
+                    const key = fmtChicagoISODate(ev.date_start); // YYYY-MM-DD
+                    if (!key) continue;
+                    const arr = byDay.get(key) ?? [];
+                    arr.push(ev);
+                    byDay.set(key, arr);
+                }
+
+                // blanks
+                for (let i = 0; i < dowIndex; i++) {
+                    const blank = document.createElement("div");
+                    blank.className = "cell blank";
+                    blank.setAttribute("aria-hidden", "true");
+                    elGrid.appendChild(blank);
+                }
+
+                // days
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const iso = `${monthKey}-${String(day).padStart(2, "0")}`;
+                    const dayEvents = byDay.get(iso) ?? [];
+
+                    const cell = document.createElement("div");
+                    cell.className = "cell";
+                    cell.setAttribute("role", "gridcell");
+
+                    const num = document.createElement("div");
+                    num.className = "dayNum";
+                    num.textContent = String(day);
+                    cell.appendChild(num);
+
+                    if (dayEvents.length) {
+                        const chips = document.createElement("div");
+                        chips.className = "chips";
+
+                        dayEvents.slice(0, 3).forEach((ev) => {
+                            const a = document.createElement("a");
+                            a.className = "chip";
+                            a.href = ev.url ?? "#";
+                            a.setAttribute("title", ev.summary ?? ev.title ?? "");
+                            if (!ev.url) {
+                                a.setAttribute("aria-disabled", "true");
+                            } else {
+                                a.setAttribute("aria-disabled", "false");
+                                a.target = "_blank";
+                                a.rel = "noopener noreferrer";
+                            }
+
+                            const kind = document.createElement("span");
+                            kind.className = "chipKind";
+                            kind.textContent = ev.kind ?? "";
+
+                            const title = document.createElement("span");
+                            title.className = "chipTitle";
+                            title.textContent = ev.title ?? "";
+
+                            a.appendChild(kind);
+                            a.appendChild(title);
+                            chips.appendChild(a);
+                        });
+
+                        if (dayEvents.length > 3) {
+                            const more = document.createElement("div");
+                            more.className = "muted small";
+                            more.textContent = `+${dayEvents.length - 3} more`;
+                            chips.appendChild(more);
+                        }
+
+                        cell.appendChild(chips);
+                    } else {
+                        const empty = document.createElement("div");
+                        empty.className = "muted empty";
+                        empty.textContent = "—";
+                        cell.appendChild(empty);
+                    }
+
+                    elGrid.appendChild(cell);
+                }
+            }
+
+            function buildMonthList(monthEvents) {
+                elList.innerHTML = "";
+                if (!monthEvents.length) {
+                    elListWrap.style.display = "none";
+                    return;
+                }
+                elListWrap.style.display = "";
+
+                for (const e of monthEvents) {
+                    const details = document.createElement("details");
+                    details.className = "panel item eventDetails";
+
+                    const summary = document.createElement("summary");
+                    summary.className = "eventSummary";
+
+                    const meta = document.createElement("div");
+                    meta.className = "meta";
+
+                    const title = document.createElement("div");
+                    title.className = "title";
+                    title.textContent = e.title ?? "";
+
+                    const sub = document.createElement("div");
+                    sub.className = "sub";
+                    const nice = e.date_start ? fmtNiceDate(e.date_start) : "Date TBD";
+                    const time = e.date_start ? fmtNiceTime(e.date_start) : null;
+                    sub.textContent = `${nice}${time ? ` • ${time}` : ""}${e.location ? ` • ${e.location}` : ""}`;
+
+                    meta.appendChild(title);
+                    meta.appendChild(sub);
+
+                    const pill = document.createElement("span");
+                    pill.className = "pillMini";
+                    pill.textContent = e.kind ?? "";
+
+                    summary.appendChild(meta);
+                    summary.appendChild(pill);
+
+                    const body = document.createElement("div");
+                    body.className = "eventBody";
+
+                    if (e.summary) {
+                        const p = document.createElement("p");
+                        p.className = "summary";
+                        p.textContent = e.summary;
+                        body.appendChild(p);
+                    }
+
+                    if (e.poster_key) {
+                        const fig = document.createElement("figure");
+                        fig.className = "poster";
+                        const img = document.createElement("img");
+                        img.loading = "lazy";
+                        img.src = `/api/events/poster?id=${encodeURIComponent(e.id)}`;
+                        img.alt = e.poster_alt ?? e.title ?? "Event poster";
+                        fig.appendChild(img);
+                        body.appendChild(fig);
+                    }
+
+                    if (e.url) {
+                        const p = document.createElement("p");
+                        p.style.margin = ".75rem 0 0";
+                        const a = document.createElement("a");
+                        a.className = "pill";
+                        a.href = e.url;
+                        a.target = "_blank";
+                        a.rel = "noopener noreferrer";
+                        a.textContent = e.url_label ?? "Details";
+                        p.appendChild(a);
+                        body.appendChild(p);
+                    }
+
+                    details.appendChild(summary);
+                    details.appendChild(body);
+                    elList.appendChild(details);
+                }
+            }
+
+            let inflight = null;
+
+            async function loadMonth(monthKey, { push = true } = {}) {
+                if (!isMonthKey(monthKey)) return;
+
+                // cancel prior request (best-effort)
+                if (inflight?.abort) inflight.abort();
+                const ac = new AbortController();
+                inflight = ac;
+
+                elStatus.textContent = "Loading…";
+
+                const res = await fetch(`/api/events/month?month=${encodeURIComponent(monthKey)}`, {
+                    signal: ac.signal,
+                    headers: { "accept": "application/json" },
+                });
+
+                if (!res.ok) {
+                    elStatus.textContent = "Could not load this month. Please try again.";
+                    return;
+                }
+
+                const data = await res.json();
+                if (!data?.ok) {
+                    elStatus.textContent = "Could not load this month. Please try again.";
+                    return;
+                }
+
+                // Update heading + hint text (keep This Month button)
+                elMonthLabel.textContent = data.monthLabel ?? monthKey;
+
+                const hintText = buildHint((data.monthEvents ?? []).length);
+                // Keep existing This Month link node; just replace leading text safely.
+                // Easiest: clear and rebuild hint container.
+                elHint.innerHTML = "";
+                elHint.append(document.createTextNode(hintText + " "));
+
+                // restore This Month link (keeps CSS + mobile hiding rules)
+                const nowKey = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year:"numeric", month:"2-digit" })
+                    .format(new Date()).slice(0, 7);
+
+                const thisBtn = elThis.cloneNode(true);
+                thisBtn.href = `/events?month=${nowKey}`;
+                thisBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    loadMonth(nowKey, { push: true });
+                });
+                elHint.appendChild(thisBtn);
+
+                // Update nav links + disabled state
+                setNavLink(elPrev, data.prevMonthKey);
+                setNavLink(elNext, data.nextMonthKey);
+
+                // Rebuild grid + list
+                const monthEvents = data.monthEvents ?? [];
+                buildCalendarGrid(data.monthKey, monthEvents);
+                buildMonthList(monthEvents);
+
+                // URL + history
+                if (push) {
+                    const u = new URL(window.location.href);
+                    u.searchParams.set("month", data.monthKey);
+                    window.history.pushState({ month: data.monthKey }, "", u.pathname + u.search + u.hash);
+                }
+
+                elStatus.textContent = "";
+            }
+
+            function interceptNav(a) {
+                a.addEventListener("click", (e) => {
+                    const mk = a.getAttribute("data-month") || (new URL(a.href).searchParams.get("month") ?? "");
+                    if (!isMonthKey(mk)) return; // fallback to normal navigation
+                    e.preventDefault();
+                    loadMonth(mk, { push: true });
+                });
+            }
+
+            // Initial wire-up: store month keys on the anchors so they disable/enable cleanly
+            const initialPrev = new URL(elPrev.href, window.location.origin).searchParams.get("month");
+            const initialNext = new URL(elNext.href, window.location.origin).searchParams.get("month");
+            if (isMonthKey(initialPrev)) elPrev.setAttribute("data-month", initialPrev);
+            if (isMonthKey(initialNext)) elNext.setAttribute("data-month", initialNext);
+
+            interceptNav(elPrev);
+            interceptNav(elNext);
+
+            elThis.addEventListener("click", (e) => {
+                e.preventDefault();
+                const nowKey = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year:"numeric", month:"2-digit" })
+                    .format(new Date()).slice(0, 7);
+                loadMonth(nowKey, { push: true });
+            });
+
+            window.addEventListener("popstate", (e) => {
+                const u = new URL(window.location.href);
+                const mk = (u.searchParams.get("month") ?? "").trim();
+                if (isMonthKey(mk)) loadMonth(mk, { push: false });
+            });
+        }
+    </script>
 
     <style>
         .pad { margin-top: var(--section-gap); }
@@ -398,6 +826,12 @@ for (const e of monthEvents) {
             margin-right: .35rem;
         }
         .thisMonthBtn{ padding: .3rem .65rem;font-size: .85rem; }
+        .calNav .pill[aria-disabled="true"]{
+            opacity: .55;
+            pointer-events: none;
+            cursor: default;
+        }
+
         @media (max-width: 760px){
             .calendar { gap: .4rem; }
             /* Hide calendar grid on phones; keep month list */

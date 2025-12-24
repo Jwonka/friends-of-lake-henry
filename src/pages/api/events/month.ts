@@ -61,12 +61,31 @@ export const GET: APIRoute = async ({ locals, url }) => {
     ORDER BY monthKey DESC
   `).all();
 
-    const months = Array.from(
-        new Set([currentMonth, ...(monthsRes.results ?? []).map((r: any) => String(r.monthKey))])
-    ).sort((a, b) => b.localeCompare(a));
+    const dbMonths = (monthsRes.results ?? [])
+        .map((r: any) => String(r.monthKey ?? "").trim())
+        .filter(isMonthKey);
+
+    const months = Array.from(new Set([currentMonth, ...dbMonths]))
+        .sort((a, b) => b.localeCompare(a));
+
+    // Active months = months with actual published data (excludes the synthetic currentMonth if empty)
+    const activeMonths = (monthsRes.results ?? [])
+        .map((r: any) => String(r.monthKey ?? "").trim())
+        .filter(isMonthKey)
+        .sort((a, b) => b.localeCompare(a));
+
+    const defaultMonth = activeMonths[0] ?? currentMonth;
 
     let month = url.searchParams.get("month")?.trim() ?? "";
-    if (!isMonthKey(month) || !months.includes(month)) month = currentMonth;
+
+    if (isMonthKey(month) && months.includes(month)) {
+        // ok
+    } else {
+        month = defaultMonth;
+    }
+
+// final safety
+    if (!months.includes(month)) month = months[0] ?? currentMonth;
 
     const idx = months.indexOf(month);
     const prevMonthKey = idx >= 0 && idx + 1 < months.length ? months[idx + 1] : null;
