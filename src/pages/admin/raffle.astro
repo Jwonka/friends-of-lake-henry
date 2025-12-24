@@ -525,7 +525,7 @@ export const prerender = false;
         }
 
         .winnersTable{
-            width: max-content;
+            width: 100%;
             border-collapse: separate;
             min-width: 720px;
             border-spacing: 0 .45rem;
@@ -591,10 +591,6 @@ export const prerender = false;
             .span2{ grid-column: span 1; }
         }
 
-        @media (min-width: 721px){
-            .winnersTable{ transform: translateX(.5rem); }
-        }
-
         @media (max-width: 680px){
             .actions{
                 flex-direction: column;
@@ -615,13 +611,13 @@ export const prerender = false;
 
             .winnersTable td:nth-child(4),  /* Town */
             .winnersTable th:nth-child(4){
-                padding-right: .2rem;
+                padding-left: .2rem;
             }
 
             .winnersTable td:last-child,
             .winnersTable th:last-child{
-                padding-left: .2rem;
-                padding-right: .25rem;
+                padding-left: .45rem;
+                padding-right: .2rem;
                 width: 1%;
                 white-space: nowrap;
             }
