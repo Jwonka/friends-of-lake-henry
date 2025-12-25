@@ -367,7 +367,7 @@ const updatedAtLabel =
             if (!(tbody instanceof HTMLTableSectionElement)) return;
 
             // clear rows
-            tbody.innerHTML = "";
+            tbody.replaceChildren();
 
             if (!Array.isArray(winners) || winners.length === 0) {
                 if (wrap instanceof HTMLElement) wrap.hidden = true;
@@ -389,17 +389,41 @@ const updatedAtLabel =
                 const dd = m ? m[3] : "";
 
                 const tr = document.createElement("tr");
-                tr.innerHTML = `
-                   <td class="tdDate">
-                    <time class="winDate" datetime="${iso}">
-                      <span class="dateDesktop">${mm}/${dd}/${yyyy}</span>
-                      <span class="dateMobile">${mm}/${dd}</span>
-                    </time>
-                  </td>
-                  <td>${w.ticketNumber ?? ""}</td>
-                  <td class="tdName">${w.name ?? ""}</td>
-                  <td class="tdTown">${w.town ?? ""}</td>
-                `;
+
+                // Date cell
+                const tdDate = document.createElement("td");
+                tdDate.className = "tdDate";
+
+                const time = document.createElement("time");
+                time.className = "winDate";
+                time.setAttribute("datetime", iso);
+
+                const spanDesktop = document.createElement("span");
+                spanDesktop.className = "dateDesktop";
+                spanDesktop.textContent = (mm && dd && yyyy) ? `${mm}/${dd}/${yyyy}` : "";
+
+                const spanMobile = document.createElement("span");
+                spanMobile.className = "dateMobile";
+                spanMobile.textContent = (mm && dd) ? `${mm}/${dd}` : "";
+
+                time.append(spanDesktop, spanMobile);
+                tdDate.appendChild(time);
+
+                // Ticket cell
+                const tdTicket = document.createElement("td");
+                tdTicket.textContent = String(w.ticketNumber ?? "");
+
+                // Name cell
+                const tdName = document.createElement("td");
+                tdName.className = "tdName";
+                tdName.textContent = String(w.name ?? "");
+
+                // Town cell
+                const tdTown = document.createElement("td");
+                tdTown.className = "tdTown";
+                tdTown.textContent = String(w.town ?? "");
+
+                tr.append(tdDate, tdTicket, tdName, tdTown);
                 tbody.appendChild(tr);
             }
             // when month changes, snap scroll back to left so Date is visible
