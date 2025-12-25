@@ -3,7 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 
 const env = (Astro.locals as any).runtime?.env as { PUBLIC_TURNSTILE_KEY?: string } | undefined;
-const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "");
+const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
 
 const url = new URL(Astro.request.url);
 const sent = url.searchParams.get("sent") === "1";
