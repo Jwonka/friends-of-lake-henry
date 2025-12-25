@@ -471,15 +471,13 @@ for (const e of monthEvents) {
             let openDetailsId = null;
 
             function closeAllDetails(exceptId = null) {
-                // Only close items in the month list, not other details elsewhere.
-                const wrap = document.getElementById("eventsMonthListWrap");
-                if (!(wrap instanceof HTMLElement)) return;
+                if (!(elListWrap instanceof HTMLElement)) return;
 
-                const openEls = wrap.querySelectorAll("details.eventDetails[open]");
+                const openEls = elListWrap.querySelectorAll("details.eventDetails[open]");
                 for (const d of openEls) {
                     if (d instanceof HTMLDetailsElement && d.id !== exceptId) d.open = false;
-                    }
                 }
+            }
 
             function openDetailsById(id, { pushHistory } = { pushHistory: true }) {
                 const el = document.getElementById(id);
@@ -491,46 +489,39 @@ for (const e of monthEvents) {
                 el.open = true;
                 openDetailsId = id;
 
-                // Scroll to it (use auto for less mobile jank; switch to smooth if you prefer)
+                // Scroll to it
                 el.scrollIntoView({ block: "start", behavior: "auto" });
 
-                // Focus the <details> itself (NOT <summary>, which toggles)
+                // Focus details (NOT summary)
                 el.tabIndex = -1;
                 el.focus({ preventScroll: true });
 
                 // Update URL hash without native jump
+                const u = new URL(window.location.href);
+                u.hash = `#${id}`;
                 if (pushHistory) {
-                    const u = new URL(window.location.href);
-                    u.hash = `#${id}`;
                     history.pushState({ eventId: id }, "", u.toString());
-                    } else {
-                    // keep URL consistent on direct loads without adding history entries
-                    const u = new URL(window.location.href);
-                    u.hash = `#${id}`;
+                } else {
                     history.replaceState({ eventId: id }, "", u.toString());
-                    }
                 }
+            }
 
-            function tryOpenFromHash({ pushHistory } = { pushHistory: false }) {
+            function tryOpenFromHash() {
                 const id = (window.location.hash || "").slice(1);
                 if (!id) return;
-                openDetailsById(id, { pushHistory });
-                }
+                openDetailsById(id, { pushHistory: false });
+            }
 
-            // 1) Direct load deep-link support
-            tryOpenFromHash({ pushHistory: false });
+            // Direct load deep-link support
+            tryOpenFromHash();
 
-            // 2) Back/forward support (because we use pushState)
-            window.addEventListener("popstate", () => {
-                tryOpenFromHash({ pushHistory: false });
-                });
+            // Back/forward support
+            window.addEventListener("popstate", tryOpenFromHash);
 
-            // 3) If user manually edits the hash (or some browser triggers it)
-            window.addEventListener("hashchange", () => {
-                tryOpenFromHash({ pushHistory: false });
-                });
+            // If user manually edits the hash
+            window.addEventListener("hashchange", tryOpenFromHash);
 
-            // 4) One handler for ALL chips (SSR + ajax rebuilt)
+            // One handler for ALL chips (SSR + AJAX rebuilt)
             document.addEventListener("click", (ev) => {
                 const a = ev.target?.closest?.("a.chip");
                 if (!(a instanceof HTMLAnchorElement)) return;
@@ -539,22 +530,9 @@ for (const e of monthEvents) {
                 if (!href.startsWith("#event-")) return;
 
                 ev.preventDefault();
-                const id = href.slice(1);
-                openDetailsById(id, { pushHistory: true });
+                openDetailsById(href.slice(1), { pushHistory: true });
             });
 
-            function openDetailsById(id) {
-                const el = document.getElementById(id);
-                if (!(el instanceof HTMLDetailsElement)) return;
-
-                el.open = true;
-                // Scroll to it (smooth is fine, but "auto" is less janky on mobile)
-                el.scrollIntoView({ block: "start", behavior: "auto" });
-
-                // Focus the details itself (NOT the summary, since summary toggles)
-                el.tabIndex = -1;
-                el.focus({ preventScroll: true });
-            }
 
             function buildHint(count) {
                 if (count === 0) return "No published events this month yet.";
@@ -606,8 +584,9 @@ for (const e of monthEvents) {
                 const monthEvents = data.monthEvents ?? [];
                 buildCalendarGrid(state.monthKey, monthEvents);
                 buildMonthList(monthEvents);
-                
+
                 closeAllDetails(null);
+                tryOpenFromHash();
 
                 // If current hash points to an event not in this month, clear it (prevents “dead hash”)
                 const hashId = (window.location.hash || "").slice(1);
@@ -758,6 +737,7 @@ for (const e of monthEvents) {
                             a.className = "chip";
                             const targetId = `event-${ev.id}`;
                             a.href = `#${targetId}`;
+                            a.setAttribute("title", ev.summary ?? ev.title ?? "");
                             a.setAttribute("aria-disabled", "false");
 
                             const kind = document.createElement("span");
