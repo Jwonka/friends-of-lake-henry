@@ -21,6 +21,17 @@ function slugify(input: string) {
         .slice(0, 80);
 }
 
+function isDatetimeLocal(v: string) {
+    // "YYYY-MM-DDTHH:MM"
+    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v);
+}
+
+function nowDatetimeLocalUtc() {
+    // server-side “now” in UTC formatted like datetime-local
+    // NOTE: This is UTC, not admin’s local timezone. It’s still a solid backstop.
+    return new Date().toISOString().slice(0, 16);
+}
+
 function datePrefixFromDatetimeLocal(v: string) {
     // v: "YYYY-MM-DDTHH:MM"
     const m = v.match(/^(\d{4})-(\d{2})-(\d{2})T/);
@@ -51,6 +62,32 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
 
         const dateStartRaw = String(form.get("date_start") ?? "").trim();
         const dateEndRaw = String(form.get("date_end") ?? "").trim();
+
+        if (!isTbd) {
+            if (!dateStartRaw || !isDatetimeLocal(dateStartRaw)) {
+                return redirect(url.origin, "/admin/events/new?err=invalid");
+            }
+
+            if (dateEndRaw && !isDatetimeLocal(dateEndRaw)) {
+                return redirect(url.origin, "/admin/events/new?err=invalid");
+            }
+
+            // End cannot be before start
+            if (dateEndRaw && dateEndRaw < dateStartRaw) {
+                return redirect(url.origin, "/admin/events/new?err=dates");
+            }
+
+            // Start cannot be in the past (server backstop)
+            const now = nowDatetimeLocalUtc();
+            if (dateStartRaw < now) {
+                return redirect(url.origin, "/admin/events/new?err=past");
+            }
+
+            // End not in past:
+            if (dateEndRaw && dateEndRaw < now) {
+                return redirect(url.origin, "/admin/events/new?err=past");
+            }
+        }
 
         const location = String(form.get("location") ?? "").trim() || null;
         const summary = String(form.get("summary") ?? "").trim() || null;

@@ -11,6 +11,17 @@ function redirect(origin: string, path: string) {
     return new Response(null, { status: 303, headers: { location: `${origin}${path}`, ...SECURITY_HEADERS } });
 }
 
+function isDatetimeLocal(v: string) {
+    // "YYYY-MM-DDTHH:MM"
+    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v);
+}
+
+function nowDatetimeLocalUtc() {
+    // server-side “now” in UTC formatted like datetime-local
+    // NOTE: This is UTC, not admin’s local timezone. It’s still a solid backstop.
+    return new Date().toISOString().slice(0, 16);
+}
+
 export const POST: APIRoute = async ({ request, locals, url }) => {
     try {
         const form = await request.formData();
@@ -33,7 +44,28 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
         const urlLabel = String(form.get("url_label") ?? "").trim() || null;
 
         if (!id || !title || !kind) return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
-        if (!isTbd && !dateStartRaw) return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
+        if (!isTbd) {
+            if (!dateStartRaw || !isDatetimeLocal(dateStartRaw)) {
+                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
+            }
+
+            if (dateEndRaw && !isDatetimeLocal(dateEndRaw)) {
+                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
+            }
+
+            if (dateEndRaw && dateEndRaw < dateStartRaw) {
+                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=dates`);
+            }
+
+            const now = nowDatetimeLocalUtc();
+            if (dateStartRaw < now) {
+                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=past`);
+            }
+
+            if (dateEndRaw && dateEndRaw < now) {
+                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=past`);
+            }
+        }
 
         const DB = (locals as any).runtime.env.DB;
 

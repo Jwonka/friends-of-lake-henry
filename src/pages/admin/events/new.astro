@@ -105,8 +105,32 @@ const statusMsg =
         const tbd = document.getElementById("is_tbd");
         const start = document.getElementById("date_start");
         const end = document.getElementById("date_end");
+        const form = document.querySelector("form.form");
+        const status = document.getElementById("status");
 
-        function sync() {
+
+        function nowLocalDatetimeMin() {
+            // datetime-local expects "YYYY-MM-DDTHH:MM" in the user's local time
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function showStatus(msg) {
+            if (!(status instanceof HTMLElement)) return;
+            status.textContent = msg;
+            status.classList.remove("status--success");
+            status.classList.add("status--error");
+            status.focus?.();
+        }
+
+        function clearStatus() {
+            if (!(status instanceof HTMLElement)) return;
+            // leave whatever server rendered if you prefer; I’m clearing on user interaction only
+            // status.textContent = "";
+        }
+
+        function syncTbdAndConstraints() {
             if (!(tbd instanceof HTMLInputElement)) return;
             if (!(start instanceof HTMLInputElement)) return;
             if (!(end instanceof HTMLInputElement)) return;
@@ -114,10 +138,86 @@ const statusMsg =
             const on = tbd.checked;
             start.disabled = on;
             end.disabled = on;
-            if (on) { start.value = ""; end.value = ""; }
+
+            if (on) {
+                start.value = "";
+                end.value = "";
+                start.removeAttribute("min");
+                start.removeAttribute("max");
+                end.removeAttribute("min");
+                end.removeAttribute("max");
+                return;
+            }
+
+            // New event: prevent past picks
+            const minNow = nowLocalDatetimeMin();
+            start.min = minNow;
+            end.min = minNow;
+
+            // Cross-constraints
+            if (start.value) end.min = start.value;
+            if (end.value) start.max = end.value;
+
+            // If user made them invalid, clear the invalid one (optional but helpful)
+            if (start.value && end.value && end.value < start.value) {
+                end.value = start.value;
+            }
         }
-        tbd.addEventListener("change", sync);
-        sync();
+
+        tbd?.addEventListener("change", () => {
+            clearStatus();
+            syncTbdAndConstraints();
+        });
+
+        start?.addEventListener("change", () => {
+            clearStatus();
+            syncTbdAndConstraints();
+        });
+
+        end?.addEventListener("change", () => {
+            clearStatus();
+            syncTbdAndConstraints();
+        });
+
+        // Block submit if invalid
+        form?.addEventListener("submit", (e) => {
+            if (!(tbd instanceof HTMLInputElement)) return;
+            if (!(start instanceof HTMLInputElement)) return;
+            if (!(end instanceof HTMLInputElement)) return;
+
+            if (tbd.checked) return;
+
+            const s = start.value.trim();
+            const en = end.value.trim();
+
+            if (!s) {
+                e.preventDefault();
+                showStatus("Start date is required unless Planned (Date TBD) is checked.");
+                return;
+            }
+
+            const minNow = nowLocalDatetimeMin();
+            if (s < minNow) {
+                e.preventDefault();
+                showStatus("Start date cannot be in the past.");
+                return;
+            }
+
+            if (en) {
+                if (en < minNow) {
+                    e.preventDefault();
+                    showStatus("End date cannot be in the past.");
+                    return;
+                }
+                if (en < s) {
+                    e.preventDefault();
+                    showStatus("End date cannot be before Start date.");
+                }
+            }
+        });
+
+        syncTbdAndConstraints();
+
         // Auto-clear ok/err query params (keeps refresh from re-showing messages)
         (() => {
             const u = new URL(window.location.href);

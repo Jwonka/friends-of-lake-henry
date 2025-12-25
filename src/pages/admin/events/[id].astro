@@ -218,6 +218,47 @@ const statusMsg =
         const start = document.getElementById("date_start");
         const end = document.getElementById("date_end");
 
+        const form = document.querySelector("form.form");
+        const status = document.getElementById("status");
+
+        function nowLocalDatetimeMin() {
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function showStatus(msg) {
+            if (!(status instanceof HTMLElement)) return;
+            status.textContent = msg;
+            status.classList.remove("status--success");
+            status.classList.add("status--error");
+            status.focus?.();
+        }
+
+        function syncDateConstraintsEdit() {
+            if (!(tbd instanceof HTMLInputElement)) return;
+            if (!(start instanceof HTMLInputElement)) return;
+            if (!(end instanceof HTMLInputElement)) return;
+
+            if (tbd.checked) {
+                start.removeAttribute("min");
+                start.removeAttribute("max");
+                end.removeAttribute("min");
+                end.removeAttribute("max");
+                return;
+            }
+
+            // IMPORTANT: On edit, do NOT set min=now (would break editing older events).
+            // Only enforce Start/End ordering via min/max.
+            if (start.value) end.min = start.value; else end.removeAttribute("min");
+            if (end.value) start.max = end.value; else start.removeAttribute("max");
+
+            if (start.value && end.value && end.value < start.value) {
+                // keep user from leaving it invalid after edits
+                end.value = start.value;
+            }
+        }
+
         function syncTbd() {
             if (!(tbd instanceof HTMLInputElement)) return;
             if (!(start instanceof HTMLInputElement)) return;
@@ -230,6 +271,42 @@ const statusMsg =
         }
         tbd?.addEventListener("change", syncTbd);
         syncTbd();
+
+        start?.addEventListener("change", syncDateConstraintsEdit);
+        end?.addEventListener("change", syncDateConstraintsEdit);
+        tbd?.addEventListener("change", syncDateConstraintsEdit);
+        syncDateConstraintsEdit();
+
+        form?.addEventListener("submit", (e) => {
+            if (!(tbd instanceof HTMLInputElement)) return;
+            if (!(start instanceof HTMLInputElement)) return;
+            if (!(end instanceof HTMLInputElement)) return;
+
+            if (tbd.checked) return;
+
+            const s = start.value.trim();
+            const en = end.value.trim();
+
+            if (!s) {
+                e.preventDefault();
+                showStatus("Start date is required unless Planned (Date TBD) is checked.");
+                return;
+            }
+
+            // On edit: block user from saving an event in the past if you truly want that rule.
+            // This will prevent “fixing” old events unless they toggle to TBD or move it to future.
+            const minNow = nowLocalDatetimeMin();
+            if (s < minNow) {
+                e.preventDefault();
+                showStatus("Start date cannot be in the past.");
+                return;
+            }
+
+            if (en && en < s) {
+                e.preventDefault();
+                showStatus("End date cannot be before Start date.");
+            }
+        });
 
         // File chooser UI (scoped to the poster form)
         const root = document.querySelector("[data-file-form]");
