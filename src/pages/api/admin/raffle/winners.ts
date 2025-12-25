@@ -14,33 +14,6 @@ function json(status: number, body: any) {
     });
 }
 
-const MAX_SESSION_AGE_MS = 8 * 60 * 60 * 1000; // in sync with middleware
-
-function isAuthed(request: Request, env: any): boolean {
-    const cookie = request.headers.get("cookie") ?? "";
-    const m = cookie.match(/(?:^|;\s*)admin_auth=([^;]+)/);
-    if (!m) return false;
-
-    let token = m[1];
-    try {
-        token = decodeURIComponent(token);
-    } catch {
-        return false;
-    }
-
-    const [secret, tsRaw] = token.split(":");
-    const ts = Number(tsRaw);
-
-    const cookieSecret =
-        typeof env.ADMIN_COOKIE_SECRET === "string" ? env.ADMIN_COOKIE_SECRET : "";
-    if (!cookieSecret || !secret || secret !== cookieSecret) return false;
-
-    if (!Number.isFinite(ts)) return false;
-
-    const age = Date.now() - ts;
-    return !(age < 0 || age > MAX_SESSION_AGE_MS);
-}
-
 function mustBeIsoDate(s: string): boolean {
     return /^\d{4}-\d{2}-\d{2}$/.test(s);
 }
@@ -55,7 +28,6 @@ function isRealIsoDate(s: string): boolean {
 
 export const GET: APIRoute = async ({ request, locals }) => {
     const env = locals.runtime.env as any;
-    if (!isAuthed(request, env)) return json(401, { ok: false, error: "Unauthorized" });
 
     const DB = env.DB as D1Database | undefined;
     if (!DB) return json(500, { ok: false, error: "DB binding missing" });
@@ -116,7 +88,6 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
 export const POST: APIRoute = async ({ request, locals }) => {
     const env = locals.runtime.env as any;
-    if (!isAuthed(request, env)) return json(401, { ok: false, error: "Unauthorized" });
 
     const DB = env.DB as D1Database | undefined;
     if (!DB) return json(500, { ok: false, error: "DB binding missing" });
