@@ -2,6 +2,9 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 
+const env = (Astro.locals as any).runtime?.env as { TURNSTILE_SITE_KEY?: string } | undefined;
+const siteKey = String(env?.TURNSTILE_SITE_KEY ?? "");
+
 const url = new URL(Astro.request.url);
 const sent = url.searchParams.get("sent") === "1";
 const error = url.searchParams.get("error") === "1";
@@ -80,10 +83,7 @@ const error = url.searchParams.get("error") === "1";
                     </label>
 
                     <div class="turnstile">
-                        <div
-                            class="cf-turnstile"
-                            data-sitekey={import.meta.env.PUBLIC_TURNSTILE_SITE_KEY}
-                        ></div>
+                        <div class="cf-turnstile" data-sitekey={siteKey}></div>
                     </div>
 
                     <div class="ctaRow  enter-block delay-2">

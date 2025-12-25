@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import type { D1Database } from "@cloudflare/workers-types";
+import { json } from "../../../lib/http";
 
 function isMonthKey(s: string) {
     return /^\d{4}-\d{2}$/.test(s);
@@ -18,12 +19,7 @@ function monthKeyToLabel(monthKey: string) {
 export const GET: APIRoute = async ({ request, locals }) => {
     const env = locals.runtime.env as any;
     const DB = env.DB as D1Database | undefined;
-    if (!DB) {
-        return new Response(JSON.stringify({ ok: false, error: "DB binding missing" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-        });
-    }
+    if (!DB) { return json({ ok: false, error: "DB binding missing" }, 500); }
 
     const url = new URL(request.url);
     const monthParam = (url.searchParams.get("month") ?? "").trim();
@@ -91,7 +87,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const titleRaw = metaRes ? String((metaRes as any).title ?? "").trim() : "";
     const raffleTitle = titleRaw ? titleRaw : null;
 
-    return new Response(JSON.stringify({
+    return json({
         ok: true,
         monthKey: raffleKey,
         monthLabel: monthKeyToLabel(raffleKey),
@@ -99,8 +95,5 @@ export const GET: APIRoute = async ({ request, locals }) => {
         nextMonthKey,
         raffleTitle,
         winners: winnersRes.results ?? [],
-    }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
     });
 };

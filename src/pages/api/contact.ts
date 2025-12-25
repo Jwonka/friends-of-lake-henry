@@ -1,12 +1,9 @@
 import type { APIRoute } from "astro";
+import { json, redirect, options } from "../../lib/http";
 
 type TurnstileVerify = {
     success: boolean;
     "error-codes"?: string[];
-    challenge_ts?: string;
-    hostname?: string;
-    action?: string;
-    cdata?: string;
 };
 
 type Env = {
@@ -16,24 +13,13 @@ type Env = {
     TURNSTILE_SECRET: string;
 };
 
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-};
-
 function redirectBack(requestUrl: string, suffix = ""): Response {
     const url = new URL(requestUrl);
-    const location = `${url.origin}/contact${suffix || "?sent=1"}`;
+    return redirect(`${url.origin}/contact${suffix || "?sent=1"}`);
+}
 
-    return new Response(null, {
-        status: 303,
-        headers: {
-            location,
-            "cache-control": "no-store",
-            ...SECURITY_HEADERS,
-        },
-    });
+function wantsJson(request: Request) {
+    return (request.headers.get("accept") || "").includes("application/json");
 }
 
 function esc(s: string) {
@@ -46,42 +32,52 @@ function esc(s: string) {
 }
 
 export const POST: APIRoute = async (context) => {
-    try {
-        const { request } = context;
+    const { request } = context;
 
+    try {
         const env = (context.locals as any).runtime?.env as Env;
-        if (!env) return redirectBack(request.url, "?err=server");
+
+        if (!env) {
+            return wantsJson(request)
+                ? json({ ok: false, error: "server" }, 500)
+                : redirectBack(request.url, "?err=server");
+        }
 
         const ct = request.headers.get("content-type") || "";
         if (
             !ct.includes("application/x-www-form-urlencoded") &&
             !ct.includes("multipart/form-data")
         ) {
-            return redirectBack(request.url, "?err=input");
+            return wantsJson(request)
+                ? json({ ok: false, error: "input" }, 400)
+                : redirectBack(request.url, "?err=input");
         }
 
         const form = await request.formData();
 
-        const name = (form.get("name") || "").toString().trim();
-        const email = (form.get("email") || "").toString().trim();
-        const message = (form.get("message") || "").toString().trim();
+
+        const name = String(form.get("name") ?? "").trim();
+        const email = String(form.get("email") ?? "").trim();
+        const message = String(form.get("message") ?? "").trim();
 
         // Honeypot
-        const company = (form.get("company") || "").toString().trim();
-        if (company) return redirectBack(request.url);
+        const company = String(form.get("company") ?? "").trim();
+        if (company) return wantsJson(request) ? json({ ok: true }, 200) : redirectBack(request.url);
 
         const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         if (name.length < 2 || !emailOk || message.length < 10) {
-            return redirectBack(request.url, "?err=input");
+            return wantsJson(request)
+                ? json({ ok: false, error: "input" }, 400)
+                : redirectBack(request.url, "?err=input");
         }
 
         // ---- Turnstile verification ----
-        const token = (form.get("cf-turnstile-response") || "").toString();
-        if (!token) return redirectBack(request.url, "?err=captcha");
+        const token = String(form.get("cf-turnstile-response") ?? "").trim();
+        if (!token) return wantsJson(request) ? json({ ok: false, error: "captcha" }, 400) : redirectBack(request.url, "?err=captcha");
 
-        const ip = request.headers.get("CF-Connecting-IP");
+        if (!env.TURNSTILE_SECRET) return wantsJson(request) ? json({ ok: false, error: "server" }, 500) : redirectBack(request.url, "?err=server");
 
-        if (!env.TURNSTILE_SECRET) return redirectBack(request.url, "?err=server");
+        const ip = request.headers.get("CF-Connecting-IP") || "";
 
         const body = new URLSearchParams();
         body.set("secret", env.TURNSTILE_SECRET);
@@ -97,31 +93,26 @@ export const POST: APIRoute = async (context) => {
             }
         );
 
-        if (!verifyResp.ok) return redirectBack(request.url, "?err=captcha");
+        if (!verifyResp.ok) return wantsJson(request) ? json({ok:false,error:"captcha"}, 400) : redirectBack(request.url, "?err=captcha");
 
-        let verify: TurnstileVerify;
-        try {
-            verify = (await verifyResp.json()) as TurnstileVerify;
-        } catch {
-            return redirectBack(request.url, "?err=captcha");
-        }
+        const verify = (await verifyResp.json().catch(() => null)) as TurnstileVerify | null;
 
-        if (!verify.success) return redirectBack(request.url, "?err=captcha");
+        if (!verify?.success) return wantsJson(request) ? json({ok:false,error:"captcha"}, 400) : redirectBack(request.url, "?err=captcha");
 
         if (!env.RESEND_API_KEY || !env.FROM_EMAIL || !env.TO_EMAIL) {
-            return redirectBack(request.url, "?err=server");
+            return wantsJson(request) ? json({ok:false,error:"server"}, 502) : redirectBack(request.url, "?err=server");
         }
 
         const html = `
-      <h2>Friends of Lake Henry</h2>
-      <p><strong>Name:</strong> ${esc(name)}</p>
-      <p><strong>Email:</strong> ${esc(email)}</p>
-      <p><strong>Message:</strong><br>
-        ${esc(message).replace(/\n/g, "<br>")}
-      </p>
-      <hr>
-      <p>Sent: ${new Date().toISOString()}</p>
-    `;
+          <h2>Friends of Lake Henry</h2>
+          <p><strong>Name:</strong> ${esc(name)}</p>
+          <p><strong>Email:</strong> ${esc(email)}</p>
+          <p><strong>Message:</strong><br>
+            ${esc(message).replace(/\n/g, "<br>")}
+          </p>
+          <hr>
+          <p>Sent: ${new Date().toISOString()}</p>
+        `;
 
         const r = await fetch("https://api.resend.com/emails", {
             method: "POST",
@@ -139,22 +130,12 @@ export const POST: APIRoute = async (context) => {
             }),
         });
 
-        if (!r.ok) return redirectBack(request.url, "?err=server");
+        if (!r.ok) return wantsJson(request) ? json({ ok: false, error: "server" }, 502) : redirectBack(request.url, "?err=server");
 
-        return redirectBack(request.url);
+        return wantsJson(request) ? json({ ok: true }, 200) : redirectBack(request.url);
     } catch {
-        return redirectBack(context.request.url, "?err=server");
+        return wantsJson(request) ? json({ ok: false, error: "server" }, 500) : redirectBack(request.url, "?err=server");
     }
 };
 
-export const OPTIONS: APIRoute = async () => {
-    return new Response(null, {
-        status: 204,
-        headers: {
-            "access-control-allow-methods": "POST,OPTIONS",
-            "access-control-allow-headers": "content-type",
-            "cache-control": "no-store",
-            ...SECURITY_HEADERS,
-        },
-    });
-};
+export const OPTIONS: APIRoute = async () => options();

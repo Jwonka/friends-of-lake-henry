@@ -1,6 +1,8 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
+const env = (Astro.locals as any).runtime?.env as { TURNSTILE_SITE_KEY?: string } | undefined;
+const siteKey = String(env?.TURNSTILE_SITE_KEY ?? "");
 ---
 
 <BaseLayout title="Contact | Friends of Lake Henry">
@@ -51,9 +53,7 @@ export const prerender = false;
                     </div>
 
                     <!-- Turnstile widget -->
-                    <div
-                        id="ts"
-                        data-sitekey={import.meta.env.PUBLIC_TURNSTILE_SITE_KEY}>
+                    <div id="ts" data-sitekey={siteKey}>
                     </div>
 
                     <div class="ctaRow enter-block delay-2">
@@ -72,60 +72,11 @@ export const prerender = false;
         (function () {
             const form = document.querySelector("form.form");
             const container = document.getElementById("ts");
-            if (!form || !container) return;
-
-            let widgetId = null;
-
-            window.addEventListener("load", () => {
-                if (!window.turnstile) return;
-
-                widgetId = turnstile.render(container, {
-                    sitekey: container.getAttribute("data-sitekey"),
-                    execution: "execute",     // don’t auto-run
-                    appearance: "execute",    // stay invisible unless executing
-                    callback: (token) => {
-                        let input = form.querySelector('input[name="cf-turnstile-response"]');
-                        if (!input) {
-                            input = document.createElement("input");
-                            input.type = "hidden";
-                            input.name = "cf-turnstile-response";
-                            form.appendChild(input);
-                        }
-                        input.value = token;
-                        form.dataset.tsPending = "";
-                        form.submit();
-                    },
-                    "error-callback": () => {
-                        form.dataset.tsPending = "";
-                        alert("Verification failed. Please try again.");
-                    },
-                });
-            });
-
-            form.addEventListener("submit", (e) => {
-                if (form.dataset.tsPending === "1") return;
-
-                e.preventDefault();
-                form.dataset.tsPending = "1";
-
-                if (!window.turnstile || widgetId == null) {
-                    form.dataset.tsPending = "";
-                    alert("Verification is still loading. Please try again.");
-                    return;
-                }
-
-                turnstile.execute(widgetId);
-            });
-        })();
-    </script>
-    <script is:inline>
-        (function () {
             const statusEl = document.getElementById("status");
-            if (!statusEl) return;
+            if (!form || !container || !statusEl) return;
 
-            const url = new URL(window.location.href);
-            const sent = url.searchParams.get("sent");
-            const err = url.searchParams.get("err");
+            const sitekey = container.getAttribute("data-sitekey") || "";
+            let widgetId = null;
 
             function show(kind, msg) {
                 statusEl.textContent = msg;
@@ -134,22 +85,77 @@ export const prerender = false;
                 try { statusEl.focus(); } catch {}
             }
 
-            if (sent === "1") {
-                show("ok", "Thanks! We’ll be in touch shortly.");
-                url.searchParams.delete("sent");
-                window.history.replaceState({}, "", url.pathname + url.search);
+            if (!sitekey) {
+                show("err", "Contact form is not configured yet. Please try again later.");
                 return;
             }
 
-            if (err) {
-                show("err",
-                    err === "captcha" ? "Verification failed. Please try again."
-                        : err === "input" ? "Please check your details and try again."
-                            : "Sorry, something went wrong. Please try again."
-                );
-                url.searchParams.delete("err");
-                window.history.replaceState({}, "", url.pathname + url.search);
+            async function submitViaFetch(token) {
+                const fd = new FormData(form);
+                fd.set("cf-turnstile-response", token);
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: "POST",
+                        body: fd,
+                        headers: { "accept": "application/json" },
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || !data?.ok) {
+                        const code = data?.error || "server";
+                        show("err",
+                            code === "captcha" ? "Verification failed. Please try again."
+                                : code === "input" ? "Please check your details and try again."
+                                    : "Sorry, something went wrong. Please try again."
+                        );
+                        return;
+                    }
+
+                    show("ok", "Thanks! We’ll be in touch shortly.");
+                    form.reset();
+                } catch {
+                    show("err", "Sorry, something went wrong. Please try again.");
+                } finally {
+                    form.dataset.tsPending = "";
+                    if (window.turnstile && widgetId != null) {
+                        try { window.turnstile.reset(widgetId); } catch {}
+                    }
+                }
             }
+
+            function initTurnstile() {
+                if (!window.turnstile || widgetId != null) return;
+                widgetId = window.turnstile.render(container, {
+                    sitekey,
+                    execution: "execute",
+                    appearance: "execute",
+                    callback: (token) => submitViaFetch(token),
+                    "error-callback": () => {
+                        form.dataset.tsPending = "";
+                        show("err", "Verification failed. Please try again.");
+                    },
+                });
+            }
+            
+            window.addEventListener("load", initTurnstile);
+
+            form.addEventListener("submit", (e) => {
+                if (form.dataset.tsPending === "1") return;
+                e.preventDefault();
+                form.dataset.tsPending = "1";
+
+                initTurnstile();
+
+                if (!window.turnstile || widgetId == null) {
+                    form.dataset.tsPending = "";
+                    show("err", "Verification is still loading. Please try again.");
+                    return;
+                }
+
+                show("ok", "Verifying…");
+                window.turnstile.execute(widgetId);
+            });
         })();
     </script>
     <style>
