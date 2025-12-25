@@ -36,6 +36,30 @@ function getCookieValue(cookieHeader: string, name: string): string | null {
     return null;
 }
 
+function forbidden() {
+    return new Response("Forbidden", { status: 403, headers: SECURITY_HEADERS });
+}
+
+function isMutationMethod(method: string) {
+    return method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
+}
+
+function passesCsrf(context: Parameters<typeof defineMiddleware>[0] extends (ctx: infer C, next: any) => any ? C : never) {
+    // same-origin browser requests.
+    const origin = context.request.headers.get("origin");
+    const referer = context.request.headers.get("referer");
+    const siteOrigin = context.url.origin;
+
+    // Prefer Origin when present (most modern browsers send it on POST)
+    if (origin) return origin === siteOrigin;
+
+    // Fall back to Referer (common for form posts)
+    if (referer) return referer.startsWith(siteOrigin + "/") || referer === siteOrigin + "/";
+
+    // If neither is present, fail closed for admin mutations.
+    return false;
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
     const { pathname, search } = context.url;
 
@@ -52,6 +76,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
         pathname === "/api/admin/logout"
     ) {
         return next();
+    }
+
+    // CSRF protection for admin API mutations
+    if (isAdminApi && isMutationMethod(context.request.method)) {
+        if (!passesCsrf(context)) return forbidden();
     }
 
     const env = context.locals.runtime.env as any;
