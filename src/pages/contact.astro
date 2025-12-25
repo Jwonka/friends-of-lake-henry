@@ -1,8 +1,8 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
-const env = (Astro.locals as any).runtime?.env as { PUBLIC_TURNSTILE_SITE_KEY?: string } | undefined;
-const siteKey = String(env?.PUBLIC_TURNSTILE_SITE_KEY ?? "");
+const env = (Astro.locals as any).runtime?.env as { PUBLIC_TURNSTILE_KEY?: string } | undefined;
+const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "");
 ---
 
 <BaseLayout title="Contact | Friends of Lake Henry">
