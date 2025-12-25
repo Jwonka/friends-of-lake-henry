@@ -456,6 +456,7 @@ for (const e of monthEvents) {
 
             // Initialize nav target months for first render
             setNavDisabled(state.prevMonthKey, state.nextMonthKey);
+            let isProgrammaticHash = false;
 
             function safeHref(raw) {
                 try {
@@ -473,14 +474,24 @@ for (const e of monthEvents) {
                 if (!(el instanceof HTMLDetailsElement)) return;
 
                 el.open = true;
+                // Scroll to it (smooth is fine, but "auto" is less janky on mobile)
                 el.scrollIntoView({ block: "start", behavior: "smooth" });
-                
-                // focus summary for a11y, without re-scrolling
-                const summary = el.querySelector("summary");
-                if (summary instanceof HTMLElement) summary.focus({ preventScroll: true });
+
+                // Focus the details itself (NOT the summary, since summary toggles)
+                el.tabIndex = -1;
+                el.focus({ preventScroll: true });
             }
 
             function handleHashOpen() {
+                if (isProgrammaticHash) {
+                    isProgrammaticHash = false;
+                    // still open it (we want the behavior), but avoid double-trigger patterns
+                    requestAnimationFrame(() => {
+                        const hash = (window.location.hash || "").slice(1);
+                        if (hash) openDetailsById(hash);
+                    });
+                    return;
+                }
                 const hash = (window.location.hash || "").slice(1);
                 if (!hash) return;
                 openDetailsById(hash);
@@ -686,13 +697,17 @@ for (const e of monthEvents) {
                             a.setAttribute("aria-disabled", "false");
 
                             // Open immediately on click (so it opens even if browser doesn’t fire hashchange for same-hash clicks)
-                            a.addEventListener("click", (ev) => {
-                                ev.preventDefault();
+                            a.addEventListener("click", (e) => {
+                                e.preventDefault();
 
-                                // set hash (so deep links still work / back button history works)
-                                if (window.location.hash !== `#${targetId}`) { window.location.hash = targetId; }
-
-                                openDetailsById(targetId);
+                                const nextHash = `#${targetId}`;
+                                if (window.location.hash !== nextHash) {
+                                    isProgrammaticHash = true;
+                                    window.location.hash = targetId;
+                                } else {
+                                    // Same hash: hashchange won't fire, so open directly
+                                    openDetailsById(targetId);
+                                }
                             });
 
                             const kind = document.createElement("span");
