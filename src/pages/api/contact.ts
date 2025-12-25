@@ -125,7 +125,6 @@ export const POST: APIRoute = async (context) => {
                 to: [env.TO_EMAIL],
                 subject: `Inquiry from ${name}`,
                 html,
-                replyTo: email,
                 reply_to: email,
             }),
         });
