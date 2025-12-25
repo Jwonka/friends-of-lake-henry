@@ -262,11 +262,9 @@ for (const e of monthEvents) {
                                             {dayEvents.slice(0, 3).map((ev) => (
                                                 <a
                                                     class="chip"
-                                                    href={ev.url ?? "#"}
-                                                    aria-disabled={ev.url ? "false" : "true"}
+                                                    href={`#event-${ev.id}`}
+                                                    aria-disabled="false"
                                                     title={ev.summary ?? ev.title}
-                                                    target={ev.url ? "_blank" : undefined}
-                                                    rel={ev.url ? "noopener noreferrer" : undefined}
                                                 >
                                                     <span class="chipKind">{ev.kind}</span>
                                                     <span class="chipTitle">{ev.title}</span>
@@ -294,7 +292,7 @@ for (const e of monthEvents) {
                                 const time = fmtNiceTimeSSR(e.date_start);
 
                                 return (
-                                    <details class="panel item eventDetails">
+                                    <details class="panel item eventDetails" id={`event-${e.id}`}>
                                         <summary class="eventSummary">
                                             <div class="meta">
                                                 <div class="title">{e.title}</div>
@@ -316,13 +314,22 @@ for (const e of monthEvents) {
                                                 </figure>
                                             ) : null}
 
-                                            {e.url ? (
-                                                <p style="margin: .75rem 0 0;">
-                                                    <a class="pill" href={e.url} target="_blank" rel="noopener noreferrer">
-                                                        {e.url_label ?? "Details"}
-                                                    </a>
-                                                </p>
-                                            ) : null}
+                                            {(() => {
+                                                let href: string | null = null;
+                                                try {
+                                                    if (e.url) {
+                                                        const u = new URL(e.url, Astro.url.origin);
+                                                        if (u.protocol === "http:" || u.protocol === "https:") href = u.toString();
+                                                    }
+                                                } catch {}
+                                                return href ? (
+                                                    <p style="margin: .75rem 0 0;">
+                                                        <a class="pill" href={href} target="_blank" rel="noopener noreferrer">
+                                                            {e.url_label ?? "Details"}
+                                                        </a>
+                                                    </p>
+                                                ) : null;
+                                            })()}
                                         </div>
                                     </details>
                                 );
@@ -355,11 +362,25 @@ for (const e of monthEvents) {
                                     </div>
                                 </div>
                                 {e.summary ? <p class="summary">{e.summary}</p> : null}
-                                {e.url ? (
+                                {(() => {
+                                    let href: string | null = null;
+                                    try {
+                                        if (e.url) {
+                                            const u = new URL(e.url, Astro.url.origin);
+                                            if (u.protocol === "http:" || u.protocol === "https:") {
+                                                href = u.toString();
+                                            }
+                                        }
+                                    } catch {}
+
+                                    return href ? (
                                         <p style="margin: .75rem 0 0;">
-                                            <a class="pill" href={e.url}>{e.url_label ?? "Details"}</a>
+                                            <a class="pill" href={href} target="_blank" rel="noopener noreferrer">
+                                                {e.url_label ?? "Details"}
+                                            </a>
                                         </p>
-                                ) : null}
+                                    ) : null;
+                                })()}
                             </article>
                         ))}
                     </div>
@@ -436,6 +457,39 @@ for (const e of monthEvents) {
             // Initialize nav target months for first render
             setNavDisabled(state.prevMonthKey, state.nextMonthKey);
 
+            function safeHref(raw) {
+                try {
+                    if (!raw) return null;
+                    const u = new URL(raw, window.location.origin);
+                    if (u.protocol === "http:" || u.protocol === "https:") return u.toString();
+                    return null;
+                } catch {
+                    return null;
+                }
+            }
+
+            function openDetailsById(id) {
+                const el = document.getElementById(id);
+                if (!(el instanceof HTMLDetailsElement)) return;
+
+                el.open = true;
+                el.scrollIntoView({ block: "start", behavior: "smooth" });
+                
+                // focus summary for a11y, without re-scrolling
+                const summary = el.querySelector("summary");
+                if (summary instanceof HTMLElement) summary.focus({ preventScroll: true });
+            }
+
+            function handleHashOpen() {
+                const hash = (window.location.hash || "").slice(1);
+                if (!hash) return;
+                openDetailsById(hash);
+            }
+
+            // Open on direct load and when hash changes
+            window.addEventListener("hashchange", handleHashOpen);
+            handleHashOpen();
+
             function buildHint(count) {
                 if (count === 0) return "No published events this month yet.";
                 if (count === 1) return "1 published event this month.";
@@ -470,7 +524,7 @@ for (const e of monthEvents) {
                     monthSelect.value = state.monthKey;
                     // optional: if API sends months list, rebuild options here
                     if (Array.isArray(data.months)) {
-                        monthSelect.innerHTML = "";
+                        monthSelect.replaceChildren();
                         for (const m of data.months) {
                             const opt = document.createElement("option");
                             opt.value = m.key;
@@ -563,7 +617,7 @@ for (const e of monthEvents) {
 
             function buildCalendarGrid(monthKey, monthEvents) {
                 // Clear and rebuild header + blanks + days
-                elGrid.innerHTML = "";
+                elGrid.replaceChildren();
 
                 // DOW header
                 for (const d of dow) {
@@ -626,15 +680,20 @@ for (const e of monthEvents) {
                         dayEvents.slice(0, 3).forEach((/** @type {MonthEvent} */ ev) => {
                             const a = document.createElement("a");
                             a.className = "chip";
-                            a.href = ev.url ?? "#";
+                            const targetId = `event-${ev.id}`;
+                            a.href = `#${targetId}`;
                             a.setAttribute("title", ev.summary ?? ev.title ?? "");
-                            if (!ev.url) {
-                                a.setAttribute("aria-disabled", "true");
-                            } else {
-                                a.setAttribute("aria-disabled", "false");
-                                a.target = "_blank";
-                                a.rel = "noopener noreferrer";
-                            }
+                            a.setAttribute("aria-disabled", "false");
+
+                            // Open immediately on click (so it opens even if browser doesn’t fire hashchange for same-hash clicks)
+                            a.addEventListener("click", (ev) => {
+                                ev.preventDefault();
+
+                                // set hash (so deep links still work / back button history works)
+                                if (window.location.hash !== `#${targetId}`) { window.location.hash = targetId; }
+
+                                openDetailsById(targetId);
+                            });
 
                             const kind = document.createElement("span");
                             kind.className = "chipKind";
@@ -672,7 +731,7 @@ for (const e of monthEvents) {
                 // Month list is optional (not rendered when there are no events)
                 if (!(elListWrap instanceof HTMLElement) || !(elList instanceof HTMLElement)) return;
 
-                elList.innerHTML = "";
+                elList.replaceChildren();
                 if (!monthEvents.length) {
                     elListWrap.style.display = "none";
                     return;
@@ -682,6 +741,7 @@ for (const e of monthEvents) {
                 for (const e of monthEvents) {
                     const details = document.createElement("details");
                     details.className = "panel item eventDetails";
+                    details.id = `event-${e.id}`;
 
                     const summary = document.createElement("summary");
                     summary.className = "eventSummary";
@@ -730,15 +790,19 @@ for (const e of monthEvents) {
                         body.appendChild(fig);
                     }
 
-                    if (e.url) {
+                    const href = safeHref(e.url);
+
+                    if (href) {
                         const p = document.createElement("p");
                         p.style.margin = ".75rem 0 0";
+
                         const a = document.createElement("a");
                         a.className = "pill";
-                        a.href = e.url;
+                        a.href = href;
                         a.target = "_blank";
                         a.rel = "noopener noreferrer";
                         a.textContent = e.url_label ?? "Details";
+
                         p.appendChild(a);
                         body.appendChild(p);
                     }
