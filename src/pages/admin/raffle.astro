@@ -308,24 +308,51 @@ export const prerender = false;
             function renderWinners(rows) {
                 const tbody = winnersTable.tBodies?.[0];
                 if (!tbody) return;
-                tbody.innerHTML = "";
 
+                tbody.replaceChildren();
                 winnersCount.textContent = rows.length ? `${rows.length} winner(s)` : "No winners yet.";
 
                 for (const r of rows) {
                     const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                  <td class="tdDate"><time datetime="${r.drawDate ?? ""}">${formatISODateMDY(r.drawDate)}</time></td>
-                  <td>${r.ticketNumber}</td>
-                  <td>${r.name}</td>
-                  <td>${r.town}</td>
-                  <td style="text-align:right;">
-                    <button class="pill" data-del="${r.id}" type="button">Remove</button>
-                  </td>
-                `;
+
+                    // Date cell
+                    const tdDate = document.createElement("td");
+                    tdDate.className = "tdDate";
+
+                    const time = document.createElement("time");
+                    const iso = String(r.drawDate ?? "");
+                    time.setAttribute("datetime", iso);
+                    time.textContent = formatISODateMDY(iso);
+                    tdDate.appendChild(time);
+
+                    // Ticket cell
+                    const tdTicket = document.createElement("td");
+                    tdTicket.textContent = String(r.ticketNumber ?? "");
+
+                    // Name cell
+                    const tdName = document.createElement("td");
+                    tdName.textContent = String(r.name ?? "");
+
+                    // Town cell
+                    const tdTown = document.createElement("td");
+                    tdTown.textContent = String(r.town ?? "");
+
+                    // Remove button cell
+                    const tdActions = document.createElement("td");
+                    tdActions.style.textAlign = "right";
+
+                    const btn = document.createElement("button");
+                    btn.className = "pill";
+                    btn.type = "button";
+                    btn.setAttribute("data-del", String(r.id ?? ""));
+                    btn.textContent = "Remove";
+
+                    tdActions.appendChild(btn);
+
+                    tr.append(tdDate, tdTicket, tdName, tdTown, tdActions);
                     tbody.appendChild(tr);
+                    }
                 }
-            }
 
             async function loadWinners() {
                 setWinnersStatus("info", "Loading winners...");
