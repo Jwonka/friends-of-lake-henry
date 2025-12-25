@@ -475,7 +475,7 @@ for (const e of monthEvents) {
 
                 el.open = true;
                 // Scroll to it (smooth is fine, but "auto" is less janky on mobile)
-                el.scrollIntoView({ block: "start", behavior: "smooth" });
+                el.scrollIntoView({ block: "start", behavior: "auto" });
 
                 // Focus the details itself (NOT the summary, since summary toggles)
                 el.tabIndex = -1;
