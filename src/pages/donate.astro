@@ -2,8 +2,8 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 
-const env = (Astro.locals as any).runtime?.env as { TURNSTILE_SITE_KEY?: string } | undefined;
-const siteKey = String(env?.TURNSTILE_SITE_KEY ?? "");
+const env = (Astro.locals as any).runtime?.env as { PUBLIC_TURNSTILE_SITE_KEY?: string } | undefined;
+const siteKey = String(env?.PUBLIC_TURNSTILE_SITE_KEY ?? "");
 
 const url = new URL(Astro.request.url);
 const sent = url.searchParams.get("sent") === "1";
@@ -15,15 +15,15 @@ const error = url.searchParams.get("error") === "1";
         <section class="card pad enter-block">
             <h1>Donate</h1>
             {sent && (
-                    <div class="status status--success" role="status">
-                        Thanks — we received your donation request.
-                    </div>
+                <div class="status status--success" role="status">
+                    Thanks — we received your donation request.
+                </div>
             )}
 
             {error && (
-                    <div class="status status--error" role="status">
-                        Sorry — something went wrong. Please try again.
-                    </div>
+                <div class="status status--error" role="status">
+                    Sorry — something went wrong. Please try again.
+                </div>
             )}
 
             <div class="panel enter-block delay-1">
