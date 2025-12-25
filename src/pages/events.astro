@@ -456,7 +456,6 @@ for (const e of monthEvents) {
 
             // Initialize nav target months for first render
             setNavDisabled(state.prevMonthKey, state.nextMonthKey);
-            let isProgrammaticHash = false;
 
             function safeHref(raw) {
                 try {
@@ -468,6 +467,81 @@ for (const e of monthEvents) {
                     return null;
                 }
             }
+
+            let openDetailsId = null;
+
+            function closeAllDetails(exceptId = null) {
+                // Only close items in the month list, not other details elsewhere.
+                const wrap = document.getElementById("eventsMonthListWrap");
+                if (!(wrap instanceof HTMLElement)) return;
+
+                const openEls = wrap.querySelectorAll("details.eventDetails[open]");
+                for (const d of openEls) {
+                    if (d instanceof HTMLDetailsElement && d.id !== exceptId) d.open = false;
+                    }
+                }
+
+            function openDetailsById(id, { pushHistory } = { pushHistory: true }) {
+                const el = document.getElementById(id);
+                if (!(el instanceof HTMLDetailsElement)) return;
+
+                // Close any other open item first
+                closeAllDetails(id);
+
+                el.open = true;
+                openDetailsId = id;
+
+                // Scroll to it (use auto for less mobile jank; switch to smooth if you prefer)
+                el.scrollIntoView({ block: "start", behavior: "auto" });
+
+                // Focus the <details> itself (NOT <summary>, which toggles)
+                el.tabIndex = -1;
+                el.focus({ preventScroll: true });
+
+                // Update URL hash without native jump
+                if (pushHistory) {
+                    const u = new URL(window.location.href);
+                    u.hash = `#${id}`;
+                    history.pushState({ eventId: id }, "", u.toString());
+                    } else {
+                    // keep URL consistent on direct loads without adding history entries
+                    const u = new URL(window.location.href);
+                    u.hash = `#${id}`;
+                    history.replaceState({ eventId: id }, "", u.toString());
+                    }
+                }
+
+            function tryOpenFromHash({ pushHistory } = { pushHistory: false }) {
+                const id = (window.location.hash || "").slice(1);
+                if (!id) return;
+                openDetailsById(id, { pushHistory });
+                }
+
+            // 1) Direct load deep-link support
+            tryOpenFromHash({ pushHistory: false });
+
+            // 2) Back/forward support (because we use pushState)
+            window.addEventListener("popstate", () => {
+                tryOpenFromHash({ pushHistory: false });
+                });
+
+            // 3) If user manually edits the hash (or some browser triggers it)
+            window.addEventListener("hashchange", () => {
+                tryOpenFromHash({ pushHistory: false });
+                });
+
+            // 4) One handler for ALL chips (SSR + ajax rebuilt)
+            document.addEventListener("click", (ev) => {
+                const a = ev.target?.closest?.("a.chip");
+                if (!(a instanceof HTMLAnchorElement)) return;
+
+                const href = a.getAttribute("href") || "";
+                if (!href.startsWith("#event-")) return;
+
+                ev.preventDefault();
+                const id = href.slice(1);
+                openDetailsById(id, { pushHistory: true });
+            });
 
             function openDetailsById(id) {
                 const el = document.getElementById(id);
@@ -481,25 +555,6 @@ for (const e of monthEvents) {
                 el.tabIndex = -1;
                 el.focus({ preventScroll: true });
             }
-
-            function handleHashOpen() {
-                if (isProgrammaticHash) {
-                    isProgrammaticHash = false;
-                    // still open it (we want the behavior), but avoid double-trigger patterns
-                    requestAnimationFrame(() => {
-                        const hash = (window.location.hash || "").slice(1);
-                        if (hash) openDetailsById(hash);
-                    });
-                    return;
-                }
-                const hash = (window.location.hash || "").slice(1);
-                if (!hash) return;
-                openDetailsById(hash);
-            }
-
-            // Open on direct load and when hash changes
-            window.addEventListener("hashchange", handleHashOpen);
-            handleHashOpen();
 
             function buildHint(count) {
                 if (count === 0) return "No published events this month yet.";
@@ -551,6 +606,16 @@ for (const e of monthEvents) {
                 const monthEvents = data.monthEvents ?? [];
                 buildCalendarGrid(state.monthKey, monthEvents);
                 buildMonthList(monthEvents);
+                
+                closeAllDetails(null);
+
+                // If current hash points to an event not in this month, clear it (prevents “dead hash”)
+                const hashId = (window.location.hash || "").slice(1);
+                if (hashId && !document.getElementById(hashId)) {
+                    const u = new URL(window.location.href);
+                    u.hash = "";
+                    history.replaceState({}, "", u.pathname + u.search);
+                }
 
                 if (pushUrl) {
                     const u = new URL(window.location.href);
@@ -693,22 +758,7 @@ for (const e of monthEvents) {
                             a.className = "chip";
                             const targetId = `event-${ev.id}`;
                             a.href = `#${targetId}`;
-                            a.setAttribute("title", ev.summary ?? ev.title ?? "");
                             a.setAttribute("aria-disabled", "false");
-
-                            // Open immediately on click (so it opens even if browser doesn’t fire hashchange for same-hash clicks)
-                            a.addEventListener("click", (e) => {
-                                e.preventDefault();
-
-                                const nextHash = `#${targetId}`;
-                                if (window.location.hash !== nextHash) {
-                                    isProgrammaticHash = true;
-                                    window.location.hash = targetId;
-                                } else {
-                                    // Same hash: hashchange won't fire, so open directly
-                                    openDetailsById(targetId);
-                                }
-                            });
 
                             const kind = document.createElement("span");
                             kind.className = "chipKind";
