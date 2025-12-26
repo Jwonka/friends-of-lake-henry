@@ -1,6 +1,8 @@
 import type { APIRoute, APIContext } from "astro";
 import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
 import { redirect, options } from "../../../lib/http";
+import { verifyTurnstile } from "../../../lib/turnstile";
+
 
 const ALLOWED_CATEGORIES = new Set([
     "Restoration",
@@ -67,13 +69,32 @@ export const POST: APIRoute = async (context) => {
         const MAX_BYTES = 8 * 1024 * 1024;
         if (file.size <= 0 || file.size > MAX_BYTES) { return redirectTo(context, "/photos/submit?err=size"); }
 
+        // Honeypot
+        const company = String(form.get("company") ?? "").trim();
+        if (company) return redirectTo(context, "/photos?submitted=1"); // act like success
+
+        // Turnstile
+        const token = String(form.get("cf-turnstile-response") ?? "").trim();
+        if (!token) return redirectTo(context, "/photos/submit?err=captcha");
+
         const env = (context.locals as any).runtime?.env as
-            | { DB?: D1Database; PHOTOS_BUCKET?: R2Bucket }
+            | { DB?: D1Database; PHOTOS_BUCKET?: R2Bucket; TURNSTILE_SECRET?: string }
             | undefined;
 
         const DB = env?.DB;
         const BUCKET = env?.PHOTOS_BUCKET;
         if (!DB || !BUCKET) return redirectTo(context, "/photos/submit?err=server");
+
+        const secret = String(env?.TURNSTILE_SECRET ?? "").trim();
+        if (!secret) return redirectTo(context, "/photos/submit?err=server");
+
+        const okCaptcha = await verifyTurnstile({
+            request: context.request,
+            secret,
+            token,
+        });
+
+        if (!okCaptcha) return redirectTo(context, "/photos/submit?err=captcha");
 
         const id = crypto.randomUUID();
         const ext = extFromContentType(file.type);
@@ -89,7 +110,7 @@ export const POST: APIRoute = async (context) => {
                 `INSERT INTO photos
          (id, status, r2_key, content_type, category, title, caption, alt, submitted_by, submitted_at)
          VALUES
-         (?, 'pending', ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+         (?, 'pending', ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`
             )
                 .bind(
                     id,

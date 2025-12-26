@@ -82,9 +82,16 @@ const error = url.searchParams.get("error") === "1";
                         <textarea name="message" rows="4" placeholder="Any notes (optional)"></textarea>
                     </label>
 
-                    <div class="turnstile">
-                        <div class="cf-turnstile" data-sitekey={siteKey}></div>
+                    <!-- Honeypot -->
+                    <div class="hp" aria-hidden="true">
+                        <label>
+                            Company
+                            <input type="text" name="company" tabindex="-1" autocomplete="off" />
+                        </label>
                     </div>
+
+                    <!-- Turnstile widget -->
+                    <div id="ts" data-sitekey={siteKey}></div>
 
                     <div class="ctaRow  enter-block delay-2">
                         <button class="btn" type="submit">Submit donation</button>

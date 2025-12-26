@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { json, redirect, options } from "../../lib/http";
+import { verifyTurnstile } from "../../lib/turnstile";
 
 type TurnstileVerify = {
     success: boolean;
@@ -73,31 +74,29 @@ export const POST: APIRoute = async (context) => {
 
         // ---- Turnstile verification ----
         const token = String(form.get("cf-turnstile-response") ?? "").trim();
-        if (!token) return wantsJson(request) ? json({ ok: false, error: "captcha" }, 400) : redirectBack(request.url, "?err=captcha");
+        if (!token) {
+            return wantsJson(request)
+                ? json({ ok: false, error: "captcha" }, 400)
+                : redirectBack(request.url, "?err=captcha");
+        }
 
-        if (!env.TURNSTILE_SECRET) return wantsJson(request) ? json({ ok: false, error: "server" }, 500) : redirectBack(request.url, "?err=server");
+        if (!env.TURNSTILE_SECRET) {
+            return wantsJson(request)
+                ? json({ ok: false, error: "server" }, 500)
+                : redirectBack(request.url, "?err=server");
+        }
 
-        const ip = request.headers.get("CF-Connecting-IP") || "";
+        const okCaptcha = await verifyTurnstile({
+            request,
+            secret: env.TURNSTILE_SECRET,
+            token,
+        });
 
-        const body = new URLSearchParams();
-        body.set("secret", env.TURNSTILE_SECRET);
-        body.set("response", token);
-        if (ip) body.set("remoteip", ip);
-
-        const verifyResp = await fetch(
-            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-            {
-                method: "POST",
-                headers: { "content-type": "application/x-www-form-urlencoded" },
-                body,
-            }
-        );
-
-        if (!verifyResp.ok) return wantsJson(request) ? json({ok:false,error:"captcha"}, 400) : redirectBack(request.url, "?err=captcha");
-
-        const verify = (await verifyResp.json().catch(() => null)) as TurnstileVerify | null;
-
-        if (!verify?.success) return wantsJson(request) ? json({ok:false,error:"captcha"}, 400) : redirectBack(request.url, "?err=captcha");
+        if (!okCaptcha) {
+            return wantsJson(request)
+                ? json({ ok: false, error: "captcha" }, 400)
+                : redirectBack(request.url, "?err=captcha");
+        }
 
         if (!env.RESEND_API_KEY || !env.FROM_EMAIL || !env.TO_EMAIL) {
             return wantsJson(request) ? json({ok:false,error:"server"}, 502) : redirectBack(request.url, "?err=server");

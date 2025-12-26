@@ -1,6 +1,9 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 export const prerender = false;
+
+const env = (Astro.locals as any).runtime?.env as { PUBLIC_TURNSTILE_KEY?: string } | undefined;
+const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
 ---
 <BaseLayout title="Submit Photo | Friends of Lake Henry">
     <div class="container">
@@ -104,6 +107,17 @@ export const prerender = false;
                         </label>
                     </div>
 
+                    <!-- Honeypot -->
+                    <div class="hp" aria-hidden="true">
+                        <label>
+                            Company
+                            <input type="text" name="company" tabindex="-1" autocomplete="off" />
+                        </label>
+                    </div>
+
+                    <!-- Turnstile widget -->
+                    <div id="ts" data-sitekey={siteKey}></div>
+
                     <div class="ctaRow enter-block delay-2">
                         <button class="btn" type="submit">Submit photo</button>
                         <a class="pill submitPill" href="/photos">Back to photos</a>
@@ -114,7 +128,7 @@ export const prerender = false;
             </div>
         </section>
     </div>
-
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script is:inline>
         (function () {
             const statusEl = document.getElementById("status");
