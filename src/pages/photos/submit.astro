@@ -128,7 +128,7 @@ const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
             </div>
         </section>
     </div>
-    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script is:inline>
         (function () {
             const statusEl = document.getElementById("status");
@@ -155,16 +155,87 @@ const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
             if (err) {
                 const msg =
                     err === "file" ? "Please choose a file."
-                        : err === "category" ? "Please choose a valid category."
-                            : err === "alt" ? "Alt text must be at least 5 characters."
-                                : err === "type" ? "Please upload a JPG, PNG, WEBP, or GIF."
-                                    : err === "size" ? "File must be under 8MB."
-                                        : "Sorry, something went wrong. Please try again.";
+                        : err === "captcha" ? "Verification failed. Please try again."
+                            : err === "category" ? "Please choose a valid category."
+                                : err === "alt" ? "Alt text must be at least 5 characters."
+                                    : err === "type" ? "Please upload a JPG, PNG, WEBP, GIF, or AVIF."
+                                        : err === "size" ? "File must be under 8MB."
+                                            : "Sorry, something went wrong. Please try again.";
 
                 show("err", msg);
                 url.searchParams.delete("err");
                 window.history.replaceState({}, "", url.pathname + url.search);
             }
+        })();
+    </script>
+    <script is:inline>
+        (function () {
+            const form = document.querySelector("form.form");
+            const container = document.getElementById("ts");
+            const statusEl = document.getElementById("status");
+            if (!form || !container || !statusEl) return;
+
+            const sitekey = (container.getAttribute("data-sitekey") || "").trim();
+            let widgetId = null;
+
+            function show(kind, msg) {
+                statusEl.textContent = msg;
+                statusEl.classList.remove("status--empty", "status--success", "status--error");
+                statusEl.classList.add(kind === "ok" ? "status--success" : "status--error");
+                try { statusEl.focus(); } catch {}
+            }
+
+            if (!sitekey) {
+                show("err", "Photo submissions are not configured yet. Please try again later.");
+                return;
+            }
+
+            function initTurnstile() {
+                if (!window.turnstile || widgetId != null) return;
+                widgetId = window.turnstile.render(container, {
+                    sitekey,
+                    execution: "execute",
+                    appearance: "execute",
+                    callback: (token) => {
+                        // ensure token is in the form like the auto-widget would do
+                        let input = form.querySelector('input[name="cf-turnstile-response"]');
+                        if (!(input instanceof HTMLInputElement)) {
+                            input = document.createElement("input");
+                            input.type = "hidden";
+                            input.name = "cf-turnstile-response";
+                            form.appendChild(input);
+                        }
+                        input.value = token;
+
+                        form.dataset.tsPending = "";
+                        form.submit();
+                    },
+                    "error-callback": () => {
+                        form.dataset.tsPending = "";
+                        show("err", "Verification failed. Please try again.");
+                    },
+                });
+            }
+
+            window.addEventListener("load", initTurnstile);
+
+            form.addEventListener("submit", (e) => {
+                if (form.dataset.tsPending === "1") return;
+
+                e.preventDefault();
+                form.dataset.tsPending = "1";
+
+                initTurnstile();
+
+                if (!window.turnstile || widgetId == null) {
+                    form.dataset.tsPending = "";
+                    show("err", "Verification is still loading. Please try again.");
+                    return;
+                }
+
+                show("ok", "Verifying…");
+                window.turnstile.execute(widgetId);
+            });
         })();
     </script>
     <script is:inline>
