@@ -7,6 +7,14 @@ type Row = { r2_key: string; content_type: string | null; status: string };
 const err = (msg: string, status: number) =>
     new Response(msg, { status, headers: SECURITY_HEADERS_NOSTORE });
 
+const ALLOWED_IMAGE_TYPES = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/avif",
+]);
+
 function safeFilename(name: string) {
     // keep it simple; avoid header injection / weird chars
     return name.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 80) || "photo";
@@ -22,12 +30,10 @@ function guessContentTypeFromKey(key: string): string | null {
     return null;
 }
 
-function normalizeImageContentType(ct: string | null | undefined): string | null {
+function normalizeAllowedImageContentType(ct: string | null | undefined): string | null {
     if (!ct) return null;
-    const v = ct.trim().toLowerCase();
-    // strip any charset parameters
-    const base = v.split(";")[0].trim();
-    return base.startsWith("image/") ? base : null;
+    const base = ct.trim().toLowerCase().split(";")[0].trim();
+    return ALLOWED_IMAGE_TYPES.has(base) ? base : null;
 }
 
 export const GET: APIRoute = async ({ locals, url }) => {
@@ -53,10 +59,11 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
     const headers = new Headers(SECURITY_HEADERS_FILE);
     const contentType =
-        normalizeImageContentType(row.content_type) ||
-        normalizeImageContentType(obj.httpMetadata?.contentType) ||
-        guessContentTypeFromKey(row.r2_key) ||
-        "image/jpeg"; // last-resort: better UX than octet-stream
+        normalizeAllowedImageContentType(row.content_type) ||
+        normalizeAllowedImageContentType(obj.httpMetadata?.contentType) ||
+        guessContentTypeFromKey(row.r2_key);
+
+    if (!contentType) return err("Unsupported image type", 415);
 
     const ext = contentType === "image/jpeg" ? "jpg"
         : contentType === "image/png" ? "png"
