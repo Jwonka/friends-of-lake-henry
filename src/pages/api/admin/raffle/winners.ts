@@ -162,6 +162,5 @@ export const POST: APIRoute = async ({ request, locals }) => {
         }
         return json({ ok: false, error: "DB insert failed" }, 500);
     }
-
     return json({ ok: true, id }, 200);
 };

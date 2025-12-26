@@ -27,7 +27,7 @@ export const POST: APIRoute = async (context) => {
         // ignore: logout should still clear cookie client-side
     }
 
-    const res = redirect(`${context.url.origin}/admin/login`, 303);
+    const res = redirect(`${context.url.origin}/admin/login`);
 
     // Clear new session cookie (Path must match how it was set: Path=/)
     res.headers.append(

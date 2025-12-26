@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
-import { SECURITY_HEADERS_FILE, SECURITY_HEADERS_NOSTORE } from "../../../lib/http";
+import { fileResponse, SECURITY_HEADERS_FILE, SECURITY_HEADERS_NOSTORE } from "../../../lib/http";
 
 const err = (msg: string, status: number) =>
     new Response(msg, { status, headers: SECURITY_HEADERS_NOSTORE });
@@ -34,6 +34,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
     headers.set("Cache-Control", "public, max-age=86400");
     if (obj.httpEtag) headers.set("ETag", obj.httpEtag);
 
-    return new Response(obj.body as any, { status: 200, headers });
+    return fileResponse(obj.body as any, headers, 200);
 };
 

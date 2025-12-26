@@ -71,7 +71,7 @@ export const POST: APIRoute = async (context) => {
         // Cloudflare KV supports expirationTtl in seconds
         await env.SESSION.put(key, value, { expirationTtl: SESSION_TTL_SECONDS });
 
-        const res = redirect(`${context.url.origin}${safeNext}`, 303);
+        const res = redirect(`${context.url.origin}${safeNext}`);
 
         res.headers.append(
             "Set-Cookie",

@@ -10,17 +10,17 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
     const BUCKET = env?.PHOTOS_BUCKET;
 
     const base = `${url.origin}/admin/photos/approved`;
-    if (!DB || !BUCKET) return redirect(`${base}?err=server`, 303);
+    if (!DB || !BUCKET) return redirect(`${base}?err=server`);
 
     const form = await request.formData();
     const id = String(form.get("id") ?? "").trim();
-    if (!id) return redirect(`${base}?err=server`, 303);
+    if (!id) return redirect(`${base}?err=server`);
 
     const row = (await DB.prepare(`SELECT r2_key, status FROM photos WHERE id = ?`)
         .bind(id)
         .first()) as Row | null;
 
-    if (!row || row.status !== "approved") return redirect(`${base}?err=notfound`, 303);
+    if (!row || row.status !== "approved") return redirect(`${base}?err=notfound`);
 
     if (row.r2_key) {
         try { await BUCKET.delete(row.r2_key); } catch {}
@@ -28,5 +28,5 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
 
     await DB.prepare(`DELETE FROM photos WHERE id = ?`).bind(id).run();
 
-    return redirect(`${base}?ok=deleted`, 303);
+    return redirect(`${base}?ok=deleted`);
 };

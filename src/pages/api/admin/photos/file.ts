@@ -1,12 +1,14 @@
 import type { APIRoute } from "astro";
 import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
-import { SECURITY_HEADERS_NOSTORE, fileResponse } from "../../../../lib/http";
+import {SECURITY_HEADERS_NOSTORE, fileResponse, SECURITY_HEADERS_FILE} from "../../../../lib/http";
 
 type Row = { r2_key: string; content_type: string; status: string };
+const err = (msg: string, status: number) =>
+    new Response(msg, { status, headers: SECURITY_HEADERS_NOSTORE });
 
 export const GET: APIRoute = async ({ locals, url }) => {
     const id = url.searchParams.get("id");
-    if (!id) return new Response("Missing id", { status: 400, headers: SECURITY_HEADERS_NOSTORE });
+    if (!id) return err("Missing id", 400);
 
     const env = (locals as any).runtime?.env as { DB?: D1Database; PHOTOS_BUCKET?: R2Bucket } | undefined;
     const DB = env?.DB;
@@ -20,18 +22,17 @@ export const GET: APIRoute = async ({ locals, url }) => {
         .first()) as Row | null;
 
     // admin preview endpoint: pending only
-    if (!row || row.status !== "pending") return new Response("Not found", { status: 404, headers: SECURITY_HEADERS_NOSTORE });
+    if (!row || row.status !== "pending") return err("Not found", 404);
 
     const obj = await BUCKET.get(row.r2_key);
-    if (!obj) return new Response("Not found", { status: 404, headers: SECURITY_HEADERS_NOSTORE });
-
-    return fileResponse(
-        obj.body as any,
-        {
-            "Content-Type": row.content_type || obj.httpMetadata?.contentType || "application/octet-stream",
-            "Cache-Control": "no-store",
-            ...(obj.httpEtag ? { ETag: obj.httpEtag } : {}),
-        },
-        200
+    if (!obj) return err("Not found", 404);
+    const headers = new Headers(SECURITY_HEADERS_FILE);
+    headers.set(
+        "Content-Type",
+        row.content_type || obj.httpMetadata?.contentType || "application/octet-stream"
     );
+    headers.set("Cache-Control", "no-store");
+    if (obj.httpEtag) headers.set("ETag", obj.httpEtag);
+
+    return fileResponse(obj.body as any, headers, 200);
 };
