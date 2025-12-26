@@ -60,7 +60,7 @@ export const POST: APIRoute = async (context) => {
         // Turnstile
         const token = String(form.get("cf-turnstile-response") ?? "").trim();
         if (!token) return redirectTo(context, "/photos/submit?err=captcha");
-        
+
         if (!ALLOWED_CATEGORIES.has(category)) {
             return redirectTo(context, "/photos/submit?err=category");
         }
