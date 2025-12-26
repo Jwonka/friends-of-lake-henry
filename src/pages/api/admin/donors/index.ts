@@ -12,7 +12,6 @@ function toCents(amountStr: string): number | null {
     return Math.round(n * 100);
 }
 
-
 export const POST: APIRoute = async (context) => {
     try {
         const form = await context.request.formData();
