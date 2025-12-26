@@ -5,6 +5,30 @@ import { fileResponse, SECURITY_HEADERS_FILE, SECURITY_HEADERS_NOSTORE } from ".
 const err = (msg: string, status: number) =>
     new Response(msg, { status, headers: SECURITY_HEADERS_NOSTORE });
 
+const ALLOWED_IMAGE_TYPES = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/avif",
+]);
+
+function guessContentTypeFromKey(key: string): string | null {
+    const k = key.toLowerCase();
+    if (k.endsWith(".jpg") || k.endsWith(".jpeg")) return "image/jpeg";
+    if (k.endsWith(".png")) return "image/png";
+    if (k.endsWith(".webp")) return "image/webp";
+    if (k.endsWith(".gif")) return "image/gif";
+    if (k.endsWith(".avif")) return "image/avif";
+    return null;
+}
+
+function normalizeAllowedImageContentType(ct: string | null | undefined): string | null {
+    if (!ct) return null;
+    const base = ct.trim().toLowerCase().split(";")[0].trim();
+    return ALLOWED_IMAGE_TYPES.has(base) ? base : null;
+}
+
 export const GET: APIRoute = async ({ locals, url }) => {
     const id = url.searchParams.get("id")?.trim();
     if (!id) return err("Missing id", 400);
@@ -30,7 +54,13 @@ export const GET: APIRoute = async ({ locals, url }) => {
     if (!obj) return err("Not found", 404);
 
     const headers = new Headers(SECURITY_HEADERS_FILE);
-    headers.set("Content-Type", obj.httpMetadata?.contentType || "application/octet-stream");
+    const contentType =
+        normalizeAllowedImageContentType(obj.httpMetadata?.contentType) ||
+        guessContentTypeFromKey(key);
+
+    if (!contentType) return err("Unsupported image type", 415);
+
+    headers.set("Content-Type", contentType);
     headers.set("Cache-Control", "public, max-age=86400");
     if (obj.httpEtag) headers.set("ETag", obj.httpEtag);
 
