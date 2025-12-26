@@ -69,8 +69,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (
         pathname === "/admin/login" ||
         pathname === "/admin/login/" ||
-        pathname === "/api/admin/login" ||
-        pathname === "/api/admin/logout"
+        pathname === "/api/admin/login"
     ) {
         return next();
     }
