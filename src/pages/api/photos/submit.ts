@@ -53,6 +53,14 @@ export const POST: APIRoute = async (context) => {
         const submittedBy = String(form.get("submittedBy") ?? "").trim() || null;
         const fileLike = form.get("photo");
 
+        // Honeypot
+        const company = String(form.get("company") ?? "").trim();
+        if (company) return redirectTo(context, "/photos/submit?submitted=1"); // act like success
+
+        // Turnstile
+        const token = String(form.get("cf-turnstile-response") ?? "").trim();
+        if (!token) return redirectTo(context, "/photos/submit?err=captcha");
+        
         if (!ALLOWED_CATEGORIES.has(category)) {
             return redirectTo(context, "/photos/submit?err=category");
         }
@@ -68,14 +76,6 @@ export const POST: APIRoute = async (context) => {
 
         const MAX_BYTES = 8 * 1024 * 1024;
         if (file.size <= 0 || file.size > MAX_BYTES) { return redirectTo(context, "/photos/submit?err=size"); }
-
-        // Honeypot
-        const company = String(form.get("company") ?? "").trim();
-        if (company) return redirectTo(context, "/photos?submitted=1"); // act like success
-
-        // Turnstile
-        const token = String(form.get("cf-turnstile-response") ?? "").trim();
-        if (!token) return redirectTo(context, "/photos/submit?err=captcha");
 
         const env = (context.locals as any).runtime?.env as
             | { DB?: D1Database; PHOTOS_BUCKET?: R2Bucket; TURNSTILE_SECRET?: string }
@@ -129,7 +129,7 @@ export const POST: APIRoute = async (context) => {
             throw e;
         }
 
-        return redirectTo(context, "/photos?submitted=1");
+        return redirectTo(context, "/photos/submit?submitted=1");
     } catch (e) {
         console.error(e);
         return redirectTo(context, "/photos/submit?err=server");

@@ -128,56 +128,15 @@ const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
             </div>
         </section>
     </div>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script is:inline>
-        (function () {
-            const statusEl = document.getElementById("status");
-            if (!statusEl) return;
-
-            const url = new URL(window.location.href);
-            const err = url.searchParams.get("err");
-            const submitted = url.searchParams.get("submitted");
-
-            function show(kind, msg) {
-                statusEl.textContent = msg;
-                statusEl.classList.remove("status--empty", "status--success", "status--error");
-                statusEl.classList.add(kind === "ok" ? "status--success" : "status--error");
-                try { statusEl.focus(); } catch {}
-            }
-
-            if (submitted === "1") {
-                show("ok", "Thanks! Your photo was submitted for review.");
-                url.searchParams.delete("submitted");
-                window.history.replaceState({}, "", url.pathname + url.search);
-                return;
-            }
-
-            if (err) {
-                const msg =
-                    err === "file" ? "Please choose a file."
-                        : err === "captcha" ? "Verification failed. Please try again."
-                            : err === "category" ? "Please choose a valid category."
-                                : err === "alt" ? "Alt text must be at least 5 characters."
-                                    : err === "type" ? "Please upload a JPG, PNG, WEBP, GIF, or AVIF."
-                                        : err === "size" ? "File must be under 8MB."
-                                            : "Sorry, something went wrong. Please try again.";
-
-                show("err", msg);
-                url.searchParams.delete("err");
-                window.history.replaceState({}, "", url.pathname + url.search);
-            }
-        })();
-    </script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
     <script is:inline>
         (function () {
             const form = document.querySelector("form.form");
-            const container = document.getElementById("ts");
             const statusEl = document.getElementById("status");
-            if (!form || !container || !statusEl) return;
+            const tsContainer = document.getElementById("ts");
+            if (!form || !statusEl) return;
 
-            const sitekey = (container.getAttribute("data-sitekey") || "").trim();
-            let widgetId = null;
-
+            // ---------- status helpers ----------
             function show(kind, msg) {
                 statusEl.textContent = msg;
                 statusEl.classList.remove("status--empty", "status--success", "status--error");
@@ -185,30 +144,81 @@ const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
                 try { statusEl.focus(); } catch {}
             }
 
+            // read query params (err/submitted) and then clear them
+            (function handleQueryStatus() {
+                const url = new URL(window.location.href);
+                const err = url.searchParams.get("err");
+                const submitted = url.searchParams.get("submitted");
+
+                if (submitted === "1") {
+                    show("ok", "Thanks! Your photo was submitted for review.");
+                    url.searchParams.delete("submitted");
+                    window.history.replaceState({}, "", url.pathname + (url.search || ""));
+                    return;
+                }
+
+                if (err) {
+                    const msg =
+                        err === "file" ? "Please choose a file."
+                            : err === "captcha" ? "Verification failed. Please try again."
+                                : err === "category" ? "Please choose a valid category."
+                                    : err === "alt" ? "Alt text must be at least 5 characters."
+                                        : err === "type" ? "Please upload a JPG, PNG, WEBP, GIF, or AVIF."
+                                            : err === "size" ? "File must be under 8MB."
+                                                : "Sorry, something went wrong. Please try again.";
+
+                    show("err", msg);
+                    url.searchParams.delete("err");
+                    window.history.replaceState({}, "", url.pathname + (url.search || ""));
+                }
+            })();
+
+            // ---------- file UI ----------
+            (function initFileUi() {
+                const input = form.querySelector('input[type="file"][name="photo"]');
+                const btn = document.querySelector("[data-file-btn]");
+                const name = document.querySelector("[data-file-name]");
+                if (!input || !btn || !name) return;
+
+                btn.addEventListener("click", () => input.click());
+                input.addEventListener("change", () => {
+                    const f = input.files && input.files[0];
+                    name.textContent = f ? f.name : "No file chosen";
+                });
+            })();
+
+            // ---------- turnstile execute flow ----------
+            if (!tsContainer) return;
+
+            const sitekey = (tsContainer.getAttribute("data-sitekey") || "").trim();
             if (!sitekey) {
                 show("err", "Photo submissions are not configured yet. Please try again later.");
                 return;
             }
 
+            let widgetId = null;
+
+            function ensureTokenInput(token) {
+                let input = form.querySelector('input[name="cf-turnstile-response"]');
+                if (!(input instanceof HTMLInputElement)) {
+                    input = document.createElement("input");
+                    input.type = "hidden";
+                    input.name = "cf-turnstile-response";
+                    form.appendChild(input);
+                }
+                input.value = token;
+            }
+
             function initTurnstile() {
                 if (!window.turnstile || widgetId != null) return;
-                widgetId = window.turnstile.render(container, {
+                widgetId = window.turnstile.render(tsContainer, {
                     sitekey,
                     execution: "execute",
                     appearance: "execute",
                     callback: (token) => {
-                        // ensure token is in the form like the auto-widget would do
-                        let input = form.querySelector('input[name="cf-turnstile-response"]');
-                        if (!(input instanceof HTMLInputElement)) {
-                            input = document.createElement("input");
-                            input.type = "hidden";
-                            input.name = "cf-turnstile-response";
-                            form.appendChild(input);
-                        }
-                        input.value = token;
-
+                        ensureTokenInput(token);
                         form.dataset.tsPending = "";
-                        form.submit();
+                        form.submit(); // normal POST -> server redirect -> full reload
                     },
                     "error-callback": () => {
                         form.dataset.tsPending = "";
@@ -235,20 +245,6 @@ const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
 
                 show("ok", "Verifying…");
                 window.turnstile.execute(widgetId);
-            });
-        })();
-    </script>
-    <script is:inline>
-        (function () {
-            const input = document.querySelector('input[type="file"][name="photo"]');
-            const btn = document.querySelector("[data-file-btn]");
-            const name = document.querySelector("[data-file-name]");
-            if (!input || !btn || !name) return;
-
-            btn.addEventListener("click", () => input.click());
-            input.addEventListener("change", () => {
-                const f = input.files && input.files[0];
-                name.textContent = f ? f.name : "No file chosen";
             });
         })();
     </script>
