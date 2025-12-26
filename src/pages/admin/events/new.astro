@@ -108,12 +108,19 @@ const statusMsg =
         const form = document.querySelector("form.form");
         const status = document.getElementById("status");
 
+        function nowChicagoDatetimeMin() {
+            const parts = new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/Chicago",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+            }).formatToParts(new Date());
 
-        function nowLocalDatetimeMin() {
-            // datetime-local expects "YYYY-MM-DDTHH:MM" in the user's local time
-            const d = new Date();
-            const pad = (n) => String(n).padStart(2, "0");
-            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            const get = (t) => parts.find((p) => p.type === t)?.value ?? "";
+            return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
         }
 
         function showStatus(msg) {
@@ -150,7 +157,7 @@ const statusMsg =
             }
 
             // New event: prevent past picks
-            const minNow = nowLocalDatetimeMin();
+            const minNow = nowChicagoDatetimeMin();
             start.min = minNow;
             end.min = minNow;
 

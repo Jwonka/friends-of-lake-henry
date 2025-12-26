@@ -221,10 +221,19 @@ const statusMsg =
         const form = document.querySelector("form.form");
         const status = document.getElementById("status");
 
-        function nowLocalDatetimeMin() {
-            const d = new Date();
-            const pad = (n) => String(n).padStart(2, "0");
-            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        function nowChicagoDatetimeMin() {
+            const parts = new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/Chicago",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+            }).formatToParts(new Date());
+
+            const get = (t) => parts.find((p) => p.type === t)?.value ?? "";
+            return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
         }
 
         function showStatus(msg) {
@@ -295,7 +304,7 @@ const statusMsg =
 
             // On edit: block user from saving an event in the past if you truly want that rule.
             // This will prevent “fixing” old events unless they toggle to TBD or move it to future.
-            const minNow = nowLocalDatetimeMin();
+            const minNow = nowChicagoDatetimeMin();
             if (s < minNow) {
                 e.preventDefault();
                 showStatus("Start date cannot be in the past.");
