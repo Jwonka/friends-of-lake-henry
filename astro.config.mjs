@@ -6,7 +6,11 @@ import cloudflare from "@astrojs/cloudflare";
 // https://astro.build/config
 export default defineConfig({
     site: 'https://friendsoflakehenry.com',
-    integrations: [sitemap()],
+    integrations: [
+        sitemap({
+            filter: (page) => !page.includes("/admin") && !page.includes("/api/"),
+        }),
+    ],
     output: "server",
     adapter: cloudflare(),
     image: {

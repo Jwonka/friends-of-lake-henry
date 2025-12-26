@@ -1,4 +1,6 @@
 User-agent: *
+Disallow: /admin/
+Disallow: /api/
 Allow: /
 
 Sitemap: https://friendsoflakehenry.com/sitemap-index.xml
