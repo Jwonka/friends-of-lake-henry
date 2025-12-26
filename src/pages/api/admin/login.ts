@@ -4,6 +4,9 @@ import { redirect } from "../../../lib/http";
 const SESSION_COOKIE = "admin_session";
 const SESSION_PREFIX = "admin_sess:";
 const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
+const LOGIN_RL_PREFIX = "login_rl:";
+const LOGIN_RL_TTL_SECONDS = 60 * 10; // 10 minutes
+const LOGIN_RL_MAX_FAILS = 10;
 
 function toBase64Url(bytes: Uint8Array) {
     // btoa expects binary string
@@ -31,6 +34,20 @@ function sanitizeNext(raw: string) {
     return next;
 }
 
+function getClientIp(req: Request): string {
+    return (
+        req.headers.get("CF-Connecting-IP") ||
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        "unknown"
+    );
+}
+
+async function getFailCount(kv: any, key: string): Promise<number> {
+    const raw = await kv.get(key);
+    const n = Number(raw);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
 export const POST: APIRoute = async (context) => {
     try {
         const ct = context.request.headers.get("content-type") || "";
@@ -50,11 +67,26 @@ export const POST: APIRoute = async (context) => {
             return redirect(`${context.url.origin}/admin/login?err=server`);
         }
 
+        const ip = getClientIp(context.request);
+        const rlKey = `${LOGIN_RL_PREFIX}${ip}`;
+
+        // If already rate-limited, behave like bad creds (don’t leak signal)
+        const fails = await getFailCount(env.SESSION, rlKey);
+        if (fails >= LOGIN_RL_MAX_FAILS) {
+            return redirect(`${context.url.origin}/admin/login?err=1&next=${encodeURIComponent(safeNext)}`);
+        }
+
         if (username !== env.ADMIN_USERNAME || password !== env.ADMIN_PASSWORD) {
+            const nextFails = fails + 1;
+            await env.SESSION.put(rlKey, String(nextFails), { expirationTtl: LOGIN_RL_TTL_SECONDS });
+
             return redirect(
                 `${context.url.origin}/admin/login?err=1&next=${encodeURIComponent(safeNext)}`
             );
         }
+
+        // Successful login: clear any prior failures for this IP
+        try { await env.SESSION.delete(rlKey); } catch { /* ignore */ }
 
         // Create server-side session
         const sessionId = randomSessionId();
