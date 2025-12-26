@@ -46,11 +46,9 @@ export function options(allowMethods = "POST,OPTIONS"): Response {
 }
 
 export function fileResponse(body: BodyInit | null, headers: HeadersInit, status = 200) {
-    return new Response(body, {
-        status,
-        headers: {
-            ...SECURITY_HEADERS_FILE,
-            ...headers,
-        },
-    });
+    const h = new Headers(SECURITY_HEADERS_FILE);
+    const extra = new Headers(headers);
+    for (const [k, v] of extra.entries()) h.set(k, v);
+
+    return new Response(body, { status, headers: h });
 }
