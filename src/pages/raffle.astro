@@ -1,5 +1,5 @@
 ---
-import type { D1Database } from "@cloudflare/workers-types";
+import type { D1Database, KVNamespace  } from "@cloudflare/workers-types";
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 
@@ -23,8 +23,10 @@ type WinnerRow = {
     prize: string | null;
 };
 
-const env = Astro.locals.runtime.env;
-const DB = env.DB as D1Database | undefined;
+type Env = { DB?: D1Database; CONFIG?: KVNamespace };
+
+const env = (Astro.locals as any).runtime?.env as Env | undefined;
+const DB = env?.DB;
 
 function isMonthKey(s: string) {
     return /^\d{4}-\d{2}$/.test(s);
@@ -36,12 +38,11 @@ const url = new URL(Astro.request.url);
 const monthParam = (url.searchParams.get("month") ?? "").trim();
 
 // Default to current month (America/Chicago)
-const now = new Date();
 const currentMonth = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Chicago",
     year: "numeric",
     month: "2-digit",
-}).format(now).slice(0, 7); // YYYY-MM
+}).format(new Date()).slice(0, 7); // YYYY-MM
 
 let raffleKey = isMonthKey(monthParam) ? monthParam : currentMonth;
 
@@ -59,33 +60,25 @@ let months: string[] = [];
 let defaultMonth = currentMonth;
 
 if (DB) {
-    const metaMonthsRes = await DB.prepare(
-        `SELECT month_key as monthKey
-         FROM raffle_months
-         ORDER BY month_key DESC`
-    ).all();
-    const metaMonths = (metaMonthsRes.results ?? [])
-        .map((r: any) => String(r.monthKey ?? "").trim())
-        .filter(isMonthKey);
-
     const winnerMonthsRes = await DB.prepare(
         `SELECT DISTINCT raffle_key as monthKey
-         FROM raffle_winners
-         ORDER BY raffle_key DESC`
+     FROM raffle_winners
+     ORDER BY raffle_key DESC`
     ).all();
-    const winnerMonths = (winnerMonthsRes.results ?? [])
+
+    const activeMonths = (winnerMonthsRes.results ?? [])
         .map((r: any) => String(r.monthKey ?? "").trim())
-        .filter(isMonthKey);
-
-    months = Array.from(new Set([currentMonth, ...metaMonths, ...winnerMonths]))
         .filter(isMonthKey)
         .sort((a, b) => b.localeCompare(a)); // DESC
 
-    const activeMonths = Array.from(new Set([...metaMonths, ...winnerMonths]))
+    // assign to OUTER variables (no const)
+    months = Array.from(new Set([currentMonth, ...activeMonths]))
         .filter(isMonthKey)
         .sort((a, b) => b.localeCompare(a)); // DESC
 
-    defaultMonth = activeMonths[0] ?? currentMonth;
+    defaultMonth =
+        activeMonths.includes(currentMonth) ? currentMonth : (activeMonths[0] ?? currentMonth);
+
 } else {
     months = [currentMonth];
     defaultMonth = currentMonth;
@@ -137,7 +130,7 @@ if (DB) {
 let liveConfig: LiveConfig = { latestVideoUrl: null, previousVideoUrl: null,  updatedAt: null };
 
 try {
-    const raw = await env.CONFIG?.get("raffle_live");
+    const raw = await env?.CONFIG?.get("raffle_live");
 
     if (raw) {
         const parsed = JSON.parse(raw) as Partial<LiveConfig>;
@@ -447,13 +440,24 @@ const updatedAtLabel =
 
             if (monthSelect instanceof HTMLSelectElement) { monthSelect.value = state.monthKey; }
 
+            if (monthSelect instanceof HTMLSelectElement && Array.isArray(data.months)) {
+                monthSelect.replaceChildren();
+                for (const m of data.months) {
+                    const opt = document.createElement("option");
+                    opt.value = m.key;
+                    opt.textContent = m.label ?? m.key;
+                    monthSelect.appendChild(opt);
+                }
+                monthSelect.value = state.monthKey;
+            }
+
             setNavDisabled(state.prevMonthKey, state.nextMonthKey);
             renderWinners(data.monthLabel, data.raffleTitle, data.winners);
 
             if (pushUrl) {
                 const nextUrl = new URL(window.location.href);
                 nextUrl.searchParams.set("month", state.monthKey);
-                window.history.replaceState({}, "", nextUrl.toString());
+                window.history.pushState({}, "", nextUrl.toString());
             }
         }
 
@@ -483,6 +487,12 @@ const updatedAtLabel =
                 await loadMonth(target);
             });
         }
+
+        window.addEventListener("popstate", () => {
+            const u = new URL(window.location.href);
+            const mk = (u.searchParams.get("month") ?? "").trim();
+            if (/^\d{4}-\d{2}$/.test(mk)) loadMonth(mk, false);
+        });
 
         // init: disable buttons based on SSR state, bind once
         setNavDisabled(state.prevMonthKey, state.nextMonthKey);

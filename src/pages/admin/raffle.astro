@@ -136,12 +136,14 @@ export const prerender = false;
     </div>
 
     <script type="module">
-        function currentMonthKeyLocal() {
-            const d = new Date();
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, "0");
-            return `${y}-${m}`;
-        }
+        function currentMonthKeyChicago() {
+            // en-CA => YYYY-MM formatting is easy to slice
+            return new Intl.DateTimeFormat("en-CA", {
+                timeZone: "America/Chicago",
+                year: "numeric",
+                month: "2-digit",
+                }).format(new Date()).slice(0, 7);
+            }
 
         function monthKeyToLabel(monthKey) {
             const [y, m] = monthKey.split("-").map(Number);
@@ -286,7 +288,7 @@ export const prerender = false;
             setPageStatus("error", "Winners UI failed to initialize. Reload the page.");
         } else {
             if (!raffleMonth.value) {
-                raffleMonth.value = currentMonthKeyLocal(); // YYYY-MM
+                raffleMonth.value = currentMonthKeyChicago(); // YYYY-MM
             }
             if (!wDate.value) {
                 wDate.value = `${raffleMonth.value}-01`; // keep date in selected month
@@ -357,7 +359,7 @@ export const prerender = false;
             async function loadWinners() {
                 setWinnersStatus("info", "Loading winners...");
                 try {
-                    const monthKey = raffleMonth.value || currentMonthKeyLocal();
+                    const monthKey = raffleMonth.value || currentMonthKeyChicago();
 
                     const qs = new URLSearchParams({
                         raffleKey: monthKey,
@@ -490,6 +492,14 @@ export const prerender = false;
                     setWinnersStatus("error", "Remove failed.");
                 } finally {
                     btn.disabled = false;
+                }
+            });
+            wDate.addEventListener("change", () => {
+                const dm = wDate.value.slice(0, 7);
+                if (dm && dm !== raffleMonth.value) {
+                    // keep the month selector consistent with the date they chose
+                    raffleMonth.value = dm;
+                    raffleMonth.dispatchEvent(new Event("change"));
                 }
             });
             loadWinners();

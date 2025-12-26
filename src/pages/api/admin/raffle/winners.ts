@@ -14,6 +14,14 @@ function isRealIsoDate(s: string): boolean {
     return d.toISOString().slice(0, 10) === s;
 }
 
+function chicagoCurrentMonthKey(d = new Date()) {
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Chicago",
+        year: "numeric",
+        month: "2-digit",
+    }).format(d).slice(0, 7);
+}
+
 export const GET: APIRoute = async ({ request, locals }) => {
     const env = (locals as any).runtime?.env as any;
 
@@ -42,24 +50,22 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
     let months: string[] | undefined;
     if (includeMonths) {
-        // Primary source: raffle_months (lets you show months even before winners exist)
-        const monthsRes = await DB.prepare(
-            `SELECT month_key as monthKey
-       FROM raffle_months
-      ORDER BY month_key DESC`
+        const currentMonth = chicagoCurrentMonthKey();
+
+        const winnerMonthsRes = await DB.prepare(
+            `SELECT DISTINCT raffle_key as monthKey
+     FROM raffle_winners
+     ORDER BY raffle_key DESC`
         ).all();
 
-        months = (monthsRes.results ?? []).map((r: any) => String(r.monthKey).trim());
+        const activeMonths = (winnerMonthsRes.results ?? [])
+            .map((r: any) => String(r.monthKey ?? "").trim())
+            .filter((s) => /^\d{4}-\d{2}$/.test(s))
+            .sort((a, b) => b.localeCompare(a));
 
-        // Fallback: if raffle_months empty, derive months from winners table
-        if (!months.length) {
-            const derived = await DB.prepare(
-                `SELECT DISTINCT raffle_key as monthKey
-         FROM raffle_winners
-        ORDER BY raffle_key DESC`
-            ).all();
-            months = (derived.results ?? []).map((r: any) => String(r.monthKey));
-        }
+        months = Array.from(new Set([currentMonth, ...activeMonths]))
+            .filter((s) => /^\d{4}-\d{2}$/.test(s))
+            .sort((a, b) => b.localeCompare(a));
     }
 
     let meta: { title: string | null } | undefined;

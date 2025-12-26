@@ -26,37 +26,34 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
     // Current month (America/Chicago)
     const now = new Date();
+
+    // Current month (America/Chicago)
     const currentMonth = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/Chicago",
         year: "numeric",
         month: "2-digit",
-    }).format(now).slice(0, 7);
+    }).format(new Date()).slice(0, 7);
 
-    // Build months list (DESC) and include current month even if empty
-    const metaMonthsRes = await DB.prepare(
-        `SELECT month_key as monthKey FROM raffle_months ORDER BY month_key DESC`
-    ).all();
-    const metaMonths = (metaMonthsRes.results ?? [])
-        .map((r: any) => String(r.monthKey ?? "").trim())
-        .filter(isMonthKey);
-
+    // Active months = months with winners (data)
     const winnerMonthsRes = await DB.prepare(
-        `SELECT DISTINCT raffle_key as monthKey FROM raffle_winners ORDER BY raffle_key DESC`
+        `SELECT DISTINCT raffle_key as monthKey
+   FROM raffle_winners
+   ORDER BY raffle_key DESC`
     ).all();
-    const winnerMonths = (winnerMonthsRes.results ?? [])
-        .map((r: any) => String(r.monthKey ?? "").trim())
-        .filter(isMonthKey);
 
-    const months = Array.from(new Set([currentMonth, ...metaMonths, ...winnerMonths]))
+    const activeMonths = (winnerMonthsRes.results ?? [])
+        .map((r: any) => String(r.monthKey ?? "").trim())
         .filter(isMonthKey)
         .sort((a, b) => b.localeCompare(a)); // DESC
 
-    const activeMonths = Array.from(new Set([...metaMonths, ...winnerMonths]))
+    // Dropdown months = active months + current month (even if empty)
+    const months = Array.from(new Set([currentMonth, ...activeMonths]))
         .filter(isMonthKey)
-        .sort((a, b) => b.localeCompare(a));
+        .sort((a, b) => b.localeCompare(a)); // DESC
 
-    const defaultMonth = activeMonths[0] ?? currentMonth;
-
+    // Default landing month
+    const defaultMonth =
+        activeMonths.includes(currentMonth) ? currentMonth : (activeMonths[0] ?? currentMonth);
     let raffleKey: string;
     if (isMonthKey(monthParam) && months.includes(monthParam)) {
         raffleKey = monthParam;
@@ -67,6 +64,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const idx = months.indexOf(raffleKey);
     const prevMonthKey = idx >= 0 && idx + 1 < months.length ? months[idx + 1] : null; // DESC
     const nextMonthKey = idx > 0 ? months[idx - 1] : null;
+    const monthOptions = months.map((k) => ({ key: k, label: monthKeyToLabel(k) }));
 
     const winnersRes = await DB.prepare(
         `SELECT id,
@@ -95,5 +93,6 @@ export const GET: APIRoute = async ({ request, locals }) => {
         nextMonthKey,
         raffleTitle,
         winners: winnersRes.results ?? [],
+        months: monthOptions,
     });
 };

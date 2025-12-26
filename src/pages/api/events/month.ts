@@ -80,7 +80,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
     const currentMonthKey = chicagoCurrentMonthKey();
 
     // 1) Active months: ONLY months that have published, non-TBD, dated events
-    //    (these are the ONLY months that should appear in the dropdown list)
     const activeRes = await DB.prepare(`
         SELECT date_start
         FROM events
