@@ -11,10 +11,20 @@ function isDatetimeLocal(v: string) {
     return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v);
 }
 
-function nowDatetimeLocalUtc() {
-    // server-side “now” in UTC formatted like datetime-local
-    // NOTE: This is UTC, not admin’s local timezone. It’s still a solid backstop.
-    return new Date().toISOString().slice(0, 16);
+function nowDatetimeLocalChicago() {
+    // "YYYY-MM-DDTHH:MM" in America/Chicago
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Chicago",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    }).formatToParts(new Date());
+
+    const get = (type: string) => parts.find(p => p.type === type)?.value ?? "";
+    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
 }
 
 function validateOptionalUrl(raw: string | null): string | null {
@@ -72,7 +82,7 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
                 return redirectTo(url.origin, `/admin/events/${encodeURIComponent(id)}?err=dates`);
             }
 
-            const now = nowDatetimeLocalUtc();
+            const now = nowDatetimeLocalChicago();
             if (dateStartRaw < now) {
                 return redirectTo(url.origin, `/admin/events/${encodeURIComponent(id)}?err=past`);
             }
