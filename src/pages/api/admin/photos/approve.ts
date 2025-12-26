@@ -65,7 +65,7 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
           title = ?,
           caption = ?,
           category = ?,
-          approved_at = datetime('now')
+          approved_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
       WHERE id = ? AND status = 'pending'
     `).bind(dstKey, alt, title, caption, category, id).run();
 

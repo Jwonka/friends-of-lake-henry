@@ -81,7 +81,7 @@ export const POST: APIRoute = async (context) => {
         try {
             await DB.prepare(`
         UPDATE events
-        SET poster_key = ?, poster_alt = ?, updated_at = datetime('now')
+        SET poster_key = ?, poster_alt = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
         WHERE id = ?
       `).bind(r2Key, alt, id).run();
         } catch (e) {

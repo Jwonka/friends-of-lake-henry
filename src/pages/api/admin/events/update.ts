@@ -105,7 +105,7 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
         summary = ?,
         url = ?,
         url_label = ?,
-        updated_at = datetime('now')
+        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
       WHERE id = ?
     `).bind(
             title,

@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
         if (!DB) return redirectTo(url.origin, "/admin/events?err=server");
 
         const res = await DB
-            .prepare(`UPDATE events SET status = ?, updated_at = datetime('now') WHERE id = ?`)
+            .prepare(`UPDATE events SET status = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`)
             .bind(status, id)
             .run();
         // @ts-ignore
