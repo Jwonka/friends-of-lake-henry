@@ -1,11 +1,5 @@
 import type { APIRoute } from "astro";
-
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-    "cache-control": "no-store",
-};
+import { json } from "../../../../lib/http";
 
 type LiveConfig = {
     latestVideoUrl: string | null;
@@ -14,16 +8,6 @@ type LiveConfig = {
 };
 
 const KEY = "raffle_live";
-
-function json(data: unknown, status = 200) {
-    return new Response(JSON.stringify(data), {
-        status,
-        headers: {
-            ...SECURITY_HEADERS,
-            "Content-Type": "application/json; charset=utf-8",
-        },
-    });
-}
 
 function extractFacebookVideoId(input: string): string | null {
     try {
@@ -72,15 +56,15 @@ async function getConfig(env: any): Promise<LiveConfig> {
 }
 
 export const GET: APIRoute = async (context) => {
-    const env = context.locals.runtime.env;
+    const env = (context.locals as any).runtime?.env as any;
     if (!env.CONFIG) return json({ ok: false, error: "KV not bound (CONFIG)" }, 500);
 
     const cfg = await getConfig(env);
-    return json({ ok: true, config: cfg });
+    return json({ ok: true, config: cfg }, 200);
 };
 
 export const POST: APIRoute = async (context) => {
-    const env = context.locals.runtime.env;
+    const env = (context.locals as any).runtime?.env as any;
     if (!env.CONFIG) return json({ ok: false, error: "KV not bound (CONFIG)" }, 500);
 
     let body: any;
@@ -100,7 +84,11 @@ export const POST: APIRoute = async (context) => {
         const normalized = normalizeFacebookVideoUrl(urlRaw);
         if (!normalized) {
             return json(
-                { ok: false, error: "Please paste a Facebook video URL (example: https://www.facebook.com/<page>/videos/<id> or https://www.facebook.com/watch/?v=<id>)." },
+                {
+                    ok: false,
+                    error:
+                        "Please paste a Facebook video URL (example: https://www.facebook.com/<page>/videos/<id> or https://www.facebook.com/watch/?v=<id>).",
+                },
                 400
             );
         }
@@ -117,6 +105,6 @@ export const POST: APIRoute = async (context) => {
     const cfg: LiveConfig = { latestVideoUrl: nextLatest, previousVideoUrl: nextPrevious, updatedAt };
 
     await env.CONFIG.put(KEY, JSON.stringify(cfg));
-    return json({ ok: true, config: cfg });
+    return json({ ok: true, config: cfg }, 200);
 };
 

@@ -17,8 +17,8 @@ function monthKeyToLabel(monthKey: string) {
 }
 
 export const GET: APIRoute = async ({ request, locals }) => {
-    const env = locals.runtime.env as any;
-    const DB = env.DB as D1Database | undefined;
+    const env = (locals as any).runtime?.env as { DB?: D1Database } | undefined;
+    const DB = env?.DB;
     if (!DB) { return json({ ok: false, error: "DB binding missing" }, 500); }
 
     const url = new URL(request.url);

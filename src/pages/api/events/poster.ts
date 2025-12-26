@@ -1,9 +1,13 @@
 import type { APIRoute } from "astro";
 import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
+import { SECURITY_HEADERS_FILE, SECURITY_HEADERS_NOSTORE } from "../../../lib/http";
+
+const err = (msg: string, status: number) =>
+    new Response(msg, { status, headers: SECURITY_HEADERS_NOSTORE });
 
 export const GET: APIRoute = async ({ locals, url }) => {
     const id = url.searchParams.get("id")?.trim();
-    if (!id) return new Response("Missing id", { status: 400 });
+    if (!id) return err("Missing id", 400);
 
     const env = (locals as any).runtime?.env as
         | { DB?: D1Database; PHOTOS_BUCKET?: R2Bucket }
@@ -11,7 +15,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
     const DB = env?.DB;
     const BUCKET = env?.PHOTOS_BUCKET;
-    if (!DB || !BUCKET) return new Response("Server misconfigured", { status: 500 });
+    if (!DB || !BUCKET) return err("Server misconfigured", 500);
 
     const row = await DB.prepare(`
     SELECT poster_key
@@ -20,17 +24,16 @@ export const GET: APIRoute = async ({ locals, url }) => {
   `).bind(id).first<{ poster_key: string | null }>();
 
     const key = row?.poster_key;
-    if (!key) return new Response("Not found", { status: 404 });
+    if (!key) return err("Not found", 404);
 
     const obj = await BUCKET.get(key);
-    if (!obj) return new Response("Not found", { status: 404 });
+    if (!obj) return err("Not found", 404);
 
-    const r2Response = new Response(obj.body as any);
-
-    const headers = new Headers();
+    const headers = new Headers(SECURITY_HEADERS_FILE);
     headers.set("Content-Type", obj.httpMetadata?.contentType || "application/octet-stream");
     headers.set("Cache-Control", "public, max-age=86400");
     if (obj.httpEtag) headers.set("ETag", obj.httpEtag);
 
-    return new Response(r2Response.body, { status: 200, headers });
+    return new Response(obj.body as any, { status: 200, headers });
 };
+

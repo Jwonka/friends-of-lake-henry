@@ -1,19 +1,6 @@
 import type { APIRoute } from "astro";
 import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
-
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-    "cache-control": "no-store",
-};
-
-function redirect(origin: string, pathWithQuery: string) {
-    return new Response(null, {
-        status: 303,
-        headers: { location: `${origin}${pathWithQuery}`, ...SECURITY_HEADERS },
-    });
-}
+import { redirect } from "../../../../lib/http";
 
 function isAllowedImageType(type: string) {
     return (
@@ -46,22 +33,22 @@ export const POST: APIRoute = async (context) => {
         const alt = String(form.get("alt") ?? "").trim();
         const fileLike = form.get("poster");
 
-        if (!id) return redirect(context.url.origin, "/admin/events?err=invalid");
-        if (alt.length < 5) return redirect(context.url.origin, `/admin/events/${encodeURIComponent(id)}?err=alt`);
+        if (!id) return redirect(`${context.url.origin}/admin/events?err=invalid`);
+        if (alt.length < 5) return redirect(`${context.url.origin}/admin/events/${encodeURIComponent(id)}?err=alt`);
 
         if (!fileLike || typeof fileLike === "string") {
-            return redirect(context.url.origin, `/admin/events/${encodeURIComponent(id)}?err=file`);
+            return redirect(`${context.url.origin}/admin/events/${encodeURIComponent(id)}?err=file`);
         }
 
         const file = fileLike as File;
 
         if (!isAllowedImageType(file.type)) {
-            return redirect(context.url.origin, `/admin/events/${encodeURIComponent(id)}?err=type`);
+            return redirect(`${context.url.origin}/admin/events/${encodeURIComponent(id)}?err=type`);
         }
 
         const MAX_BYTES = 8 * 1024 * 1024;
         if (file.size <= 0 || file.size > MAX_BYTES) {
-            return redirect(context.url.origin, `/admin/events/${encodeURIComponent(id)}?err=size`);
+            return redirect(`${context.url.origin}/admin/events/${encodeURIComponent(id)}?err=size`);
         }
 
         const env = (context.locals as any).runtime?.env as
@@ -70,7 +57,7 @@ export const POST: APIRoute = async (context) => {
 
         const DB = env?.DB;
         const BUCKET = env?.PHOTOS_BUCKET;
-        if (!DB || !BUCKET) return redirect(context.url.origin, `/admin/events/${encodeURIComponent(id)}?err=server`);
+        if (!DB || !BUCKET) return redirect(`${context.url.origin}/admin/events/${encodeURIComponent(id)}?err=server`);
 
         // Ensure event exists and get existing poster_key
         const existing = await DB.prepare(`
@@ -79,7 +66,7 @@ export const POST: APIRoute = async (context) => {
       WHERE id = ?
     `).bind(id).first<{ poster_key: string | null }>();
 
-        if (!existing) return redirect(context.url.origin, `/admin/events?err=notfound`);
+        if (!existing) return redirect(`${context.url.origin}/admin/events?err=notfound`);
 
         const ext = extFromContentType(file.type);
         const r2Key = `events/posters/${id}.${ext}`;
@@ -108,9 +95,9 @@ export const POST: APIRoute = async (context) => {
             await BUCKET.delete(existing.poster_key);
         }
 
-        return redirect(context.url.origin, `/admin/events/${encodeURIComponent(id)}?ok=poster`);
+        return redirect(`${context.url.origin}/admin/events/${encodeURIComponent(id)}?ok=poster`);
     } catch (e) {
         console.error(e);
-        return redirect(context.url.origin, "/admin/events?err=server");
+        return redirect(`${context.url.origin}/admin/events?err=server`);
     }
 };

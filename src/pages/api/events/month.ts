@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import type { D1Database } from "@cloudflare/workers-types";
+import { json } from "../../../lib/http";
 
 type EventRow = {
     id: string;
@@ -45,9 +46,9 @@ function monthStartEnd(monthKey: string) {
     const [y, m] = monthKey.split("-").map(Number);
     const start = `${monthKey}-01`;
 
-    // next month key
-    const next = new Date(y, m, 1); // m is 1-based; Date month is 0-based, so this is next month
-    const nextKey = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
+    // next month in UTC (m is 1-based, Date.UTC months are 0-based)
+    const nextUtc = new Date(Date.UTC(y, m, 1, 12));
+    const nextKey = `${nextUtc.getUTCFullYear()}-${String(nextUtc.getUTCMonth() + 1).padStart(2, "0")}`;
     const end = `${nextKey}-01`;
 
     return { start, end };
@@ -57,12 +58,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     const env = (locals as any).runtime?.env as { DB?: D1Database } | undefined;
     const DB = env?.DB;
 
-    if (!DB) {
-        return new Response(JSON.stringify({ ok: false, error: "DB missing" }), {
-            status: 500,
-            headers: { "content-type": "application/json; charset=utf-8" },
-        });
-    }
+    if (!DB) { return json({ ok: false, error: "DB missing" }, 500); }
 
     const currentMonthKey = chicagoCurrentMonthKey();
 
@@ -137,21 +133,14 @@ export const GET: APIRoute = async ({ locals, url }) => {
     // 6) Dropdown list = active months + current month (even if empty)
     const months = allowedMonths.map((k) => ({ key: k, label: monthKeyToLabel(k) }));
 
-    return new Response(
-        JSON.stringify({
-            ok: true,
-
-            // keep your current field names so events.astro JS keeps working
-            monthKey,
-            monthLabel: monthKeyToLabel(monthKey),
-            prevMonthKey,
-            nextMonthKey,
-            monthEvents,
-
-            // add dropdown data for the next step (won’t break existing code)
-            months,
-            currentMonthKey,
-        }),
-        { headers: { "content-type": "application/json; charset=utf-8" } }
-    );
+    return json({
+        ok: true,
+        monthKey,
+        monthLabel: monthKeyToLabel(monthKey),
+        prevMonthKey,
+        nextMonthKey,
+        monthEvents,
+        months,
+        currentMonthKey,
+    });
 };

@@ -1,14 +1,9 @@
 import type { APIRoute } from "astro";
+import type { D1Database } from "@cloudflare/workers-types";
+import { redirect } from "../../../../lib/http";
 
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-    "cache-control": "no-store",
-};
-
-function redirect(origin: string, path: string) {
-    return new Response(null, { status: 303, headers: { location: `${origin}${path}`, ...SECURITY_HEADERS } });
+function redirectTo(origin: string, path: string) {
+    return redirect(`${origin}${path}`, 303);
 }
 
 function isDatetimeLocal(v: string) {
@@ -20,6 +15,20 @@ function nowDatetimeLocalUtc() {
     // server-side “now” in UTC formatted like datetime-local
     // NOTE: This is UTC, not admin’s local timezone. It’s still a solid backstop.
     return new Date().toISOString().slice(0, 16);
+}
+
+function validateOptionalUrl(raw: string | null): string | null {
+    if (!raw) return null;
+    const s = raw.trim();
+    if (!s) return null;
+
+    try {
+        const u = new URL(s);
+        if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+        return u.toString();
+    } catch {
+        return null;
+    }
 }
 
 export const POST: APIRoute = async ({ request, locals, url }) => {
@@ -40,34 +49,42 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
         const location = String(form.get("location") ?? "").trim() || null;
         const summary = String(form.get("summary") ?? "").trim() || null;
 
-        const urlField = String(form.get("url") ?? "").trim() || null;
+        const urlFieldRaw = String(form.get("url") ?? "").trim() || null;
+        const urlField = validateOptionalUrl(urlFieldRaw);
+        if (urlFieldRaw && !urlField) {
+            return redirectTo(url.origin, `/admin/events/${encodeURIComponent(id)}?err=url`);
+        }
+
         const urlLabel = String(form.get("url_label") ?? "").trim() || null;
 
-        if (!id || !title || !kind) return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
+        if (!id || !title || !kind) return redirectTo(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
+
         if (!isTbd) {
             if (!dateStartRaw || !isDatetimeLocal(dateStartRaw)) {
-                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
+                return redirectTo(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
             }
 
             if (dateEndRaw && !isDatetimeLocal(dateEndRaw)) {
-                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
+                return redirectTo(url.origin, `/admin/events/${encodeURIComponent(id)}?err=invalid`);
             }
 
             if (dateEndRaw && dateEndRaw < dateStartRaw) {
-                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=dates`);
+                return redirectTo(url.origin, `/admin/events/${encodeURIComponent(id)}?err=dates`);
             }
 
             const now = nowDatetimeLocalUtc();
             if (dateStartRaw < now) {
-                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=past`);
+                return redirectTo(url.origin, `/admin/events/${encodeURIComponent(id)}?err=past`);
             }
 
             if (dateEndRaw && dateEndRaw < now) {
-                return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?err=past`);
+                return redirectTo(url.origin, `/admin/events/${encodeURIComponent(id)}?err=past`);
             }
         }
 
-        const DB = (locals as any).runtime.env.DB;
+        const env = (locals as any).runtime?.env as { DB?: D1Database } | undefined;
+        const DB = env?.DB;
+        if (!DB) return redirectTo(url.origin, "/admin/events?err=server");
 
         const res = await DB.prepare(`
       UPDATE events SET
@@ -99,9 +116,9 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
 
         // @ts-ignore
         const changed = (res?.meta?.changes ?? 0) as number;
-        return redirect(url.origin, changed ? `/admin/events/${encodeURIComponent(id)}?ok=updated` : "/admin/events?err=notfound");
+        return redirectTo(url.origin, changed ? `/admin/events/${encodeURIComponent(id)}?ok=updated` : "/admin/events?err=notfound");
     } catch {
         // best effort: go back to list
-        return redirect(url.origin, "/admin/events?err=server");
+        return redirectTo(url.origin, "/admin/events?err=server");
     }
 };

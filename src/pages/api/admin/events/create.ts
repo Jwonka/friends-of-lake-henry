@@ -1,14 +1,9 @@
 import type { APIRoute } from "astro";
+import type { D1Database } from "@cloudflare/workers-types";
+import { redirect } from "../../../../lib/http";
 
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-    "cache-control": "no-store",
-};
-
-function redirect(origin: string, path: string) {
-    return new Response(null, { status: 303, headers: { location: `${origin}${path}`, ...SECURITY_HEADERS } });
+function redirectTo(origin: string, path: string) {
+    return redirect(`${origin}${path}`, 303);
 }
 
 function slugify(input: string) {
@@ -38,6 +33,21 @@ function datePrefixFromDatetimeLocal(v: string) {
     return m ? `${m[1]}-${m[2]}-${m[3]}` : null;
 }
 
+function validateOptionalUrl(raw: string | null): string | null {
+    if (!raw) return null;
+    const s = raw.trim();
+    if (!s) return null;
+
+    try {
+        const u = new URL(s);
+        if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+        return u.toString();
+    } catch {
+        return null;
+    }
+}
+
+
 async function generateId(DB: any, base: string) {
     let id = base;
     for (let n = 2; n <= 30; n++) {
@@ -63,75 +73,86 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
         const dateStartRaw = String(form.get("date_start") ?? "").trim();
         const dateEndRaw = String(form.get("date_end") ?? "").trim();
 
-        if (!isTbd) {
-            if (!dateStartRaw || !isDatetimeLocal(dateStartRaw)) {
-                return redirect(url.origin, "/admin/events/new?err=invalid");
-            }
-
-            if (dateEndRaw && !isDatetimeLocal(dateEndRaw)) {
-                return redirect(url.origin, "/admin/events/new?err=invalid");
-            }
-
-            // End cannot be before start
-            if (dateEndRaw && dateEndRaw < dateStartRaw) {
-                return redirect(url.origin, "/admin/events/new?err=dates");
-            }
-
-            // Start cannot be in the past (server backstop)
-            const now = nowDatetimeLocalUtc();
-            if (dateStartRaw < now) {
-                return redirect(url.origin, "/admin/events/new?err=past");
-            }
-
-            // End not in past:
-            if (dateEndRaw && dateEndRaw < now) {
-                return redirect(url.origin, "/admin/events/new?err=past");
-            }
-        }
-
         const location = String(form.get("location") ?? "").trim() || null;
         const summary = String(form.get("summary") ?? "").trim() || null;
 
-        const urlField = String(form.get("url") ?? "").trim() || null;
+        const urlRaw = String(form.get("url") ?? "").trim() || null;
+        const eventUrl = validateOptionalUrl(urlRaw);
+        if (urlRaw && !eventUrl) {
+            return redirectTo(url.origin, "/admin/events/new?err=url");
+        }
+
         const urlLabel = String(form.get("url_label") ?? "").trim() || null;
 
-        if (!title || !kind) return redirect(url.origin, "/admin/events/new?err=invalid");
+        if (!title || !kind) {
+            return redirectTo(url.origin, "/admin/events/new?err=invalid");
+        }
 
-        // if not TBD, require a start date (datetime-local format)
-        if (!isTbd && !dateStartRaw) return redirect(url.origin, "/admin/events/new?err=invalid");
+        if (!isTbd) {
+            if (!dateStartRaw || !isDatetimeLocal(dateStartRaw)) {
+                return redirectTo(url.origin, "/admin/events/new?err=invalid");
+            }
+
+            if (dateEndRaw && !isDatetimeLocal(dateEndRaw)) {
+                return redirectTo(url.origin, "/admin/events/new?err=invalid");
+            }
+
+            if (dateEndRaw && dateEndRaw < dateStartRaw) {
+                return redirectTo(url.origin, "/admin/events/new?err=dates");
+            }
+
+            const now = nowDatetimeLocalUtc();
+            if (dateStartRaw < now) {
+                return redirectTo(url.origin, "/admin/events/new?err=past");
+            }
+
+            if (dateEndRaw && dateEndRaw < now) {
+                return redirectTo(url.origin, "/admin/events/new?err=past");
+            }
+        }
+
+        const env = (locals as any).runtime?.env as { DB?: D1Database } | undefined;
+        const DB = env?.DB;
+        if (!DB) return redirectTo(url.origin, "/admin/events?err=server");
+
 
         const prefix = isTbd ? "tbd" : (datePrefixFromDatetimeLocal(dateStartRaw) ?? "tbd");
-        const base = `${prefix}-${slugify(title)}`.replace(/-+/g, "-");
-
-        const DB = (locals as any).runtime.env.DB;
-
-        const id = await generateId(DB, base);
+        const baseId = `${prefix}-${slugify(title)}`.replace(/-+/g, "-");
+        const id = await generateId(DB, baseId);
 
         await DB.prepare(`
-      INSERT INTO events (
-        id, title, kind, status,
-        date_start, date_end, is_tbd,
-        location, summary,
-        url, url_label,
-        created_at, updated_at
-      ) VALUES (
-        ?, ?, ?, ?,
-        ?, ?, ?,
-        ?, ?,
-        ?, ?,
-        datetime('now'), datetime('now')
-      )
-    `).bind(
-            id, title, kind, status,
+            INSERT INTO events (
+                id, title, kind, status,
+                date_start, date_end, is_tbd,
+                location, summary,
+                url, url_label,
+                created_at, updated_at
+            ) VALUES (
+                         ?, ?, ?, ?,
+                         ?, ?, ?,
+                         ?, ?,
+                         ?, ?,
+                         datetime('now'), datetime('now')
+                     )
+        `).bind(
+            id,
+            title,
+            kind,
+            status,
             isTbd ? null : dateStartRaw,
             isTbd ? null : (dateEndRaw || null),
             isTbd,
-            location, summary,
-            urlField, urlLabel
+            location,
+            summary,
+            eventUrl,
+            urlLabel
         ).run();
 
-        return redirect(url.origin, `/admin/events/${encodeURIComponent(id)}?ok=updated`);
+        return redirectTo(
+            url.origin,
+            `/admin/events/${encodeURIComponent(id)}?ok=created`
+        );
     } catch {
-        return redirect(url.origin, "/admin/events/new?err=server");
+        return redirectTo(url.origin, "/admin/events/new?err=server");
     }
 };

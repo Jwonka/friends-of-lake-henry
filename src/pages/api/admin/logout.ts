@@ -1,11 +1,5 @@
 import type { APIRoute } from "astro";
-
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-    "cache-control": "no-store",
-};
+import { redirect } from "../../../lib/http";
 
 const SESSION_COOKIE = "admin_session";
 const SESSION_PREFIX = "admin_sess:";
@@ -20,7 +14,7 @@ function getCookieValue(cookieHeader: string, name: string): string | null {
 }
 
 export const POST: APIRoute = async (context) => {
-    const env = context.locals.runtime.env as any;
+    const env = (context.locals as any).runtime?.env as any;
 
     // Best-effort: delete KV session if we can
     try {
@@ -33,10 +27,7 @@ export const POST: APIRoute = async (context) => {
         // ignore: logout should still clear cookie client-side
     }
 
-    const res = new Response(null, {
-        status: 303,
-        headers: { location: `${context.url.origin}/admin/login`, ...SECURITY_HEADERS },
-    });
+    const res = redirect(`${context.url.origin}/admin/login`, 303);
 
     // Clear new session cookie (Path must match how it was set: Path=/)
     res.headers.append(

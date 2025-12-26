@@ -1,18 +1,6 @@
 import type { APIRoute } from "astro";
 import type { D1Database } from "@cloudflare/workers-types";
-
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "cache-control": "no-store",
-};
-
-function json(status: number, body: any) {
-    return new Response(JSON.stringify(body), {
-        status,
-        headers: { "content-type": "application/json; charset=utf-8", ...SECURITY_HEADERS },
-    });
-}
+import { json } from "../../../../lib/http";
 
 function mustBeIsoDate(s: string): boolean {
     return /^\d{4}-\d{2}-\d{2}$/.test(s);
@@ -27,16 +15,16 @@ function isRealIsoDate(s: string): boolean {
 }
 
 export const GET: APIRoute = async ({ request, locals }) => {
-    const env = locals.runtime.env as any;
+    const env = (locals as any).runtime?.env as any;
 
     const DB = env.DB as D1Database | undefined;
-    if (!DB) return json(500, { ok: false, error: "DB binding missing" });
+    if (!DB) return json({ ok: false, error: "DB binding missing" }, 500);
 
     const url = new URL(request.url);
     const raffleKey = (url.searchParams.get("raffleKey") ?? "").trim();
 
     if (!/^\d{4}-\d{2}$/.test(raffleKey)) {
-        return json(400, { ok: false, error: "raffleKey (YYYY-MM) required" });
+        return json({ ok: false, error: "raffleKey (YYYY-MM) required" }, 400);
     }
 
     const includeMonths = url.searchParams.get("includeMonths") === "1";
@@ -61,7 +49,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
       ORDER BY month_key DESC`
         ).all();
 
-        months = (monthsRes.results ?? []).map((r: any) => String(r.monthKey));
+        months = (monthsRes.results ?? []).map((r: any) => String(r.monthKey).trim());
 
         // Fallback: if raffle_months empty, derive months from winners table
         if (!months.length) {
@@ -83,20 +71,20 @@ export const GET: APIRoute = async ({ request, locals }) => {
         meta = { title: row ? String((row as any).title ?? "") || null : null };
     }
 
-    return json(200, { ok: true, winners: results ?? [],raffleKey, months, meta});
+    return json({ ok: true, winners: results ?? [],raffleKey, months, meta}, 200);
 };
 
 export const POST: APIRoute = async ({ request, locals }) => {
-    const env = locals.runtime.env as any;
+    const env = (locals as any).runtime?.env as any;
 
     const DB = env.DB as D1Database | undefined;
-    if (!DB) return json(500, { ok: false, error: "DB binding missing" });
+    if (!DB) return json({ ok: false, error: "DB binding missing" }, 500);
 
     let data: any = null;
     try {
         data = await request.json();
     } catch {
-        return json(400, { ok: false, error: "Invalid JSON" });
+        return json({ ok: false, error: "Invalid JSON" }, 400);
     }
 
     const action = (data?.action ?? "add").toString();
@@ -107,7 +95,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         const title = titleRaw.trim();
 
         if (!/^\d{4}-\d{2}$/.test(monthKey)) {
-            return json(400, { ok: false, error: "raffleKey (YYYY-MM) required" });
+            return json({ ok: false, error: "raffleKey (YYYY-MM) required" }, 400);
         }
 
         // Allow blank to clear
@@ -115,7 +103,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             await DB.prepare(`DELETE FROM raffle_months WHERE month_key = ?`)
                 .bind(monthKey)
                 .run();
-            return json(200, { ok: true, meta: { title: "" } });
+            return json({ ok: true, meta: { title: "" } }, 200);
         }
 
         await DB.prepare(
@@ -128,15 +116,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
             .bind(monthKey, title)
             .run();
 
-        return json(200, { ok: true, meta: { title } });
+        return json({ ok: true, meta: { title } }, 200);
     }
 
     if (action === "delete") {
         const id = (data?.id ?? "").toString().trim();
-        if (!id) return json(400, { ok: false, error: "Missing id" });
+        if (!id) return json({ ok: false, error: "Missing id" }, 400);
 
         await DB.prepare(`DELETE FROM raffle_winners WHERE id = ?`).bind(id).run();
-        return json(200, { ok: true });
+        return json({ ok: true }, 200);
     }
     const drawDate = (data?.drawDate ?? "").toString().trim();
     const raffleKey = drawDate.slice(0, 7); // "YYYY-MM"
@@ -145,17 +133,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const town = (data?.town ?? "").toString().trim();
     const prize = (data?.prize ?? "").toString().trim() || null;
 
-    if (!drawDate) return json(400, { ok: false, error: "drawDate required" });
-    if (!raffleKey) return json(400, { ok: false, error: "raffleKey required" });
-    if (!mustBeIsoDate(drawDate)) return json(400, { ok: false, error: "drawDate must be YYYY-MM-DD" });
-    if (!isRealIsoDate(drawDate)) return json(400, { ok: false, error: "drawDate must be a valid date" });
+    if (!drawDate) return json({ ok: false, error: "drawDate required" }, 400);
+    if (!raffleKey) return json({ ok: false, error: "raffleKey required" }, 400);
+    if (!mustBeIsoDate(drawDate)) return json({ ok: false, error: "drawDate must be YYYY-MM-DD" }, 400);
+    if (!isRealIsoDate(drawDate)) return json({ ok: false, error: "drawDate must be a valid date" }, 400);
 
     const ticketNumber = Number(ticketNumberRaw);
     if (!Number.isFinite(ticketNumber) || ticketNumber <= 0) {
-        return json(400, { ok: false, error: "ticketNumber must be a positive number" });
+        return json({ ok: false, error: "ticketNumber must be a positive number" }, 400);
     }
-    if (name.length < 2) return json(400, { ok: false, error: "name required" });
-    if (town.length < 2) return json(400, { ok: false, error: "town required" });
+    if (name.length < 2) return json({ ok: false, error: "name required" }, 400);
+    if (town.length < 2) return json({ ok: false, error: "town required" }, 400);
 
     // Deterministic ID helps avoid duplicates; allow same ticket across different dates.
     const id = `${raffleKey}-${drawDate}-${ticketNumber}`.replace(/[^\w-]/g, "");
@@ -170,10 +158,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
     } catch (err: any) {
         const msg = String(err?.message ?? "");
         if (msg.includes("UNIQUE") || msg.includes("constraint")) {
-            return json(409, { ok: false, error: "That ticket number already exists for that day/month." });
+            return json({ ok: false, error: "That ticket number already exists for that day/month." }, 409);
         }
-        return json(500, { ok: false, error: "DB insert failed" });
+        return json({ ok: false, error: "DB insert failed" }, 500);
     }
 
-    return json(200, { ok: true, id });
+    return json({ ok: true, id }, 200);
 };

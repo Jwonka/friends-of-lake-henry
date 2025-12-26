@@ -1,10 +1,11 @@
 import type { APIRoute } from "astro";
 import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
+import { redirect, SECURITY_HEADERS_NOSTORE } from "../../../../lib/http";
 
 type Row = { r2_key: string; content_type: string; status: string };
 
 function bad(msg: string, status = 400) {
-    return new Response(msg, { status });
+    return new Response(msg, { status, headers: SECURITY_HEADERS_NOSTORE });
 }
 
 export const POST: APIRoute = async ({ locals, request, url }) => {
@@ -45,7 +46,9 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
     await BUCKET.put(dstKey, bytes, {
         httpMetadata: { contentType: row.content_type || "application/octet-stream" },
     });
-    await BUCKET.delete(srcKey);
+
+    // Delete the old pending object once
+    try { await BUCKET.delete(srcKey); } catch {}
 
     const r = await DB.prepare(`
       UPDATE photos
@@ -61,10 +64,9 @@ export const POST: APIRoute = async ({ locals, request, url }) => {
 
     if (!r.success || (r.meta?.changes ?? 0) !== 1) {
         // rollback the new object
-        await BUCKET.delete(dstKey);
+        try { await BUCKET.delete(dstKey); } catch {}
         return bad("Update failed", 500);
     }
 
-    await BUCKET.delete(srcKey);
-    return Response.redirect(`${url.origin}/admin/photos/pending?ok=approved`, 303);
+    return redirect(`${url.origin}/admin/photos/pending?ok=approved`, 303);
 };

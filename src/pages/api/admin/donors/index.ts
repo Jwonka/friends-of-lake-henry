@@ -1,18 +1,5 @@
 import type { APIRoute } from "astro";
-
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-    "cache-control": "no-store",
-};
-
-function redirect(origin: string, pathWithQuery: string) {
-    return new Response(null, {
-        status: 303,
-        headers: { location: `${origin}${pathWithQuery}`, ...SECURITY_HEADERS },
-    });
-}
+import { redirect } from "../../../../lib/http";
 
 function toCents(amountStr: string): number | null {
     // Allow "$50.00", "50", "50.0", "50.00", "1,234.56"
@@ -35,20 +22,25 @@ export const POST: APIRoute = async (context) => {
         const displayName = String(form.get("displayName") ?? "").trim() || null;
         const inMemoryOf = String(form.get("inMemoryOf") ?? "").trim() || null;
 
-        if (name.length < 2) return redirect(context.url.origin, "/admin/donors?err=name");
+        if (name.length < 2) return redirect(`${context.url.origin}/admin/donors?err=name`);
 
         const amountCents = toCents(amountRaw);
-        if (amountCents === null) return redirect(context.url.origin, "/admin/donors?err=amount");
+        if (amountCents === null) return redirect(`${context.url.origin}/admin/donors?err=amount`);
 
-        const DB = context.locals.runtime.env.DB;
+        const env = (context.locals as any).runtime?.env;
+        const DB = env?.DB;
+
+        if (!DB) {
+            return redirect(`${context.url.origin}/admin/donors?err=server`);
+        }
 
         await DB.prepare(
             `INSERT INTO donors (name, amount_cents, display_name, in_memory_of, source)
              VALUES (?, ?, ?, ?, 'admin')`
         ).bind(name, amountCents, displayName, inMemoryOf).run();
 
-        return redirect(context.url.origin, "/admin/donors?ok=1");
+        return redirect(`${context.url.origin}/admin/donors?ok=1`);
     } catch {
-        return redirect(context.url.origin, "/admin/donors?err=server");
+        return redirect(`${context.url.origin}/admin/donors?err=server`);
     }
 };

@@ -1,12 +1,6 @@
-import type { APIRoute } from "astro";
+import type { APIRoute, APIContext } from "astro";
 import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
-
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-    "cache-control": "no-store",
-};
+import { redirect, options } from "../../../lib/http";
 
 const ALLOWED_CATEGORIES = new Set([
     "Restoration",
@@ -16,11 +10,8 @@ const ALLOWED_CATEGORIES = new Set([
     "Scenery",
 ]);
 
-function redirect(origin: string, pathWithQuery: string) {
-    return new Response(null, {
-        status: 303,
-        headers: { location: `${origin}${pathWithQuery}`, ...SECURITY_HEADERS },
-    });
+function redirectTo(context: APIContext, pathWithQuery: string) {
+    return redirect(new URL(pathWithQuery, context.url).toString());
 }
 
 function isAllowedImageType(type: string) {
@@ -58,27 +49,20 @@ export const POST: APIRoute = async (context) => {
         const fileLike = form.get("photo");
 
         if (!ALLOWED_CATEGORIES.has(category)) {
-            return redirect(context.url.origin, "/photos/submit?err=category");
+            return redirectTo(context, "/photos/submit?err=category");
         }
 
         if (!fileLike || typeof fileLike === "string") {
-            return redirect(context.url.origin, "/photos/submit?err=file");
+            return redirectTo(context, "/photos/submit?err=file");
         }
 
         const file = fileLike as File;
 
-        if (alt.length < 5) {
-            return redirect(context.url.origin, "/photos/submit?err=alt");
-        }
-
-        if (!isAllowedImageType(file.type)) {
-            return redirect(context.url.origin, "/photos/submit?err=type");
-        }
+        if (alt.length < 5) { return redirectTo(context, "/photos/submit?err=alt"); }
+        if (!isAllowedImageType(file.type)) { return redirectTo(context, "/photos/submit?err=type"); }
 
         const MAX_BYTES = 8 * 1024 * 1024;
-        if (file.size <= 0 || file.size > MAX_BYTES) {
-            return redirect(context.url.origin, "/photos/submit?err=size");
-        }
+        if (file.size <= 0 || file.size > MAX_BYTES) { return redirectTo(context, "/photos/submit?err=size"); }
 
         const env = (context.locals as any).runtime?.env as
             | { DB?: D1Database; PHOTOS_BUCKET?: R2Bucket }
@@ -86,7 +70,7 @@ export const POST: APIRoute = async (context) => {
 
         const DB = env?.DB;
         const BUCKET = env?.PHOTOS_BUCKET;
-        if (!DB || !BUCKET) return redirect(context.url.origin, "/photos/submit?err=server");
+        if (!DB || !BUCKET) return redirectTo(context, "/photos/submit?err=server");
 
         const id = crypto.randomUUID();
         const ext = extFromContentType(file.type);
@@ -95,9 +79,7 @@ export const POST: APIRoute = async (context) => {
         const buf = await file.arrayBuffer();
 
         // upload to R2
-        await BUCKET.put(r2Key, buf, {
-            httpMetadata: { contentType: file.type },
-        });
+        await BUCKET.put(r2Key, buf, { httpMetadata: { contentType: file.type } });
 
         try {
             await DB.prepare(
@@ -123,9 +105,11 @@ export const POST: APIRoute = async (context) => {
             throw e;
         }
 
-        return redirect(context.url.origin, "/photos?submitted=1");
+        return redirectTo(context, "/photos?submitted=1");
     } catch (e) {
         console.error(e);
-        return redirect(context.url.origin, "/photos/submit?err=server");
+        return redirectTo(context, "/photos/submit?err=server");
     }
 };
+
+export const OPTIONS: APIRoute = async () => options("GET,POST,OPTIONS");

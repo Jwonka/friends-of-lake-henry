@@ -1,14 +1,9 @@
 import type { APIRoute } from "astro";
+import type { D1Database } from "@cloudflare/workers-types";
+import { redirect } from "../../../../lib/http";
 
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-    "cache-control": "no-store",
-};
-
-function redirect(origin: string, path: string) {
-    return new Response(null, { status: 303, headers: { location: `${origin}${path}`, ...SECURITY_HEADERS } });
+function redirectTo(origin: string, path: string) {
+    return redirect(`${origin}${path}`, 303);
 }
 
 export const POST: APIRoute = async ({ request, locals, url }) => {
@@ -17,10 +12,14 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
         const id = String(form.get("id") ?? "").trim();
         const next = String(form.get("next") ?? "").trim();
 
-        const status = next === "published" ? "published" : "draft";
-        if (!id) return redirect(url.origin, "/admin/events?err=notfound");
+        if (!id) return redirectTo(url.origin, "/admin/events?err=notfound");
 
-        const DB = (locals as any).runtime.env.DB;
+        const status = next === "published" ? "published" : "draft";
+
+        const env = (locals as any).runtime?.env as { DB?: D1Database } | undefined;
+        const DB = env?.DB;
+        if (!DB) return redirectTo(url.origin, "/admin/events?err=server");
+
         const res = await DB
             .prepare(`UPDATE events SET status = ?, updated_at = datetime('now') WHERE id = ?`)
             .bind(status, id)
@@ -28,8 +27,8 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
         // @ts-ignore
         const changed = (res?.meta?.changes ?? 0) as number;
 
-        return redirect(url.origin, changed ? "/admin/events?ok=toggled" : "/admin/events?err=notfound");
+        return redirectTo(url.origin, changed ? "/admin/events?ok=toggled" : "/admin/events?err=notfound");
     } catch {
-        return redirect(url.origin, "/admin/events?err=server");
+        return redirectTo(url.origin, "/admin/events?err=server");
     }
 };

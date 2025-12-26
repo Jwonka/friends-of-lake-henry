@@ -1,17 +1,11 @@
 import { defineMiddleware } from "astro/middleware";
-
-const SECURITY_HEADERS: Record<string, string> = {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Frame-Options": "DENY",
-    "cache-control": "no-store",
-};
+import { SECURITY_HEADERS_NOSTORE } from "./lib/http";
 
 const SESSION_COOKIE = "admin_session";
 const SESSION_PREFIX = "admin_sess:";
 
 function unauthorized() {
-    return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS });
+    return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS_NOSTORE });
 }
 
 function redirectToLogin(origin: string, nextPath: string, err = "auth") {
@@ -19,10 +13,14 @@ function redirectToLogin(origin: string, nextPath: string, err = "auth") {
     const safeNext = isLogin ? "/admin" : nextPath;
     const next = encodeURIComponent(safeNext);
     const location = `${origin}/admin/login?err=${encodeURIComponent(err)}&next=${next}`;
-    const res = new Response(null, { status: 302, headers: { location, ...SECURITY_HEADERS },});
+    const res = new Response(null, { status: 302, headers: { location, ...SECURITY_HEADERS_NOSTORE },});
 
     // clear legacy cookie on redirect so old auth cannot linger.
     res.headers.append("Set-Cookie", `admin_auth=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0` );
+
+    // clear the session cookie too, so a dead cookie doesn't stick around
+    res.headers.append("Set-Cookie", `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`
+    );
     return res;
 }
 
@@ -37,7 +35,7 @@ function getCookieValue(cookieHeader: string, name: string): string | null {
 }
 
 function forbidden() {
-    return new Response("Forbidden", { status: 403, headers: SECURITY_HEADERS });
+    return new Response("Forbidden", { status: 403, headers: SECURITY_HEADERS_NOSTORE });
 }
 
 function isMutationMethod(method: string) {
@@ -71,10 +69,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (
         pathname === "/admin/login" ||
         pathname === "/admin/login/" ||
-        pathname === "/api/admin/login"
+        pathname === "/api/admin/login" ||
+        pathname === "/api/admin/logout"
     ) {
         return next();
     }
+
+    // allow OPTIONS preflight to pass through for admin APIs
+    if (isAdminApi && context.request.method === "OPTIONS") { return next(); }
 
     // CSRF protection for admin API mutations
     if (isAdminApi && isMutationMethod(context.request.method)) {
