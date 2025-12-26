@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import type { D1Database } from "@cloudflare/workers-types";
+import { chicagoDatetimeLocalToUtcIso } from "../lib/datetime";
 export const prerender = false;
 
 type EventRow = {
@@ -36,6 +37,19 @@ const DB = env?.DB;
 if (!DB) throw new Error("DB binding missing (Astro.locals.runtime.env.DB).");
 
 const TZ = "America/Chicago";
+
+const monthKeyChicagoFmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+});
+
+function monthKeyChicagoFromUtcIso(dateStr: string | null) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return null;
+    return monthKeyChicagoFmt.format(d).slice(0, 7); // YYYY-MM
+}
 
 function monthLabelFromKey(monthKey: string) {
     const [y, m] = monthKey.split("-").map(Number);
@@ -121,24 +135,26 @@ const currentMonthKey = chicagoCurrentMonthKey(new Date());
 
 // 1) Build allowed months from DB (data months) + current month
 const monthsRes = await DB.prepare(`
-  SELECT DISTINCT substr(date_start, 1, 7) AS monthKey
-  FROM events
-  WHERE status = 'published'
-    AND is_tbd = 0
-    AND date_start IS NOT NULL
-    AND date_start != ''
-  ORDER BY monthKey DESC
-`).all();
+    SELECT date_start
+    FROM events
+    WHERE status = 'published'
+      AND is_tbd = 0
+      AND date_start IS NOT NULL
+      AND date_start != ''
+`).all<{ date_start: string }>();
 
-const dbMonths = (monthsRes.results ?? [])
-    .map((r: any) => String(r.monthKey ?? "").trim())
-    .filter(isMonthKey);
+const dbMonths = Array.from(
+    new Set(
+        (monthsRes.results ?? [])
+            .map(r => monthKeyChicagoFromUtcIso(r.date_start) ?? "")
+            .filter(isMonthKey)
+    )
+).sort((a, b) => b.localeCompare(a)); // DESC
 
 const months = Array.from(new Set([currentMonthKey, ...dbMonths]))
     .sort((a, b) => b.localeCompare(a)); // DESC
 
-const activeMonths = dbMonths.slice().sort((a, b) => b.localeCompare(a)); // DESC
-const defaultMonthKey = activeMonths[0] ?? currentMonthKey;
+const defaultMonthKey = dbMonths.includes(currentMonthKey) ? currentMonthKey : (dbMonths[0] ?? currentMonthKey);
 
 // 2) Choose SSR month (clamp to allowed)
 let ssrMonthKey = defaultMonthKey;
@@ -157,10 +173,13 @@ const [yearStr, monthStr] = ssrMonthKey.split("-");
 const year = Number(yearStr);
 const monthIndex = Number(monthStr) - 1;
 
-const nextMonth = new Date(year, monthIndex + 1, 1);
+const nextMonth = new Date(Date.UTC(year, monthIndex + 1, 1, 12));
 
-const monthStartISO = `${ssrMonthKey}-01`;
-const nextMonthStartISO = `${monthKey(nextMonth.getFullYear(), nextMonth.getMonth())}-01`;
+const monthStartUtc = chicagoDatetimeLocalToUtcIso(`${ssrMonthKey}-01T00:00`);
+const nextMonthKeyStr = `${nextMonth.getUTCFullYear()}-${String(nextMonth.getUTCMonth() + 1).padStart(2, "0")}`;
+const nextMonthStartUtc = chicagoDatetimeLocalToUtcIso(`${nextMonthKeyStr}-01T00:00`);
+
+if (!monthStartUtc || !nextMonthStartUtc) { throw new Error("Failed to compute UTC month boundaries."); }
 
 const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const startDow = chicagoWeekdayIndexForMonthStart(ssrMonthKey);
@@ -178,7 +197,7 @@ const monthRes = await DB.prepare(`
     AND date_start >= ?
     AND date_start < ?
   ORDER BY date_start ASC, title ASC
-`).bind(monthStartISO, nextMonthStartISO).all<EventRow>();
+`).bind(monthStartUtc, nextMonthStartUtc).all<EventRow>();
 
 const monthEvents = monthRes.results ?? [];
 

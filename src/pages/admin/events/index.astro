@@ -30,9 +30,20 @@ const rows = res.results ?? [];
 
 function niceDate(dateStart: string | null, isTbd: number) {
     if (isTbd === 1 || !dateStart) return "TBD";
+
     const d = new Date(dateStart);
     if (Number.isNaN(d.getTime())) return "TBD";
-    return d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }).replace(":00", "");
+
+    return d
+        .toLocaleString("en-US", {
+            timeZone: "America/Chicago",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+        })
+        .replace(":00", "");
 }
 
 const ok = Astro.url.searchParams.get("ok");
