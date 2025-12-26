@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import type { D1Database } from "@cloudflare/workers-types";
+import { utcIsoToChicagoDatetimeLocal } from "../../../lib/datetime";
 export const prerender = false;
 
 const id = Astro.params.id!;
@@ -31,6 +32,8 @@ const res = await DB.prepare(`
 if (!res) {
     return new Response(null, { status: 302, headers: { location: "/admin/events?err=notfound" } });
 }
+const startLocal = res.date_start ? (utcIsoToChicagoDatetimeLocal(res.date_start) ?? "") : "";
+const endLocal   = res.date_end   ? (utcIsoToChicagoDatetimeLocal(res.date_end)   ?? "") : "";
 
 const ok = Astro.url.searchParams.get("ok");
 const err = Astro.url.searchParams.get("err");
@@ -117,12 +120,12 @@ const statusMsg =
 
                         <label class="field">
                             <span class="label">Start</span>
-                            <input type="datetime-local" name="date_start" id="date_start" value={res.is_tbd ? "" : (res.date_start ?? "")} />
+                            <input type="datetime-local" name="date_start" id="date_start" value={res.is_tbd ? "" : startLocal} />
                         </label>
 
                         <label class="field">
                             <span class="label">End</span>
-                            <input type="datetime-local" name="date_end" id="date_end" value={res.is_tbd ? "" : (res.date_end ?? "")} />
+                            <input type="datetime-local" name="date_end" id="date_end" value={res.is_tbd ? "" : endLocal} />
                         </label>
 
                         <label class="field full">
@@ -301,16 +304,7 @@ const statusMsg =
                 showStatus("Start date is required unless Planned (Date TBD) is checked.");
                 return;
             }
-
-            // On edit: block user from saving an event in the past if you truly want that rule.
-            // This will prevent “fixing” old events unless they toggle to TBD or move it to future.
-            const minNow = nowChicagoDatetimeMin();
-            if (s < minNow) {
-                e.preventDefault();
-                showStatus("Start date cannot be in the past.");
-                return;
-            }
-
+            
             if (en && en < s) {
                 e.preventDefault();
                 showStatus("End date cannot be before Start date.");

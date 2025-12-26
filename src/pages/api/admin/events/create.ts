@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import type { D1Database } from "@cloudflare/workers-types";
-import { redirect } from "../../../../lib/http";
+import { redirect, json } from "../../../../lib/http";
+import { chicagoDatetimeLocalToUtcIso } from "../../../../lib/datetime";
 
 function redirectTo(origin: string, path: string) {
     return redirect(`${origin}${path}`, 303);
@@ -93,6 +94,10 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
         }
 
         const urlLabel = String(form.get("url_label") ?? "").trim() || null;
+        const dateStartUtc = dateStartRaw ? chicagoDatetimeLocalToUtcIso(dateStartRaw) : null;
+        const dateEndUtc   = dateEndRaw   ? chicagoDatetimeLocalToUtcIso(dateEndRaw)   : null;
+        if (dateStartRaw && !dateStartUtc) return json({ ok:false, error:"Invalid date_start" }, 400);
+        if (dateEndRaw && !dateEndUtc) return json({ ok:false, error:"Invalid date_end" }, 400);
 
         if (!title || !kind) {
             return redirectTo(url.origin, "/admin/events/new?err=invalid");
@@ -149,8 +154,8 @@ export const POST: APIRoute = async ({ request, locals, url }) => {
             title,
             kind,
             status,
-            isTbd ? null : dateStartRaw,
-            isTbd ? null : (dateEndRaw || null),
+            isTbd ? null : dateStartUtc,
+            isTbd ? null : (dateEndUtc || null),
             isTbd,
             location,
             summary,
