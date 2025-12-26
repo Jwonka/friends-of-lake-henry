@@ -1,8 +1,23 @@
 ---
 export const prerender = false;
-
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import type { D1Database } from "@cloudflare/workers-types";
+
+function formatChicago(ts: string | null | undefined): string {
+    if (!ts) return "—";
+    const d = new Date(ts);
+    if (!Number.isFinite(d.getTime())) return ts; // don’t explode if legacy format
+    return d.toLocaleString("en-US", {
+        timeZone: "America/Chicago",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+    });
+}
 
 const DB = (Astro.locals as any).runtime.env.DB as D1Database;
 
@@ -95,7 +110,11 @@ const statusMsg =
                                             </div>
                                             <div class="metaRow">
                                                 <span class="metaLabel">Approved</span>
-                                                <span class="metaValue">{p.approved_at ?? "—"}</span>
+                                                <span class="metaValue">{formatChicago(p.approved_at)}</span>
+                                            </div>
+                                            <div class="metaRow">
+                                                <span class="metaLabel">Submitted</span>
+                                                <span class="metaValue">{formatChicago(p.submitted_at)}</span>
                                             </div>
                                             <div class="metaRow">
                                                 <span class="metaLabel">ID</span>

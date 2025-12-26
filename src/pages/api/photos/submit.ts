@@ -19,7 +19,8 @@ function isAllowedImageType(type: string) {
         type === "image/jpeg" ||
         type === "image/png" ||
         type === "image/webp" ||
-        type === "image/gif"
+        type === "image/gif" ||
+        type === "image/avif"
     );
 }
 
@@ -33,6 +34,8 @@ function extFromContentType(type: string) {
             return "webp";
         case "image/gif":
             return "gif";
+        case "image/avif":
+            return "avif";
         default:
             return "bin";
     }
