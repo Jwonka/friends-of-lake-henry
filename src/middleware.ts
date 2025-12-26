@@ -126,5 +126,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
             : redirectToLogin(context.url.origin, pathname + search);
     }
 
-    return next();
+    const res = await next();
+
+    // Only for Admin UI HTML (not /api/admin and not /admin assets like images/css/js)
+    if (isAdminUi && !isAdminApi) {
+        // No caching of admin HTML anywhere
+        res.headers.set("Cache-Control", "no-store");
+        res.headers.set("Pragma", "no-cache");
+
+        // Tell crawlers to ignore admin pages even if discovered
+        res.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    }
+
+    return res;
 });
