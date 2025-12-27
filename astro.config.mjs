@@ -5,6 +5,7 @@ import cloudflare from "@astrojs/cloudflare";
 
 // https://astro.build/config
 export default defineConfig({
+    trailingSlash: "never",
     site: 'https://friendsoflakehenry.com',
     integrations: [
         sitemap({
