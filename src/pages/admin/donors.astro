@@ -23,15 +23,15 @@ const donors = (await DB
         <section class="card adminCard enter-block">
             <div class="adminHeader">
                 <div class="pageTop">
-                    <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
+                    <div class="pageTopRow">
+                        <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
+
+                        <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                            <button class="btn" type="submit">Log out</button>
+                        </form>
+                    </div>
                     <h1 class="h1-tight">Donors</h1>
                     <p class="lead adminLead">Add a donor to the public donors list.</p>
-                </div>
-
-                <div class="adminActions">
-                    <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
-                        <button class="btn" type="submit">Log out</button>
-                    </form>
                 </div>
             </div>
 
@@ -177,14 +177,19 @@ const donors = (await DB
         .adminCard{ margin-top: var(--section-gap); }
         .adminPanel{ margin-top: 1rem; }
         .adminLead{ margin: 0; }
-        .adminHeader{
-            display:flex;
-            align-items:flex-end;
-            justify-content:space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
+        .adminHeader{ display: block; }
+        .pageTop{ display: grid; gap: .6rem; width: 100%; }
+
+        .pageTopRow{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            width: 100%;
         }
-        .pageTop .pill { justify-self: start; }
+
+        .logoutForm{ margin: 0; }
+        .logoutForm .btn{ padding: .6rem .9rem; border-radius: 999px; white-space: nowrap; }
         .donorList { display: grid; gap: .75rem; margin-top: .75rem; }
         .donorRow { display:flex; align-items:center; justify-content:space-between; gap: 1rem; padding: .75rem; border: 1px solid var(--panel-border); border-radius: 12px; background: var(--panel-bg); }
         .donorMeta { display:flex; align-items:baseline; justify-content:space-between; gap: 1rem; flex: 1; }
