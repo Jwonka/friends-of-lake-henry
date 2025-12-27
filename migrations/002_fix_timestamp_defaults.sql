@@ -5,12 +5,14 @@ CREATE TABLE donors_new (
                             amount_cents INTEGER NOT NULL,
                             display_name TEXT,
                             in_memory_of TEXT,
+                            donor_email TEXT,
+                            message TEXT,
                             source TEXT NOT NULL DEFAULT 'admin',
                             created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
-INSERT INTO donors_new (id, name, amount_cents, display_name, in_memory_of, source, created_at)
-SELECT id, name, amount_cents, display_name, in_memory_of, source, created_at
+INSERT INTO donors_new (id, name, amount_cents, display_name, in_memory_of, donor_email, message, source, created_at)
+SELECT id, name, amount_cents, display_name, in_memory_of,, donor_email, message, source, created_at
 FROM donors;
 
 DROP TABLE donors;
