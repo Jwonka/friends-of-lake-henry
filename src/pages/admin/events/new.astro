@@ -20,18 +20,20 @@ const statusMsg =
         <section class="card enter-block" style="margin-top: var(--section-gap);">
             <div class="adminHeader">
                 <div class="pageTop">
-                    <a class="pill  enter-block delay-1" href="/admin/events">← Events</a>
+                    <div class="pageTopRow">
+                        <a class="pill enter-block delay-1" href="/admin/events">← Events</a>
+
+                        <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                            <button class="btn" type="submit">Log out</button>
+                        </form>
+                    </div>
+
                     <h1 class="h1-tight">New event</h1>
                     <p class="lead" style="margin:0;">Create an event and publish when ready.</p>
 
                     <div id="status" class={`status ${statusClass}`} role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
                         {statusMsg}
                     </div>
-                </div>
-                <div class="adminActions">
-                    <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
-                        <button class="btn" type="submit">Log out</button>
-                    </form>
                 </div>
             </div>
 
@@ -246,8 +248,11 @@ const statusMsg =
     </script>
 
     <style>
-        .adminHeader{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
-        .pageTop .pill { justify-self: start; }
+        .adminHeader{ display:block; }
+        .pageTop{ display:grid; gap:.6rem; width:100%; min-width:0; }
+        .pageTopRow{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; width:100%; min-width:0; }
+        .logoutForm{ margin:0; }
+        .logoutForm .btn{ padding: .6rem .9rem; border-radius: 999px; white-space: nowrap; }
         .grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
         .grid > * { min-width: 0; }
         .full{ grid-column: 1 / -1; }
