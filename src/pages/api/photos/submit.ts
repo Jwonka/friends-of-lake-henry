@@ -2,6 +2,8 @@ import type { APIRoute, APIContext } from "astro";
 import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
 import { redirect, options } from "../../../lib/http";
 import { verifyTurnstile } from "../../../lib/turnstile";
+import { hitThrottle } from "../../../lib/throttle";
+import type { KVNamespace } from "@cloudflare/workers-types";
 
 
 const ALLOWED_CATEGORIES = new Set([
@@ -51,13 +53,28 @@ export const POST: APIRoute = async (context) => {
         const company = String(form.get("company") ?? "").trim();
         if (company) return redirectTo(context, "/photos/submit?submitted=1"); // act like success
 
+        const env = (context.locals as any).runtime?.env as
+            | { SESSION?: KVNamespace; TURNSTILE_SECRET?: string; DB?: D1Database; PHOTOS_BUCKET?: R2Bucket }
+            | undefined;
+
         // Turnstile
         const token = String(form.get("cf-turnstile-response") ?? "").trim();
         if (!token) return redirectTo(context, "/photos/submit?err=captcha");
 
-        const env = (context.locals as any).runtime?.env as
-            | { DB?: D1Database; PHOTOS_BUCKET?: R2Bucket; TURNSTILE_SECRET?: string }
-            | undefined;
+        const ip = context.request.headers.get("CF-Connecting-IP") || "unknown";
+        if (env?.SESSION) {
+            const t = await hitThrottle({
+                kv: env.SESSION,
+                key: `throttle:photo_submit:${ip}`,
+                limit: 3,
+                windowSec: 600,
+            });
+            if (!t.ok) return redirectTo(context, "/photos/submit?err=server"); // stay generic
+        }
+
+        const DB = env?.DB;
+        const BUCKET = env?.PHOTOS_BUCKET;
+        if (!DB || !BUCKET) return redirectTo(context, "/photos/submit?err=server");
 
         const secret = String(env?.TURNSTILE_SECRET ?? "").trim();
         if (!secret) return redirectTo(context, "/photos/submit?err=server");
@@ -69,7 +86,6 @@ export const POST: APIRoute = async (context) => {
         });
 
         if (!okCaptcha) return redirectTo(context, "/photos/submit?err=captcha");
-
 
         const category = String(form.get("category") ?? "").trim();
         const title = String(form.get("title") ?? "").trim() || null;
@@ -93,10 +109,6 @@ export const POST: APIRoute = async (context) => {
 
         const MAX_BYTES = 8 * 1024 * 1024;
         if (file.size <= 0 || file.size > MAX_BYTES) { return redirectTo(context, "/photos/submit?err=size"); }
-
-        const DB = env?.DB;
-        const BUCKET = env?.PHOTOS_BUCKET;
-        if (!DB || !BUCKET) return redirectTo(context, "/photos/submit?err=server");
 
         const id = crypto.randomUUID();
         const ext = extFromContentType(file.type);

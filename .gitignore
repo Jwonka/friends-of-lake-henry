@@ -88,6 +88,11 @@ web_modules/
 !.env.example
 .dev.vars
 
+# D1 database exports (local backups / snapshots)
+*.d1.sql
+*known-good*.sql
+folh-db-*.sql
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache

@@ -1,17 +1,15 @@
 import type { APIRoute } from "astro";
 import { json, redirect, options } from "../../lib/http";
 import { verifyTurnstile } from "../../lib/turnstile";
-
-type TurnstileVerify = {
-    success: boolean;
-    "error-codes"?: string[];
-};
+import { hitThrottle } from "../../lib/throttle";
+import type { KVNamespace } from "@cloudflare/workers-types";
 
 type Env = {
     RESEND_API_KEY: string;
     FROM_EMAIL: string;
     TO_EMAIL: string;
     TURNSTILE_SECRET: string;
+    SESSION?: KVNamespace;
 };
 
 function redirectBack(requestUrl: string, suffix = ""): Response {
@@ -42,6 +40,22 @@ export const POST: APIRoute = async (context) => {
             return wantsJson(request)
                 ? json({ ok: false, error: "server" }, 500)
                 : redirectBack(request.url, "?err=server");
+        }
+
+        const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+        const kv = env.SESSION;
+        if (kv) {
+            const t = await hitThrottle({
+                kv,
+                key: `throttle:contact:${ip}`,
+                limit: 5,
+                windowSec: 600,
+            });
+            if (!t.ok) {
+                return wantsJson(request)
+                    ? json({ ok: false, error: "server" }, 502)
+                    : redirectBack(request.url, "?err=server");
+            }
         }
 
         const ct = request.headers.get("content-type") || "";
