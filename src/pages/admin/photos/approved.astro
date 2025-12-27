@@ -62,18 +62,20 @@ const statusMsg =
         <section class="card approvedCard enter-block">
             <div class="adminHeader">
                 <div class="adminHeaderLeft pageTop">
-                    <a class="pill enter-block delay-1" href="/admin">Admin</a>
+                    <div class="pageTopRow">
+                        <a class="pill enter-block delay-1" href="/admin">Admin</a>
+
+                        <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                            <button class="btn" type="submit">Log out</button>
+                        </form>
+                    </div>
+
                     <h1 class="h1-tight">Approved photos</h1>
                     <p class="lead">These are visible on the public Photos page. Delete removes from gallery.</p>
 
                     <div id="status" class={`status ${statusClass}`} style="text-align:center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
                         {statusMsg}
                     </div>
-                </div>
-                <div class="adminActions">
-                    <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
-                        <button class="btn" type="submit">Log out</button>
-                    </form>
                 </div>
             </div>
 
@@ -159,9 +161,13 @@ const statusMsg =
     })();
 </script>
     <style>
+        .adminHeader{ display:block; }
+        .pageTop{ display:grid; gap: .6rem; width: 100%; }
+        .pageTopRow{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; width:100%; }
+        .logoutForm{ margin: 0; }
+        .logoutForm .btn{ padding: .6rem .9rem; border-radius: 999px; white-space: nowrap; }
         .approvedPanel{ background: var(--panel-bg-dense); }
         .approvedList{ display:grid; gap: 1rem; }
-        .pageTop .pill { justify-self: start; }
         .itemGrid{ display:grid; gap: 1rem; grid-template-columns: 260px 1fr; align-items:start; }
         .previewImg{ width:100%; border-radius: 12px; border: 1px solid var(--border-strong); display:block; }
         .meta{ display:grid; gap: .4rem; }
