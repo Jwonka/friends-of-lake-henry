@@ -14,6 +14,18 @@ const ALLOWED_CATEGORIES = new Set([
     "Scenery",
 ]);
 
+function isSameOrigin(request: Request, siteOrigin: string) {
+    const origin = request.headers.get("origin");
+    if (origin) return origin === siteOrigin;
+
+    const referer = request.headers.get("referer");
+    if (referer) return referer.startsWith(`${siteOrigin}/`);
+
+    // Public endpoint: fail open to avoid breaking edge cases.
+    // Turnstile + throttle are still primary defenses.
+    return true;
+}
+
 function redirectTo(context: APIContext, pathWithQuery: string) {
     return redirect(new URL(pathWithQuery, context.url).toString());
 }
@@ -47,6 +59,11 @@ function extFromContentType(type: string) {
 
 export const POST: APIRoute = async (context) => {
     try {
+        if (!isSameOrigin(context.request, context.url.origin)) {
+            // stay generic; don't reveal policy details
+            return redirectTo(context, "/photos/submit?err=server");
+        }
+        
         const form = await context.request.formData();
 
         // Honeypot
