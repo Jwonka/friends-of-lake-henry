@@ -18,6 +18,7 @@ export const prerender = false;
 
                     <h1 class="h1-tight">Admin Dashboard</h1>
                     <p class="lead adminLead">Manage site content and donor listings.</p>
+                </div>
             </div>
 
             <div class="panel adminPanel enter-block delay-2">
@@ -56,40 +57,36 @@ export const prerender = false;
         .adminCard{ margin-top: var(--section-gap); }
         .adminPanel{ margin-top: 1rem; }
         .adminLead{ margin: 0; }
-        .adminHeader{
-            position: relative;
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            align-items: flex-start;
-            padding-right: 7.5rem;
+        .adminHeader{ display: block; }
+
+        .pageTop{
+            display: grid;
+            gap: .6rem;
+            width: 100%;
         }
-        .adminActions{
-            position: absolute;
-            top: 0;
-            right: 0;
-            display: flex;
-            align-items: flex-start;
-        }
-        .pageTop .pill { display: grid; gap: .6rem; }
+
         .pageTopRow{
             display: flex;
-            width: 100%;
             align-items: center;
             justify-content: space-between;
             gap: .75rem;
+            width: 100%;
         }
-        /* Prevent the button from getting absurdly wide on tiny screens */
+
+        /* Button sizing on small screens */
+        .logoutForm{ margin: 0; }
         .logoutForm .btn{
             padding: .6rem .9rem;
             border-radius: 999px;
             white-space: nowrap;
         }
+
         .adminGrid{
             display:grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: .75rem;
         }
+
         .adminTile{
             display:block;
             padding: 1rem;
@@ -101,6 +98,7 @@ export const prerender = false;
             text-decoration: none;
             transition: transform 140ms ease, border-color 160ms ease, background-color 160ms ease;
         }
+        
         .adminTile:hover,
         .adminTile:focus-visible{
             transform: translateY(-2px);
