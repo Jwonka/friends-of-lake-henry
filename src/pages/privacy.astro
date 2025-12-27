@@ -1,0 +1,133 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Privacy Policy | Friends of Lake Henry";
+const description =
+    "Learn what information Friends of Lake Henry collects, how it’s used, and how we protect it.";
+---
+
+<BaseLayout title={title} description={description}>
+    <div class="container" style="--maxw: 900px;">
+        <section class="card enter-block" style="margin-top: var(--section-gap);">
+            <div class="panel">
+                <h1 class="h1-tight">Privacy Policy</h1>
+                <p class="lead">
+                    Friends of Lake Henry (“we,” “our,” or “us”) is committed to protecting your privacy.
+                    This Privacy Policy explains what information we collect, how we use it, and how we protect it.
+                    By using our website or providing information to us, you agree to this Privacy Policy.
+                </p>
+
+                <h2>Information We Collect</h2>
+
+                <h3>1. Contact Requests</h3>
+                <p>
+                    When you submit the contact form on our website, we collect your name, email address, and the message you provide
+                    so we can respond to your inquiry.
+                </p>
+
+                <h3>2. Photo Submissions</h3>
+                <p>If you submit a photo through our website, we collect:</p>
+                <ul>
+                    <li>The uploaded image</li>
+                    <li>Optional title and caption</li>
+                    <li>Required alternative (alt) text for accessibility</li>
+                    <li>An optional “submitted by” name</li>
+                    <li>A category selected during submission</li>
+                </ul>
+                <p>Submitted photos are reviewed before being published to the public photo gallery.</p>
+
+                <h3>3. Technical and Security Information</h3>
+                <p>
+                    To protect the website and prevent spam or abuse, we process limited technical information, including IP address
+                    and request metadata. This information is used for security, rate limiting, and abuse prevention and is not used
+                    for advertising or tracking visitors across sites.
+                </p>
+
+                <h2>How We Use Your Information</h2>
+                <p>We use the information we collect only for the following purposes:</p>
+                <ul>
+                    <li><strong>Responding to contact requests</strong> (replying to messages submitted through the contact form)</li>
+                    <li><strong>Reviewing and publishing photo submissions</strong> (reviewing and, if approved, displaying photos in the public gallery)</li>
+                    <li><strong>Maintaining site security</strong> (detecting and preventing spam, automated submissions, and abusive behavior)</li>
+                </ul>
+                <p>
+                    We do <strong>not</strong> sell your personal information and do <strong>not</strong> use it for advertising or marketing.
+                </p>
+
+                <h2>Third-Party Services</h2>
+
+                <h3>Cloudflare (Hosting and Security)</h3>
+                <p>
+                    Our website is delivered and protected by Cloudflare. Cloudflare may process IP addresses and set security-related
+                    cookies that are required to protect the site from malicious traffic.
+                </p>
+
+                <h3>Cloudflare Turnstile (Spam Prevention)</h3>
+                <p>
+                    We use Cloudflare Turnstile on certain forms to distinguish real users from automated abuse.
+                    Turnstile may process IP address and related request data as part of this security function.
+                </p>
+
+                <h3>Resend (Email Delivery)</h3>
+                <p>
+                    When you submit the contact form, your name, email address, and message are sent via Resend so the message can be
+                    delivered to us by email.
+                </p>
+
+                <h3>Facebook (Embedded Video Content)</h3>
+                <p>
+                    Some pages of the site may embed Facebook video content (such as Facebook Live). When you view embedded Facebook
+                    content, Facebook may set cookies or collect data according to its own privacy practices. We do not control how
+                    Facebook processes this data.
+                </p>
+
+                <h2>Cookies and Tracking</h2>
+                <p>We do not use analytics or advertising cookies.</p>
+                <p>However:</p>
+                <ul>
+                    <li>Cloudflare may set necessary security cookies.</li>
+                    <li>Facebook embedded content may set cookies or perform tracking when viewed.</li>
+                </ul>
+
+                <h2>Data Retention</h2>
+                <p>
+                    We retain personal information only for as long as necessary to respond to inquiries, review and manage submitted
+                    content, maintain site security, and comply with applicable legal or operational requirements.
+                </p>
+
+                <h2>Data Security</h2>
+                <p>
+                    We take reasonable measures to protect your information, including the use of encrypted connections (HTTPS) and
+                    restricted access to administrative systems. No online service can be guaranteed to be completely secure, and you
+                    provide information at your own risk.
+                </p>
+
+                <h2>Your Rights and Choices</h2>
+                <p>You may request:</p>
+                <ul>
+                    <li>Access to or correction of your submitted information</li>
+                    <li>Deletion of your contact message or submitted photos, where legally permitted</li>
+                </ul>
+                <p>
+                    To make a request, contact us at <a href="mailto:friendsoflakehenryblair@gmail.com">friendsoflakehenryblair@gmail.com</a>.
+                </p>
+
+                <h2>Children’s Privacy</h2>
+                <p>
+                    This website is intended for a general audience and is not directed to children under 13.
+                    We do not knowingly collect personal information from children under 13.
+                </p>
+
+                <h2>Changes to This Privacy Policy</h2>
+                <p>
+                    We may update this Privacy Policy from time to time. Any updates will be posted on this page with a revised
+                    effective date. Continued use of the site indicates acceptance of the updated policy.
+                </p>
+
+                <p class="muted" style="margin-top: 1rem;">
+                    Last updated: December 26, 2025
+                </p>
+            </div>
+        </section>
+    </div>
+</BaseLayout>

@@ -58,13 +58,21 @@ const ogImageUrl = Astro.site ? new URL(image, Astro.site).toString() : image;
 <footer class="footer">
     <div class="container">
         <div class="footInner">
-            <div class="footLeft" aria-hidden="true"></div>
             <div class="footCenter">
-                <div class="footBrandLine">
-                    <strong class="footBrand">Friends of Lake Henry</strong>
-                    <span class="footCopy">© {new Date().getFullYear()}</span>
+                <div class="footTop">
+                    <div class="footBrandLine">
+                        <strong class="footBrand">Friends of Lake Henry</strong>
+                        <span class="footCopy">© {new Date().getFullYear()}</span>
+                    </div>
+                    <div class="footTag muted">A community nonprofit supporting lake restoration.</div>
                 </div>
-                <div class="muted footTag">A community nonprofit supporting lake restoration.</div>
+
+                <nav class="footLegal" aria-label="Legal">
+                    <a class="footLegalLink" href="/privacy">Privacy Policy</a>
+                    <span class="footDot" aria-hidden="true">·</span>
+                    <a class="footLegalLink" href="/terms">Terms of Use</a>
+                </nav>
+
                 <div class="adminFoot">
                     <a href="/admin/login" class="adminLink">Admin</a>
                 </div>
@@ -132,7 +140,7 @@ const ogImageUrl = Astro.site ? new URL(image, Astro.site).toString() : image;
 
     .footInner{
         display: grid;
-        grid-template-columns: 1fr auto 1fr;
+        grid-template-columns: 1fr;
         align-items: center;
         gap: 1rem;
     }
@@ -141,17 +149,54 @@ const ogImageUrl = Astro.site ? new URL(image, Astro.site).toString() : image;
         text-align: center;
     }
 
+    .footTop{
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: .6rem;
+        flex-wrap: wrap;
+    }
+
     .footBrandLine{
         display: inline-flex;
         align-items: baseline;
         gap: .5rem;
+        white-space: nowrap;
     }
 
     .footBrand{ color: var(--text); }
     .footCopy{ color: var(--text-soft); font-size: .95rem; }
-    .footTag{ margin-top: .25rem; }
-
+    .footTag{ margin: 0; color: var(--text-soft); }
     .muted{ color: var(--muted); }
+
+    .footLegal{
+        margin-top: .5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        flex-wrap: wrap;
+    }
+
+    .footLegalLink{
+        font-size: .9rem;
+        font-weight: 600;
+        color: var(--text-soft);
+        text-decoration: none;
+        opacity: .85;
+        transition: opacity 160ms ease, color 160ms ease;
+    }
+
+    .footLegalLink:hover,
+    .footLegalLink:focus-visible{
+        opacity: 1;
+        color: var(--text);
+    }
+
+    .footDot{
+        opacity: .45;
+        color: var(--text-soft);
+    }
 
     .adminFoot{
         margin-top: .35rem;
@@ -186,6 +231,13 @@ const ogImageUrl = Astro.site ? new URL(image, Astro.site).toString() : image;
     @media (max-width: 900px){
         .pageBg{ position: fixed; }
     }
+
+    @media (min-width: 681px){
+        .footTop{
+            flex-wrap: nowrap;
+        }
+    }
+
     @media (max-width: 680px){
         .footInner{
             grid-template-columns: 1fr;
