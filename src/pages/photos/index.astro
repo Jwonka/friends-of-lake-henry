@@ -116,7 +116,7 @@ const description =
                     {photos.map((p) => (
                         <a class="photoLink" href={`/photos/${p.id}`} data-category={p.category}>
                             <figure class="photo">
-                                <img src={`/api/photos/file?id=${p.id}`} alt={p.alt ?? ""} loading="lazy" />
+                                <img src={`/api/photos/file?id=${p.id}`} alt={p.alt?.trim() || p.caption?.trim() || p.title?.trim() || "Photo from Friends of Lake Henry"} loading="lazy" />
                             </figure>
                         </a>
                     ))}
