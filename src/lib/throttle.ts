@@ -1,3 +1,5 @@
+import type { KVNamespace } from "@cloudflare/workers-types";
+
 type ThrottleOpts = {
     kv: KVNamespace;
     key: string;
