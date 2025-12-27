@@ -1,32 +1,6 @@
 import { defineMiddleware } from "astro/middleware";
 import { SECURITY_HEADERS_NOSTORE } from "./lib/http";
 
-const BASE_SECURITY_HEADERS: Record<string, string> = {
-    // Transport
-    "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
-
-    // Hardening
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "Permissions-Policy": "geolocation=(), microphone=(), camera=(), payment=()",
-
-    // Clickjacking defense (legacy + CSP frame-ancestors below)
-    "X-Frame-Options": "DENY",
-};
-
-const BASE_CSP = [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
-    "frame-ancestors 'none'",
-    "form-action 'self'",
-    "img-src 'self' data: https:",
-    "style-src 'self' 'unsafe-inline'",
-    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-    "connect-src 'self' https://challenges.cloudflare.com https://api.resend.com",
-    "frame-src https://challenges.cloudflare.com",
-].join("; ");
-
 const SESSION_COOKIE = "admin_session";
 const SESSION_PREFIX = "admin_sess:";
 
@@ -90,6 +64,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const isAdminUi = pathname.startsWith("/admin");
     const isAdminApi = pathname.startsWith("/api/admin");
 
+    if (!isAdminUi && !isAdminApi) return next();
+
     // Allow auth endpoints through (login/logout)
     if (
         pathname === "/admin/login" ||
@@ -151,23 +127,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
             : redirectToLogin(context.url.origin, pathname + search);
     }
 
+
     const res = await next();
 
-    // Baseline security headers for ALL HTML responses (public + admin).
-    const ct = res.headers.get("Content-Type") || "";
-    if (ct.includes("text/html")) {
-        for (const [k, v] of Object.entries(BASE_SECURITY_HEADERS)) {
-            // Don't clobber if something upstream already set it.
-            if (!res.headers.has(k)) res.headers.set(k, v);
-        }
-
-        // CSP is additive; set if not already present.
-        if (!res.headers.has("Content-Security-Policy")) {
-            res.headers.set("Content-Security-Policy", BASE_CSP);
-        }
-
-        // Only for Admin UI HTML (not /api/admin and not /admin assets like images/css/js)
-        if (isAdminUi && !isAdminApi) {
+    // Only for Admin UI HTML (not /api/admin and not /admin assets like images/css/js)
+    if (isAdminUi && !isAdminApi) {
+        const ct = res.headers.get("Content-Type") || "";
+        if (ct.includes("text/html")) {
             res.headers.set("Cache-Control", "no-store");
             res.headers.set("Pragma", "no-cache");
             res.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");

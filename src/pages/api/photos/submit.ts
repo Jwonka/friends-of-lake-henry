@@ -63,7 +63,7 @@ export const POST: APIRoute = async (context) => {
             // stay generic; don't reveal policy details
             return redirectTo(context, "/photos/submit?err=server");
         }
-        
+
         const form = await context.request.formData();
 
         // Honeypot
