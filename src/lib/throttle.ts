@@ -19,7 +19,7 @@ export async function hitThrottle({ kv, key, limit, windowSec }: ThrottleOpts) {
     if (!raw) {
         await kv.put(key, String(next), { expirationTtl: windowSec });
     } else {
-        await kv.put(key, String(next), { expirationTtl: windowSec });
+        await kv.put(key, String(next));
     }
 
     return { ok: true, remaining: Math.max(0, limit - next) };
