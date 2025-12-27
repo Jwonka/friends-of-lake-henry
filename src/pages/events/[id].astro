@@ -88,7 +88,6 @@ const jsonLdEvent = canonical ? {
 <BaseLayout
         title={pageTitle}
         description={pageDescription}
-        image={event.poster_key ? `/api/events/poster?id=${event.id}` : undefined}
         jsonLd={jsonLdEvent}
 >
     <div class="container" style="--maxw: 900px;">
@@ -106,10 +105,10 @@ const jsonLdEvent = canonical ? {
             {event.poster_key ? (
                     <figure style="margin: 1rem 0 0;">
                         <img
-                                src={`/api/events/poster?id=${event.id}`}
-                                alt={event.poster_alt ?? event.title}
-                                loading="lazy"
-                                style="width:100%; height:auto; border-radius: 16px; border: 1px solid var(--border-strong);"
+                            src={`/api/events/poster?id=${event.id}`}
+                            alt={event.poster_alt ?? event.title}
+                            loading="lazy"
+                            style="width:100%; height:auto; border-radius: 16px; border: 1px solid var(--border-strong);"
                         />
                     </figure>
             ) : null}
