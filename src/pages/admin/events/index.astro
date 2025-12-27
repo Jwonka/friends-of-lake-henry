@@ -75,7 +75,11 @@ const statusMsg =
                         {statusMsg}
                     </div>
                 </div>
-
+                <div class="adminActions">
+                    <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                        <button class="btn" type="submit">Log out</button>
+                    </form>
+                </div>
                 <a class="pill enter-block delay-2" href="/admin/events/new">+ New event</a>
             </div>
 

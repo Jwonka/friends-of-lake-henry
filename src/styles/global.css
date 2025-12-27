@@ -350,6 +350,17 @@ p { color: var(--text-strong); }
 /* Form controls (site-wide) */
 label { display: block; }
 
+.adminActions{
+    display:flex;
+    gap:.75rem;
+    align-items:center;
+    justify-content:flex-end;
+    flex-wrap:wrap;
+}
+
+.logoutForm{ margin: 0; }
+.logoutForm .pill{ border: 1px solid var(--border); }
+
 input,
 textarea,
 select {

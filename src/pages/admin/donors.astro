@@ -28,9 +28,11 @@ const donors = (await DB
                     <p class="lead adminLead">Add a donor to the public donors list.</p>
                 </div>
 
-                <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
-                    <button class="btn" type="submit">Log out</button>
-                </form>
+                <div class="adminActions">
+                    <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                        <button class="btn" type="submit">Log out</button>
+                    </form>
+                </div>
             </div>
 
             <div class="panel adminPanel enter-block delay-2">
@@ -183,7 +185,6 @@ const donors = (await DB
             flex-wrap: wrap;
         }
         .pageTop .pill { justify-self: start; }
-        .logoutForm{ margin: 0; }
         .donorList { display: grid; gap: .75rem; margin-top: .75rem; }
         .donorRow { display:flex; align-items:center; justify-content:space-between; gap: 1rem; padding: .75rem; border: 1px solid var(--panel-border); border-radius: 12px; background: var(--panel-bg); }
         .donorMeta { display:flex; align-items:baseline; justify-content:space-between; gap: 1rem; flex: 1; }
