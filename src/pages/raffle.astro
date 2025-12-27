@@ -160,9 +160,13 @@ const embedSrc = effectiveVideoUrl
 const updatedAtDate = liveConfig.updatedAt ? new Date(liveConfig.updatedAt) : null;
 const updatedAtLabel =
     updatedAtDate && Number.isFinite(updatedAtDate.getTime()) ? updatedAtDate.toLocaleString("en-US", { timeZone: "America/Chicago" }) : null;
+
+const title = "Raffle | Friends of Lake Henry";
+const description =
+    "View current raffle information and winners supporting Friends of Lake Henry fundraising and lake restoration efforts.";
 ---
 
-<BaseLayout title={`Raffle | Friends of Lake Henry`}>
+<BaseLayout title={title} description={description}>
     <div class="container  rafflePage">
         <section class="card hero enter-block">
             <div class="heroLeft">

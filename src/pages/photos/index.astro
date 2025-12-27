@@ -68,9 +68,13 @@ const statusClass =
     statusTone === "success" ? "status--success" :
         statusTone === "error" ? "status--error" :
             "status--empty";
+
+const title = "Photos | Friends of Lake Henry";
+const description =
+    "Browse photos from lake restoration projects, fundraising events, and community activities around Lake Henry."
 ---
 
-<BaseLayout title="Photos | Friends of Lake Henry">
+<BaseLayout title={title} description={description}>
     <div class="container" style="--maxw: 1400px;">
         <section class="card photosCard enter-block">
             <h1>Photos</h1>

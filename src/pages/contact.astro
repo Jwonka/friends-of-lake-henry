@@ -3,9 +3,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
 const env = (Astro.locals as any).runtime?.env as { PUBLIC_TURNSTILE_KEY?: string } | undefined;
 const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
+const title = "Contact | Friends of Lake Henry";
+const description =
+    "Contact Friends of Lake Henry with questions about donations, events, volunteering, or lake restoration initiatives."
 ---
 
-<BaseLayout title="Contact | Friends of Lake Henry">
+<BaseLayout title={title} description={description}>
     <div class="container">
         <section id="contact" class="contactSection card enter-block">
             <h1>Contact</h1>

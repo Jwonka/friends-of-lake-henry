@@ -45,9 +45,12 @@ const altText =
     row.caption?.trim() ||
     row.title?.trim() ||
     "Photo from Friends of Lake Henry";
+
+const description =
+    "View a photo from Friends of Lake Henry highlighting lake restoration efforts, events, or community involvement."
 ---
 
-<BaseLayout title={pageTitle}>
+<BaseLayout title={pageTitle} description={description}>
     <div class="container" style="--maxw: 1100px;">
         <section class="card detailCard enter-block">
             <h1 class="h1-tight">{row.title ?? row.category}</h1>

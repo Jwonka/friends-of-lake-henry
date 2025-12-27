@@ -222,9 +222,13 @@ for (const e of monthEvents) {
     arr.push(e);
     byDay.set(key, arr);
 }
+
+const title = "Events | Friends of Lake Henry";
+const description =
+    "Explore upcoming meetings, fundraisers, and community events hosted by Friends of Lake Henry.";
 ---
 
-<BaseLayout title="Events | Friends of Lake Henry">
+<BaseLayout title={title} description={description}>
     <div class="container">
         <section class="card pad enter-block">
             <h1>Events</h1>

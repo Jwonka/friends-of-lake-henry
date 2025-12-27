@@ -1,9 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 export const prerender = false;
+const title = "Page Not Found | Friends of Lake Henry";
+const description =
+    "The page you are looking for could not be found. Please return to the Friends of Lake Henry homepage."
 ---
 
-<BaseLayout title="Page not found | Friends of Lake Henry">
+<BaseLayout title={title} description={description}>
     <div class="container">
         <section class="card enter-block">
             <h1>Page not found</h1>

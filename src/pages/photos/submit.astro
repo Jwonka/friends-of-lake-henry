@@ -4,8 +4,11 @@ export const prerender = false;
 
 const env = (Astro.locals as any).runtime?.env as { PUBLIC_TURNSTILE_KEY?: string } | undefined;
 const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
+const title = "Submit a Photo | Friends of Lake Henry";
+const description =
+    "Submit photos from Friends of Lake Henry events, restoration projects, or community activities for review and publication."
 ---
-<BaseLayout title="Submit Photo | Friends of Lake Henry">
+<BaseLayout title={title} description={description}>
     <div class="container">
         <section class="card submitSection enter-block">
             <h1>Submit a Photo</h1>

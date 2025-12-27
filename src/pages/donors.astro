@@ -32,8 +32,12 @@ const totalRow = await DB.prepare(`
 
 const totalCents = Number(totalRow?.total_cents ?? 0);
 const totalDollars = totalCents / 100;
+
+const title = "Donors | Friends of Lake Henry";
+const description =
+    "Recognizing individuals, families, and businesses who support Friends of Lake Henry and local lake restoration efforts.";
 ---
-<BaseLayout title="Donors | Friends of Lake Henry">
+<BaseLayout title={title} description={description}>
     <div class="container">
         <section class="card pad enter-block">
             <h1>Donors</h1>
