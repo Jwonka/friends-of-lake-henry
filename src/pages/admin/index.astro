@@ -57,11 +57,19 @@ export const prerender = false;
         .adminPanel{ margin-top: 1rem; }
         .adminLead{ margin: 0; }
         .adminHeader{
-            display:flex;
-            align-items:flex-end;
-            justify-content:space-between;
+            position: relative;
+            display: flex;
             gap: 1rem;
             flex-wrap: wrap;
+            align-items: flex-start;
+            padding-right: 7.5rem;
+        }
+        .adminActions{
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            align-items: flex-start;
         }
         .pageTop .pill { justify-self: start; }
         .adminGrid{
@@ -95,6 +103,13 @@ export const prerender = false;
         /* Phones: make tiles feel tappable */
         @media (max-width: 680px){
             .adminTile{ padding: 1.1rem; }
+            .adminHeader{
+                padding-right: 0;
+            }
+            .adminActions{
+                position: static;
+                margin-left: auto;
+            }
         }
     </style>
 </BaseLayout>
