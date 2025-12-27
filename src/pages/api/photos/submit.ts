@@ -46,12 +46,6 @@ function extFromContentType(type: string) {
 export const POST: APIRoute = async (context) => {
     try {
         const form = await context.request.formData();
-        const category = String(form.get("category") ?? "").trim();
-        const title = String(form.get("title") ?? "").trim() || null;
-        const caption = String(form.get("caption") ?? "").trim() || null;
-        const alt = String(form.get("alt") ?? "").trim();
-        const submittedBy = String(form.get("submittedBy") ?? "").trim() || null;
-        const fileLike = form.get("photo");
 
         // Honeypot
         const company = String(form.get("company") ?? "").trim();
@@ -60,6 +54,29 @@ export const POST: APIRoute = async (context) => {
         // Turnstile
         const token = String(form.get("cf-turnstile-response") ?? "").trim();
         if (!token) return redirectTo(context, "/photos/submit?err=captcha");
+
+        const env = (context.locals as any).runtime?.env as
+            | { DB?: D1Database; PHOTOS_BUCKET?: R2Bucket; TURNSTILE_SECRET?: string }
+            | undefined;
+
+        const secret = String(env?.TURNSTILE_SECRET ?? "").trim();
+        if (!secret) return redirectTo(context, "/photos/submit?err=server");
+
+        const okCaptcha = await verifyTurnstile({
+            request: context.request,
+            secret,
+            token,
+        });
+
+        if (!okCaptcha) return redirectTo(context, "/photos/submit?err=captcha");
+
+
+        const category = String(form.get("category") ?? "").trim();
+        const title = String(form.get("title") ?? "").trim() || null;
+        const caption = String(form.get("caption") ?? "").trim() || null;
+        const alt = String(form.get("alt") ?? "").trim();
+        const submittedBy = String(form.get("submittedBy") ?? "").trim() || null;
+        const fileLike = form.get("photo");
 
         if (!ALLOWED_CATEGORIES.has(category)) {
             return redirectTo(context, "/photos/submit?err=category");
@@ -77,24 +94,9 @@ export const POST: APIRoute = async (context) => {
         const MAX_BYTES = 8 * 1024 * 1024;
         if (file.size <= 0 || file.size > MAX_BYTES) { return redirectTo(context, "/photos/submit?err=size"); }
 
-        const env = (context.locals as any).runtime?.env as
-            | { DB?: D1Database; PHOTOS_BUCKET?: R2Bucket; TURNSTILE_SECRET?: string }
-            | undefined;
-
         const DB = env?.DB;
         const BUCKET = env?.PHOTOS_BUCKET;
         if (!DB || !BUCKET) return redirectTo(context, "/photos/submit?err=server");
-
-        const secret = String(env?.TURNSTILE_SECRET ?? "").trim();
-        if (!secret) return redirectTo(context, "/photos/submit?err=server");
-
-        const okCaptcha = await verifyTurnstile({
-            request: context.request,
-            secret,
-            token,
-        });
-
-        if (!okCaptcha) return redirectTo(context, "/photos/submit?err=captcha");
 
         const id = crypto.randomUUID();
         const ext = extFromContentType(file.type);
