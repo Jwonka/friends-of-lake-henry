@@ -12,6 +12,20 @@ type Env = {
     SESSION?: KVNamespace;
 };
 
+function isSameOrigin(request: Request, siteOrigin: string) {
+    const origin = request.headers.get("origin");
+    const referer = request.headers.get("referer");
+
+    if (origin) return origin === siteOrigin;
+
+    if (referer) return referer.startsWith(`${siteOrigin}/`);
+
+    // For public endpoints, fail OPEN (don’t break older clients),
+    // but still rely on Turnstile + rate limiting.
+    return true;
+}
+
+
 function redirectBack(requestUrl: string, suffix = ""): Response {
     const url = new URL(requestUrl);
     return redirect(`${url.origin}/contact${suffix || "?sent=1"}`);
@@ -32,6 +46,12 @@ function esc(s: string) {
 
 export const POST: APIRoute = async (context) => {
     const { request } = context;
+
+    if (!isSameOrigin(request, context.url.origin)) {
+        return wantsJson(request)
+            ? json({ ok: false, error: "forbidden" }, 403)
+            : redirectBack(request.url, "?error=1");
+    }
 
     try {
         const env = (context.locals as any).runtime?.env as Env;
