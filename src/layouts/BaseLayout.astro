@@ -33,6 +33,7 @@ const ogImageUrl = Astro.site ? new URL(image, Astro.site).toString() : image;
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:site_name" content="Friends of Lake Henry" />
+    {canonical && <link rel="canonical" href={canonical} />}
     {canonical && <meta property="og:url" content={canonical} />}
 
     <!-- Twitter -->
