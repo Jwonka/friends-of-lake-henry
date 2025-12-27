@@ -14,6 +14,17 @@ const canonical = Astro.site
     : undefined;
 
 const ogImageUrl = Astro.site ? new URL(image, Astro.site).toString() : image;
+const jsonLdOrg = Astro.site ? {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Friends of Lake Henry",
+    "url": new URL("/", Astro.site).toString(),
+    "description": description,
+    "logo": new URL("/icons/friendsOfLakeHenryLogo_206x206.jpg", Astro.site).toString(),
+    "sameAs": [
+        "https://www.facebook.com/people/Friends-of-Lake-Henry/61552199315213/"
+    ]
+} : null;
 ---
 
 <!doctype html>
@@ -35,6 +46,8 @@ const ogImageUrl = Astro.site ? new URL(image, Astro.site).toString() : image;
     <meta property="og:site_name" content="Friends of Lake Henry" />
     {canonical && <link rel="canonical" href={canonical} />}
     {canonical && <meta property="og:url" content={canonical} />}
+
+    {jsonLdOrg && (<script type="application/ld+json" set:html={JSON.stringify(jsonLdOrg)} />)}
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
