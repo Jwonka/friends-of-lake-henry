@@ -518,7 +518,7 @@ export const prerender = false;
             position: relative;
             display: flex;
             align-items: flex-start;
-            justify-content: space-between;
+            justify-content: flex-start;
             gap: 1rem;
             flex-wrap: wrap;
             padding-right: 7.5rem;
@@ -552,7 +552,7 @@ export const prerender = false;
             white-space: nowrap;
         }
 
-        .adminTitle{ display:flex; flex-direction:column; gap:.15rem; }
+        .adminTitle{ display:flex; flex-direction:column; gap:.15rem; min-width: 0; }
         .adminCard{ margin-top: var(--section-gap); }
         .adminLead{ margin: .25rem 0 0; }
         .adminPanel{ margin-top: 1rem; }
@@ -690,6 +690,11 @@ export const prerender = false;
             }
         }
         @media (max-width: 520px){
+            .adminHeader{ padding-right: 0; }
+            .adminActions{
+                position: static;
+                margin-left: auto;
+            }
             .winnersTable th,
             .winnersTable td {
                 padding: .6rem .55rem;
