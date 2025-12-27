@@ -179,7 +179,8 @@ const statusMsg =
 
         .pageTopActions{
             display:flex;
-            justify-content:flex-start;
+            justify-content:flex-end;
+            margin-top: .25rem;
         }
 
         .logoutForm{ margin:0; }
@@ -252,10 +253,32 @@ const statusMsg =
         .fileUi{
             min-width: 0;
         }
-        @media (max-width: 680px){
-            .eventActions{ justify-content: flex-start; }
-            .eventActions form, .eventActions a{ width: 100%; }
-            .eventActions .pill{ width: 100%; justify-content: center; }
+        @media (max-width: 600px){
+            .eventRow{
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: .75rem;
+            }
+
+            .eventMain{
+                min-width: 0;
+            }
+
+            .eventActions{
+                justify-content: flex-start;
+            }
+
+            .eventActions form,
+            .eventActions a{
+                width: 100%;
+            }
+
+            .eventActions .pill,
+            .eventActions .btn{
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
         }
         @media (max-width: 520px){
             .pageTopActions .pill{
