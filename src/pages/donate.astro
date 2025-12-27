@@ -8,9 +8,12 @@ const siteKey = String(env?.PUBLIC_TURNSTILE_KEY ?? "").trim();
 const url = new URL(Astro.request.url);
 const sent = url.searchParams.get("sent") === "1";
 const error = url.searchParams.get("error") === "1";
+
+const title = "Donate | Friends of Lake Henry";
+const description = "Make a secure donation to support Lake Henry restoration projects, environmental improvements, and community initiatives."
 ---
 
-<BaseLayout title="Donate | Friends of Lake Henry">
+<BaseLayout title={title} description={description}>
     <div class="container">
         <section class="card pad enter-block">
             <h1>Donate</h1>
