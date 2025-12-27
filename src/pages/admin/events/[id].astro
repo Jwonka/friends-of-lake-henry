@@ -62,7 +62,14 @@ const statusMsg =
         <section class="card enter-block" style="margin-top: var(--section-gap);">
             <div class="adminHeader">
                 <div class="pageTop">
-                    <a class="pill enter-block delay-1" href="/admin/events">← Events</a>
+                    <div class="pageTopRow">
+                        <a class="pill enter-block delay-1" href="/admin/events">← Events</a>
+
+                        <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                            <button class="btn" type="submit">Log out</button>
+                        </form>
+                    </div>
+
                     <h1 class="h1-tight">Edit event</h1>
                     <p class="muted" style="margin:.2rem 0 0;">ID: <code>{res.id}</code></p>
 
@@ -70,12 +77,8 @@ const statusMsg =
                         {statusMsg}
                     </div>
                 </div>
-                <div class="adminActions">
-                    <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
-                        <button class="btn" type="submit">Log out</button>
-                    </form>
-                </div>
-                <div class="headerActions">
+
+                <div class="pageTopActions">
                     <form method="post" action="/api/admin/events/toggle-status">
                         <input type="hidden" name="id" value={res.id} />
                         <input type="hidden" name="next" value={res.status === "published" ? "draft" : "published"} />
@@ -343,9 +346,12 @@ const statusMsg =
         })();
     </script>
     <style>
-        .adminHeader{ display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; }
-        .pageTop .pill { justify-self: start; }
-        .headerActions{ display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+        .adminHeader{ display:block; }
+        .pageTop{ display:grid; gap:.6rem; width:100%; min-width:0; }
+        .pageTopRow{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; width:100%; min-width:0; }
+        .logoutForm{ margin:0; }
+        .logoutForm .btn{ padding: .6rem .9rem; border-radius: 999px; white-space: nowrap; }
+        .pageTopActions{ display:flex; gap:.6rem; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
         .grid{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
         .grid > * { min-width: 0; }
         .full{ grid-column: 1 / -1; }
@@ -450,5 +456,13 @@ const statusMsg =
         }
         input[type="datetime-local"]{ min-width: 0; }
         @media (max-width: 720px){ .grid{ grid-template-columns: 1fr; } }
+        @media (max-width: 520px){
+            .pageTopActions form{ width: 100%; }
+            .pageTopActions .pill{
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
+        }
     </style>
 </BaseLayout>
