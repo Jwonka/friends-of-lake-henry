@@ -1,0 +1,132 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import type { D1Database } from "@cloudflare/workers-types";
+
+export const prerender = false;
+
+const id = Astro.params.id!;
+const DB = (Astro.locals as any).runtime.env.DB as D1Database;
+
+type EventRow = {
+    id: string;
+    title: string;
+    kind: string;
+    status: string;
+    date_start: string | null;
+    date_end: string | null;
+    is_tbd: number;
+    location: string | null;
+    summary: string | null;
+    url: string | null;
+    url_label: string | null;
+    poster_key: string | null;
+    poster_alt: string | null;
+};
+
+const event = await DB.prepare(`
+  SELECT id,title,kind,status,date_start,date_end,is_tbd,location,summary,url,url_label,poster_key,poster_alt
+  FROM events
+  WHERE id = ?
+  LIMIT 1
+`).bind(id).first<EventRow>();
+
+// Not found or not published => 404
+if (!event || event.status !== "published") {
+    return new Response(null, { status: 404 });
+}
+
+// Canonical + poster URL
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).toString() : undefined;
+const posterUrl = Astro.site ? new URL(`/api/events/poster?id=${event.id}`, Astro.site).toString() : `/api/events/poster?id=${event.id}`;
+
+// Human-friendly date
+function niceDate(dateIso: string | null, isTbd: number) {
+    if (isTbd === 1 || !dateIso) return "Date TBD";
+    const d = new Date(dateIso);
+    if (Number.isNaN(d.getTime())) return "Date TBD";
+    return d.toLocaleString("en-US", {
+        timeZone: "America/Chicago",
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    }).replace(":00", "");
+}
+
+const pageTitle = `${event.title} | Friends of Lake Henry`;
+const pageDescription =
+    (event.summary && event.summary.trim()) ||
+    `Event details for ${event.title} hosted by Friends of Lake Henry.`;
+
+// Event JSON-LD
+const jsonLdEvent = canonical ? {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": event.title,
+    "description": pageDescription,
+    ...(event.is_tbd === 1 || !event.date_start ? {} : { "startDate": event.date_start }),
+    ...(event.date_end ? { "endDate": event.date_end } : {}),
+    "eventStatus": "https://schema.org/EventScheduled",
+    "url": canonical,
+    ...(event.location ? {
+        "location": {
+            "@type": "Place",
+            "name": event.location
+        }
+    } : {}),
+    ...(event.poster_key ? { "image": posterUrl } : {}),
+    "organizer": {
+        "@type": "Organization",
+        "name": "Friends of Lake Henry",
+        "url": Astro.site ? new URL("/", Astro.site).toString() : "https://friendsoflakehenry.com"
+    }
+} : null;
+---
+
+<BaseLayout
+        title={pageTitle}
+        description={pageDescription}
+        image={event.poster_key ? `/api/events/poster?id=${event.id}` : undefined}
+        jsonLd={jsonLdEvent}
+>
+    <div class="container" style="--maxw: 900px;">
+        <section class="card" style="margin-top: var(--section-gap);">
+            <a class="pill" href="/events">← Events</a>
+
+            <h1 class="h1-tight" style="margin-top: .75rem;">{event.title}</h1>
+
+            <p class="lead" style="margin:.35rem 0 0;">
+                <strong>{niceDate(event.date_start, event.is_tbd)}</strong>
+                {event.location ? <span class="muted"> • {event.location}</span> : null}
+                <span class="muted"> • {event.kind}</span>
+            </p>
+
+            {event.poster_key ? (
+                    <figure style="margin: 1rem 0 0;">
+                        <img
+                                src={`/api/events/poster?id=${event.id}`}
+                                alt={event.poster_alt ?? event.title}
+                                loading="lazy"
+                                style="width:100%; height:auto; border-radius: 16px; border: 1px solid var(--border-strong);"
+                        />
+                    </figure>
+            ) : null}
+
+            {event.summary ? (
+                    <div class="panel" style="margin-top: 1rem;">
+                        <p style="margin:0; white-space:pre-wrap;">{event.summary}</p>
+                    </div>
+            ) : null}
+
+            {(event.url && event.url.trim()) ? (
+                    <div style="margin-top: 1rem;">
+                        <a class="pill" href={event.url} target="_blank" rel="noopener">
+                            {event.url_label?.trim() || "More details"}
+                        </a>
+                    </div>
+            ) : null}
+        </section>
+    </div>
+</BaseLayout>

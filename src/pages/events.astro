@@ -318,7 +318,7 @@ const description =
                                     <details class="panel item eventDetails" id={`event-${e.id}`}>
                                         <summary class="eventSummary">
                                             <div class="meta">
-                                                <div class="title">{e.title}</div>
+                                                <div class="title"><a class="eventTitleLink" href={`/events/${e.id}`}>{e.title}</a></div>
                                                 <div class="sub">
                                                     {nice}{time ? ` • ${time}` : ""}
                                                     {e.location ? <span> • {e.location}</span> : null}
@@ -378,7 +378,7 @@ const description =
                         {tbdEvents.map((e) => (
                             <article class="panel item">
                                 <div class="meta">
-                                    <div class="title">{e.title}</div>
+                                    <div class="title"><a class="eventTitleLink" href={`/events/${e.id}`}>{e.title}</a></div>
                                     <div class="sub">
                                         <span class="pillMini">TBD</span>
                                         {e.location ? <span> • {e.location}</span> : null}
@@ -1015,6 +1015,17 @@ const description =
             opacity: .55;
             pointer-events: none;
             cursor: default;
+        }
+
+        .eventTitleLink{
+            color: inherit;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+        }
+        .eventTitleLink:hover,
+        .eventTitleLink:focus-visible{
+            border-bottom-color: var(--border-bright);
+            outline: none;
         }
 
         @media (max-width: 760px){

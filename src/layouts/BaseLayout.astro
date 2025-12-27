@@ -6,7 +6,8 @@ import RaffleBanner from "../components/RaffleBanner.astro";
 const {
     title = "Friends of Lake Henry",
     description = "Friends of Lake Henry is a community nonprofit supporting lake restoration, fundraising, and local engagement.",
-    image = "/og/lakeHenryShareImg_1200x630.jpeg"
+    image = "/og/lakeHenryShareImg_1200x630.jpeg",
+    jsonLd = null
 } = Astro.props;
 
 const canonical = Astro.site
@@ -53,6 +54,7 @@ const jsonLdRaffle = (Astro.site && isRafflePage) ? {
         "url": new URL("/", Astro.site).toString()
     }
 } : null;
+
 ---
 
 <!doctype html>
@@ -78,6 +80,7 @@ const jsonLdRaffle = (Astro.site && isRafflePage) ? {
     {jsonLdOrg && (<script type="application/ld+json" set:html={JSON.stringify(jsonLdOrg)} />)}
     {jsonLdDonate && (<script type="application/ld+json" set:html={JSON.stringify(jsonLdDonate)} />)}
     {jsonLdRaffle && (<script type="application/ld+json" set:html={JSON.stringify(jsonLdRaffle)} />)}
+    {jsonLd && (<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />)}
 
     {Astro.url.pathname.startsWith("/admin") && (<meta name="robots" content="noindex, nofollow" />)}
 
