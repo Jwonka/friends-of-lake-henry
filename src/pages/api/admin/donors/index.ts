@@ -34,8 +34,8 @@ export const POST: APIRoute = async (context) => {
         }
 
         await DB.prepare(
-            `INSERT INTO donors (name, amount_cents, display_name, in_memory_of, source)
-             VALUES (?, ?, ?, ?, 'admin')`
+            `INSERT INTO donors (name, amount_cents, display_name, in_memory_of, source, created_at)
+             VALUES (?, ?, ?, ?, 'admin', strftime('%Y-%m-%dT%H:%M:%fZ','now'))`
         ).bind(name, amountCents, displayName, inMemoryOf).run();
 
         return redirect(`${context.url.origin}/admin/donors?ok=1`);
