@@ -12,7 +12,7 @@ CREATE TABLE donors_new (
 );
 
 INSERT INTO donors_new (id, name, amount_cents, display_name, in_memory_of, donor_email, message, source, created_at)
-SELECT id, name, amount_cents, display_name, in_memory_of,, donor_email, message, source, created_at
+SELECT id, name, amount_cents, display_name, in_memory_of, donor_email, message, source, created_at
 FROM donors;
 
 DROP TABLE donors;
