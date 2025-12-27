@@ -51,17 +51,20 @@ const statusMsg =
         <section class="card pendingCard enter-block">
             <div class="adminHeader">
                 <div class="adminHeaderLeft pageTop">
-                    <a class="pill  enter-block delay-1" href="/admin">Admin</a>
+                    <div class="pageTopRow">
+                        <a class="pill enter-block delay-1" href="/admin">Admin</a>
+
+                        <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                            <button class="btn" type="submit">Log out</button>
+                        </form>
+                    </div>
+
                     <h1 class="h1-tight">Pending photos</h1>
                     <p class="lead">Approve to publish. Reject deletes the image and the DB row.</p>
+
                     <div id="status" class={`status ${statusClass}`} style="text-align: center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
                         {statusMsg}
                     </div>
-                </div>
-                <div class="adminActions">
-                    <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
-                        <button class="btn" type="submit">Log out</button>
-                    </form>
                 </div>
             </div>
 
@@ -175,7 +178,29 @@ const statusMsg =
         })();
     </script>
     <style>
-        .pageTop .pill { justify-self: start; }
+        .adminHeader{ display:block; }
+
+        .pageTop{
+            display:grid;
+            gap: .6rem;
+            width: 100%;
+        }
+
+        .pageTopRow{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:.75rem;
+            width:100%;
+        }
+
+        .logoutForm{ margin: 0; }
+        .logoutForm .btn{
+            padding: .6rem .9rem;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
         .pendingCard { margin-top: var(--section-gap); }
 
         .pendingPanel{
