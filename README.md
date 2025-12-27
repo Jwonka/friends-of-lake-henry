@@ -144,29 +144,37 @@ All timestamps are normalized and displayed in **America/Chicago** time.
 
 ---
 
-## Screenshots
-
-📸 Screenshots will be added as the project approaches public launch.
+## Screenshots 📸
 
 <table>
   <tr>
     <td align="center">
       <strong>Homepage</strong><br/>
-      <em>Screenshot coming soon</em>
+      <img src="docs/screenshots/homepage.jpg" width="380" alt="Friends of Lake Henry homepage" />
     </td>
     <td align="center">
       <strong>Events Page</strong><br/>
-      <em>Screenshot coming soon</em>
+      <img src="docs/screenshots/events-public.jpg" width="380" alt="Friends of Lake Henry event page" />
     </td>
   </tr>
   <tr>
     <td align="center">
       <strong>Raffle Page</strong><br/>
-      <em>Screenshot coming soon</em>
+      <img src="docs/screenshots/raffle-public.jpg" width="380" alt="Friends of Lake Henry raffle page" />
     </td>
     <td align="center">
       <strong>Admin Dashboard</strong><br/>
-      <em>Screenshot coming soon</em>
+      <img src="docs/screenshots/admin-dashboard.png" width="380" alt="Friends of Lake Henry admin dashboard" />
+    </td>
+  </tr>
+    <tr>
+    <td align="center">
+      <strong>Admin Events</strong><br/>
+      <img src="docs/screenshots/admin-events.png" width="380" alt="Friends of Lake Henry admin event page" />
+    </td>
+    <td align="center">
+      <strong>Admin Approve Photos</strong><br/>
+      <img src="docs/screenshots/admin-approved-photos.png" width="380" alt="Friends of Lake Henry approved photos page" />
     </td>
   </tr>
 </table>
