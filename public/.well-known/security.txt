@@ -1,0 +1,4 @@
+Contact: mailto:friendsoflakehenryblair@gmail.com
+Policy: https://friendsoflakehenry.com/privacy
+Expires: 2026-12-31
+Preferred-Languages: en
