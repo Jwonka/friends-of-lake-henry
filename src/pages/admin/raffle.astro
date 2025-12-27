@@ -9,7 +9,9 @@ export const prerender = false;
             <div class="adminHeader">
                 <div class="adminTitle">
                     <div class="pageTop">
-                        <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
+                        <div class="pageTopRow">
+                            <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
+                        </div>
                         <h1 class="h1-tight">Raffle</h1>
                     </div>
                     <p class="lead adminLead">Set the latest Facebook Live video shown on the public raffle page.</p>
@@ -512,12 +514,48 @@ export const prerender = false;
     </script>
 
     <style>
-        .adminHeader{ display:flex; justify-content:space-between; gap:1rem; align-items:flex-end; flex-wrap:wrap; }
+        .adminHeader{
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding-right: 7.5rem;
+        }
+
+        .adminActions{
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .pageTop{
+            display: grid;
+            gap: .6rem;
+            width: 100%;
+        }
+
+        .pageTopRow{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logoutForm{ margin: 0; }
+        .logoutForm .btn{
+            padding: .6rem .9rem;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
         .adminTitle{ display:flex; flex-direction:column; gap:.15rem; }
         .adminCard{ margin-top: var(--section-gap); }
         .adminLead{ margin: .25rem 0 0; }
         .adminPanel{ margin-top: 1rem; }
-        .pageTop .pill { justify-self: start; }
 
         .formGrid{
             display:grid;
@@ -633,6 +671,13 @@ export const prerender = false;
         }
 
         @media (max-width: 680px){
+            .adminHeader{
+                padding-right: 0;
+            }
+            .adminActions {
+                position: static;
+                margin-left: auto;
+            }
             .actions{
                 flex-direction: column;
                 align-items: stretch;
