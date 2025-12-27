@@ -25,6 +25,34 @@ const jsonLdOrg = Astro.site ? {
         "https://www.facebook.com/people/Friends-of-Lake-Henry/61552199315213/"
     ]
 } : null;
+const isDonatePage = Astro.url.pathname === "/donate";
+
+const jsonLdDonate = (Astro.site && isDonatePage) ? {
+    "@context": "https://schema.org",
+    "@type": "DonateAction",
+    "name": "Donate to Friends of Lake Henry",
+    "description": description,
+    "target": canonical,
+    "recipient": {
+        "@type": "Organization",
+        "name": "Friends of Lake Henry",
+        "url": new URL("/", Astro.site).toString()
+    }
+} : null;
+const isRafflePage = Astro.url.pathname === "/raffle";
+
+const jsonLdRaffle = (Astro.site && isRafflePage) ? {
+    "@context": "https://schema.org",
+    "@type": "FundraisingEvent",
+    "name": "Lake Henry Raffle",
+    "description": description,
+    "url": canonical,
+    "organizer": {
+        "@type": "Organization",
+        "name": "Friends of Lake Henry",
+        "url": new URL("/", Astro.site).toString()
+    }
+} : null;
 ---
 
 <!doctype html>
@@ -48,6 +76,10 @@ const jsonLdOrg = Astro.site ? {
     {canonical && <meta property="og:url" content={canonical} />}
 
     {jsonLdOrg && (<script type="application/ld+json" set:html={JSON.stringify(jsonLdOrg)} />)}
+    {jsonLdDonate && (<script type="application/ld+json" set:html={JSON.stringify(jsonLdDonate)} />)}
+    {jsonLdRaffle && (<script type="application/ld+json" set:html={JSON.stringify(jsonLdRaffle)} />)}
+
+    {Astro.url.pathname.startsWith("/admin") && (<meta name="robots" content="noindex, nofollow" />)}
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
