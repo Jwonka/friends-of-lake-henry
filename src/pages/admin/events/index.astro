@@ -67,20 +67,25 @@ const statusMsg =
         <section class="card enter-block" style="margin-top: var(--section-gap);">
             <div class="adminHeader">
                 <div class="pageTop">
-                    <a class="pill enter-block delay-1" href="/admin">Admin</a>
+                    <div class="pageTopRow">
+                        <a class="pill enter-block delay-1" href="/admin">Admin</a>
+
+                        <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                            <button class="btn" type="submit">Log out</button>
+                        </form>
+                    </div>
+
                     <h1 class="h1-tight">Events</h1>
                     <p class="lead" style="margin:0;">Create and publish events shown on the public Events page.</p>
 
                     <div id="status" class={`status ${statusClass}`} style="text-align:center;" role="status" aria-live="polite" aria-atomic="true" tabindex="-1">
                         {statusMsg}
                     </div>
+
+                    <div class="pageTopActions enter-block delay-2">
+                        <a class="pill" href="/admin/events/new">+ New event</a>
+                    </div>
                 </div>
-                <div class="adminActions">
-                    <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
-                        <button class="btn" type="submit">Log out</button>
-                    </form>
-                </div>
-                <a class="pill enter-block delay-2" href="/admin/events/new">+ New event</a>
             </div>
 
             <div class="panel enter-block delay-3" style="margin-top: 1rem; background: var(--panel-bg-dense);">
@@ -154,14 +159,36 @@ const statusMsg =
     </script>
 
     <style>
-        .adminHeader{
-            display:flex;
-            justify-content:space-between;
-            align-items:flex-end;
-            gap:1rem;
-            flex-wrap:wrap;
+        .adminHeader{ display:block; }
+
+        .pageTop{
+            display:grid;
+            gap:.6rem;
+            width:100%;
+            min-width:0;
         }
-        .pageTop .pill { justify-self: start; }
+
+        .pageTopRow{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:.75rem;
+            width:100%;
+            min-width:0;
+        }
+
+        .pageTopActions{
+            display:flex;
+            justify-content:flex-start;
+        }
+
+        .logoutForm{ margin:0; }
+        .logoutForm .btn{
+            padding: .6rem .9rem;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
         .eventList{ display:grid; gap: 1rem; }
         .eventItem{ background: rgba(0,0,0,0.18); }
         .eventRow{
@@ -229,6 +256,13 @@ const statusMsg =
             .eventActions{ justify-content: flex-start; }
             .eventActions form, .eventActions a{ width: 100%; }
             .eventActions .pill{ width: 100%; justify-content: center; }
+        }
+        @media (max-width: 520px){
+            .pageTopActions .pill{
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
         }
     </style>
 </BaseLayout>
