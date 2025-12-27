@@ -11,15 +11,14 @@ export const prerender = false;
                     <div class="pageTop">
                         <div class="pageTopRow">
                             <a class="pill enter-block delay-1" href="/admin">ADMIN</a>
+
+                            <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
+                                <button class="btn" type="submit">Log out</button>
+                            </form>
                         </div>
                         <h1 class="h1-tight">Raffle</h1>
                     </div>
                     <p class="lead adminLead">Set the latest Facebook Live video shown on the public raffle page.</p>
-                </div>
-                <div class="adminActions">
-                    <form class="logoutForm enter-block delay-1" method="post" action="/api/admin/logout">
-                        <button class="btn" type="submit">Log out</button>
-                    </form>
                 </div>
             </div>
             <div id="pageStatus" class="status status--empty status--center" aria-live="polite"></div>
@@ -514,23 +513,7 @@ export const prerender = false;
     </script>
 
     <style>
-        .adminHeader{
-            position: relative;
-            display: flex;
-            align-items: flex-start;
-            justify-content: flex-start;
-            gap: 1rem;
-            flex-wrap: wrap;
-            padding-right: 7.5rem;
-        }
-
-        .adminActions{
-            position: absolute;
-            top: 0;
-            right: 0;
-            display: flex;
-            align-items: flex-start;
-        }
+        .adminHeader{ display: block; }
 
         .pageTop{
             display: grid;
@@ -542,6 +525,7 @@ export const prerender = false;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: .75rem;
             width: 100%;
         }
 
@@ -674,10 +658,6 @@ export const prerender = false;
             .adminHeader{
                 padding-right: 0;
             }
-            .adminActions {
-                position: static;
-                margin-left: auto;
-            }
             .actions{
                 flex-direction: column;
                 align-items: stretch;
@@ -691,10 +671,7 @@ export const prerender = false;
         }
         @media (max-width: 520px){
             .adminHeader{ padding-right: 0; }
-            .adminActions{
-                position: static;
-                margin-left: auto;
-            }
+
             .winnersTable th,
             .winnersTable td {
                 padding: .6rem .55rem;
