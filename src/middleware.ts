@@ -7,6 +7,7 @@ const SESSION_PREFIX = "admin_sess:";
 // Baseline security headers for HTML responses only (public + admin).
 const BASE_HTML_SECURITY_HEADERS: Record<string, string> = {
     "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "geolocation=(), microphone=(), camera=(), payment=()",
     // NOTE: We intentionally do NOT add CSP or HSTS here to avoid breakage.
