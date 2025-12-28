@@ -86,7 +86,7 @@ export const POST: APIRoute = async (context) => {
                 limit: 3,
                 windowSec: 600,
             });
-            if (!t.ok) return redirectTo(context, "/photos/submit?err=server"); // stay generic
+            if (!t.ok) return redirectTo(context, "/photos/submit?err=rate");
         }
 
         const DB = env?.DB;
