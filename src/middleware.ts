@@ -4,6 +4,14 @@ import { SECURITY_HEADERS_NOSTORE } from "./lib/http";
 const SESSION_COOKIE = "admin_session";
 const SESSION_PREFIX = "admin_sess:";
 
+// Baseline security headers for HTML responses only (public + admin).
+const BASE_HTML_SECURITY_HEADERS: Record<string, string> = {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=(), payment=()",
+    // NOTE: We intentionally do NOT add CSP or HSTS here to avoid breakage.
+};
+
 function unauthorized() {
     return new Response("Unauthorized", { status: 401, headers: SECURITY_HEADERS_NOSTORE });
 }
@@ -58,13 +66,26 @@ function passesCsrf(context: Parameters<typeof defineMiddleware>[0] extends (ctx
     return false;
 }
 
+function applyHtmlSecurityHeaders(res: Response) {
+    const ct = res.headers.get("Content-Type") || "";
+    if (!ct.includes("text/html")) return;
+
+    for (const [k, v] of Object.entries(BASE_HTML_SECURITY_HEADERS)) {
+        if (!res.headers.has(k)) res.headers.set(k, v);
+    }
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
     const { pathname, search } = context.url;
 
     const isAdminUi = pathname.startsWith("/admin");
     const isAdminApi = pathname.startsWith("/api/admin");
 
-    if (!isAdminUi && !isAdminApi) return next();
+    if (!isAdminUi && !isAdminApi) {
+        const res = await next();
+        applyHtmlSecurityHeaders(res);
+        return res;
+    }
 
     // Allow auth endpoints through (login/logout)
     if (
@@ -72,7 +93,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
         pathname === "/admin/login/" ||
         pathname === "/api/admin/login"
     ) {
-        return next();
+        const res = await next();
+        applyHtmlSecurityHeaders(res);
+        return res;
     }
 
     // allow OPTIONS preflight to pass through for admin APIs
@@ -129,6 +152,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 
     const res = await next();
+
+    applyHtmlSecurityHeaders(res);
 
     // Only for Admin UI HTML (not /api/admin and not /admin assets like images/css/js)
     if (isAdminUi && !isAdminApi) {
