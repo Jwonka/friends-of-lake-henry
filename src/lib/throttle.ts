@@ -3,24 +3,43 @@ import type { KVNamespace } from "@cloudflare/workers-types";
 type ThrottleOpts = {
     kv: KVNamespace;
     key: string;
-    limit: number;      // max requests per window
-    windowSec: number;  // TTL
+    limit: number;
+    windowSec: number;
+};
+
+type ThrottleState = {
+    n: number;
+    resetAt: number; // unix seconds
 };
 
 export async function hitThrottle({ kv, key, limit, windowSec }: ThrottleOpts) {
-    // naive counter using KV (good enough for small sites)
+    const now = Math.floor(Date.now() / 1000);
+
     const raw = await kv.get(key);
-    const n = raw ? Number(raw) : 0;
+    let state: ThrottleState | null = null;
 
-    if (Number.isFinite(n) && n >= limit) return { ok: false, remaining: 0 };
-
-    const next = n + 1;
-    // keep ttl stable-ish by only setting expiration when creating the key
-    if (!raw) {
-        await kv.put(key, String(next), { expirationTtl: windowSec });
-    } else {
-        await kv.put(key, String(next));
+    if (raw) {
+        try {
+            // support both new JSON and legacy numeric string
+            if (raw.trim().startsWith("{")) state = JSON.parse(raw) as ThrottleState;
+            else state = { n: Number(raw) || 0, resetAt: now + windowSec };
+        } catch {
+            state = { n: 0, resetAt: now + windowSec };
+        }
     }
 
-    return { ok: true, remaining: Math.max(0, limit - next) };
+    if (!state || !Number.isFinite(state.resetAt) || now >= state.resetAt) {
+        state = { n: 0, resetAt: now + windowSec };
+    }
+
+    if (state.n >= limit) {
+        return { ok: false, remaining: 0, resetAt: state.resetAt };
+    }
+
+    state.n += 1;
+
+    // IMPORTANT: preserve resetAt by using absolute expiration
+    await kv.put(key, JSON.stringify(state), { expiration: state.resetAt });
+
+    return { ok: true, remaining: Math.max(0, limit - state.n), resetAt: state.resetAt };
 }
