@@ -73,8 +73,8 @@ export const POST: APIRoute = async (context) => {
             });
             if (!t.ok) {
                 return wantsJson(request)
-                    ? json({ ok: false, error: "server" }, 502)
-                    : redirectBack(request.url, "?err=server");
+                    ? json({ ok: false, error: "rate_limited" }, 429)
+                    : redirectBack(request.url, "?err=rate");
             }
         }
 
