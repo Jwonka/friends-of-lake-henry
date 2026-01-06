@@ -7,7 +7,8 @@ const {
     title = "Friends of Lake Henry",
     description = "Friends of Lake Henry is a community nonprofit supporting lake restoration, fundraising, and local engagement.",
     image = "/og/lakeHenryShareImg_1200x630.jpeg?v=2025",
-    jsonLd = null
+    jsonLd = null,
+    robots = null,
 } = Astro.props;
 
 const canonical = Astro.site
@@ -83,6 +84,7 @@ const jsonLdRaffle = (Astro.site && isRafflePage) ? {
     {jsonLd && (<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />)}
 
     {Astro.url.pathname.startsWith("/admin") && (<meta name="robots" content="noindex, nofollow" />)}
+    {robots && (<meta name="robots" content={robots} />)}
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
