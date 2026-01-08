@@ -3,27 +3,47 @@ import { json } from "../../../../lib/http";
 
 type LiveConfig = {
     latestVideoUrl: string | null;
-    previousVideoUrl: string | null; // for old KV records
     updatedAt: string | null;
 };
 
 const KEY = "raffle_live";
 
-function extractFacebookVideoId(input: string): string | null {
+function canonicalizeFacebookUrl(input: string): string | null {
     try {
-        const u = new URL(input);
+        const u = new URL(input.trim());
 
         // Accept common hosts
         const host = u.hostname.replace(/^www\./, "");
         if (host !== "facebook.com" && host !== "m.facebook.com") return null;
 
-        // 1) /<page>/videos/<id> or /videos/<id>
-        const m1 = u.pathname.match(/\/videos\/(\d+)/);
-        if (m1?.[1]) return m1[1];
+        // Normalize host
+        u.hostname = "www.facebook.com";
 
-        // 2) /watch/?v=<id>
-        const v = u.searchParams.get("v");
-        if (v && /^\d+$/.test(v)) return v;
+        // Strip tracking params; keep only v for /watch
+        const keepV = u.pathname.startsWith("/watch") ? u.searchParams.get("v") : null;
+        u.search = "";
+        if (keepV) u.searchParams.set("v", keepV);
+
+        // /videos/<id>
+        const mVideo = u.pathname.match(/\/videos\/(\d+)/);
+        if (mVideo?.[1]) {
+            return `https://www.facebook.com/61552199315213/videos/${mVideo[1]}/`;
+        }
+
+        // /watch?v=<id>
+        if (u.pathname.startsWith("/watch")) {
+            const v = u.searchParams.get("v");
+            if (v && /^\d+$/.test(v)) {
+                return `https://www.facebook.com/61552199315213/videos/${v}/`;
+            }
+            return null;
+        }
+
+        // /reel/<id>  (IMPORTANT: keep as reel)
+        const mReel = u.pathname.match(/\/reel\/(\d+)/);
+        if (mReel?.[1]) {
+            return `https://www.facebook.com/reel/${mReel[1]}`;
+        }
 
         return null;
     } catch {
@@ -31,27 +51,19 @@ function extractFacebookVideoId(input: string): string | null {
     }
 }
 
-function normalizeFacebookVideoUrl(input: string): string | null {
-    const id = extractFacebookVideoId(input);
-    if (!id) return null;
-
-    // Canonical URL that FB embed reliably accepts
-    return `https://www.facebook.com/61552199315213/videos/${id}/`;
-}
-
 async function getConfig(env: any): Promise<LiveConfig> {
     const raw = await env.CONFIG?.get(KEY);
-    if (!raw) return { latestVideoUrl: null, previousVideoUrl: null, updatedAt: null };
+    if (!raw) return { latestVideoUrl: null, updatedAt: null };
 
     try {
-        const parsed = JSON.parse(raw) as Partial<LiveConfig>;
+        const parsed = JSON.parse(raw) as any;
+        const latest = typeof parsed.latestVideoUrl === "string" ? parsed.latestVideoUrl.trim() : "";
         return {
-            latestVideoUrl: typeof parsed.latestVideoUrl === "string" ? parsed.latestVideoUrl : null,
-            previousVideoUrl: typeof parsed.previousVideoUrl === "string" ? parsed.previousVideoUrl : null,
+            latestVideoUrl: latest.length ? latest : null,
             updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null,
         };
     } catch {
-        return { latestVideoUrl: null, previousVideoUrl: null, updatedAt: null };
+        return { latestVideoUrl: null, updatedAt: null };
     }
 }
 
@@ -74,35 +86,21 @@ export const POST: APIRoute = async (context) => {
         return json({ ok: false, error: "Invalid JSON body" }, 400);
     }
 
-    const urlRaw = String(body.latestVideoUrl ?? "").trim();
-
-    // read existing config so we can roll "previous"
-    const existing = await getConfig(env);
-
+    const latestRaw = String(body.latestVideoUrl ?? "").trim();
     let nextLatest: string | null = null;
-    if (urlRaw.length) {
-        const normalized = normalizeFacebookVideoUrl(urlRaw);
-        if (!normalized) {
+    if (latestRaw.length) {
+        const canon = canonicalizeFacebookUrl(latestRaw);
+        if (!canon) {
             return json(
-                {
-                    ok: false,
-                    error:
-                        "Please paste a Facebook video URL (example: https://www.facebook.com/<page>/videos/<id> or https://www.facebook.com/watch/?v=<id>).",
-                },
+                { ok: false, error: "Paste a Facebook video or reel URL (videos/<id>, watch?v=<id>, or reel/<id>)." },
                 400
             );
         }
-        nextLatest = normalized;
+        nextLatest = canon;
     }
 
-    // If admin is saving a new non-empty latest, roll the old latest into previous
-    const nextPrevious =
-        nextLatest && existing.latestVideoUrl && existing.latestVideoUrl !== nextLatest
-            ? existing.latestVideoUrl
-            : (existing.previousVideoUrl ?? null);
-
     const updatedAt = new Date().toISOString();
-    const cfg: LiveConfig = { latestVideoUrl: nextLatest, previousVideoUrl: nextPrevious, updatedAt };
+    const cfg: LiveConfig = { latestVideoUrl: nextLatest, updatedAt };
 
     await env.CONFIG.put(KEY, JSON.stringify(cfg));
     return json({ ok: true, config: cfg }, 200);

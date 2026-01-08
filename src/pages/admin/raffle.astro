@@ -27,24 +27,22 @@ export const prerender = false;
                     <div class="field span2">
                         <label class="label" for="latestVideoUrl">Latest Facebook Live video URL</label>
                         <input
-                            id="latestVideoUrl"
-                            class="input"
-                            placeholder="https://www.facebook.com/<page>/videos/<id>"
-                            inputmode="url"
-                            autocomplete="off"
+                                id="latestVideoUrl"
+                                class="input"
+                                placeholder="https://www.facebook.com/<page>/videos/<id>  or  https://www.facebook.com/reel/<id>"
+                                inputmode="url"
+                                autocomplete="off"
                         />
                         <div class="muted" style="margin-top:.35rem;">
-                           <p>Paste the Facebook <strong>video</strong> URL for the current/most recent live.
-                               **Leave <strong>blank</strong> and save to remove the latest live**</p>
-                        </div>
-                        <div class="muted" style="margin-top:.35rem;">
-                            <p>If a previous video is available, the site will show that.
-                            Otherwise it will show the “Watch on Facebook” button.</p>
+                            <p>
+                                Paste the Facebook <strong>video</strong> or <strong>reel</strong> URL for what should show on the public raffle page.
+                                <strong>Leave blank</strong> and save to remove it and show the “Watch on Facebook” button.
+                            </p>
                         </div>
                     </div>
 
                     <div class="actions span2 enter-block delay-3">
-                        <button class="btn" id="saveLive" type="button">Save latest stream</button>
+                        <button class="btn" id="saveLive" type="button">Save video links</button>
                         <a class="pill" href="/raffle">View public raffle page</a>
                     </div>
                     <div class="span2">
@@ -180,6 +178,7 @@ export const prerender = false;
         const btn = document.getElementById("saveLive");
         const liveStatus = document.getElementById("liveStatus");
 
+
         function setLiveStatus(kind, msg) {
             if (!(liveStatus instanceof HTMLElement)) return;
             if (!msg) {
@@ -217,7 +216,7 @@ export const prerender = false;
                     const data = await res.json().catch(() => ({}));
                     if (res.ok && data?.ok) {
                         input.value = data.config?.latestVideoUrl ?? "";
-                        setLiveStatus("info", "Loaded current latest stream setting.");
+                        setLiveStatus("info", "Loaded current video settings.");
                     } else {
                         setLiveStatus("error", data?.error ?? "Failed to load live config.");
                     }
@@ -242,7 +241,7 @@ export const prerender = false;
 
                     if (res.ok && data?.ok) {
                         const v = data.config?.latestVideoUrl;
-                        setLiveStatus("info", v ? "Saved. The raffle page will show this latest stream." : "Cleared. The raffle page will show the previous Facebook live.");
+                        setLiveStatus("info", v ? "Saved. The public raffle page will show this video." : "Cleared. The public raffle page will show the “Watch on Facebook” button.");
                     } else {
                         setLiveStatus("error", data?.error ?? "Save failed.");
                     }
