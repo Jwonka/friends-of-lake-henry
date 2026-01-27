@@ -63,10 +63,7 @@ const description = "Friends of Lake Henry is a community nonprofit supporting l
 	</div>
 
 	<style>
-        :global(.pageBg){
-            --page-overlay: rgba(0,0,0,0.32);
-        }
-		.hero{ margin-top: var(--section-gap); }
+		.hero { margin-top: var(--section-gap); }
 		.pad {margin-top: var(--section-gap); }
 		.hero p {
 			margin: 0;
@@ -74,6 +71,11 @@ const description = "Friends of Lake Henry is a community nonprofit supporting l
 			line-height: 1.6;
 			color: var(--text-strong);
 		}
+		.panel {
+          background: rgba(0,0,0,0.28);
+          border: 1px solid rgba(255,255,255,0.18);
+          backdrop-filter: blur(6px);
+        }
 		.panel p { margin: 0.5rem 0 0; }
 		.grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 		.lead { margin: 0 0 1.5rem; max-width: 80ch; }
