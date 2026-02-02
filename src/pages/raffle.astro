@@ -514,6 +514,39 @@ const description =
         setNavDisabled(state.prevMonthKey, state.nextMonthKey);
         bindNav();
         bindMonthSelect();
+
+       (function initFbEmbedFailover() {
+         const iframe = document.querySelector(".fbFrame");
+         const fallback = document.querySelector(".liveFallback");
+
+         if (!(iframe instanceof HTMLIFrameElement)) return;
+         if (!(fallback instanceof HTMLElement)) return;
+
+         const frame = iframe.closest(".liveFrame");
+         if (!(frame instanceof HTMLElement)) return;
+
+         let settled = false;
+
+         const fail = () => {
+           if (settled) return;
+           settled = true;
+           frame.style.display = "none";
+           fallback.style.display = "flex";
+         };
+
+         const t = window.setTimeout(fail, 6500);
+
+         iframe.addEventListener("load", () => {
+           if (settled) return;
+           settled = true;
+           window.clearTimeout(t);
+         });
+
+         iframe.addEventListener("error", () => {
+           window.clearTimeout(t);
+           fail();
+         });
+       })();
     </script>
     <style>
         .hero {
