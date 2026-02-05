@@ -52,9 +52,9 @@
     --page-overlay: rgba(0,0,0,0.22);
     --page-overlay-gradient: linear-gradient(
         180deg,
-        rgba(0,0,0,0.15) 0%,
-        rgba(0,0,0,0.35) 45%,
-        rgba(0,0,0,0.55) 100%
+        rgba(0,0,0,0.10) 0%,
+        rgba(0,0,0,0.30) 40%,
+        rgba(0,0,0,0.50) 100%
       );
     --panel-bg-strong: rgba(0,0,0,0.28);
     --panel-bg-dense: rgba(0,0,0,0.34);
