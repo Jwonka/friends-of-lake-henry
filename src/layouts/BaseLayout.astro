@@ -173,7 +173,7 @@ const jsonLdRaffle = (Astro.site && isRafflePage) ? {
         content: "";
         position: absolute;
         inset: 0;
-        background: var(--page-overlay);
+        background: var(--page-overlay-gradient, var(--page-overlay));
     }
 
     .pageContent{
