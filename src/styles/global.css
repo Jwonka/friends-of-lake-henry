@@ -49,7 +49,7 @@
     /* overlays & shadows */
     --overlay-soft: rgba(0,0,0,0.08);
     --gallery-cover: rgba(0,0,0,0.18);
-    --page-overlay: rgba(0,0,0,0.35);
+    --page-overlay: rgba(0,0,0,0.22);
     --page-overlay-gradient: linear-gradient(
         180deg,
         rgba(0,0,0,0.15) 0%,
