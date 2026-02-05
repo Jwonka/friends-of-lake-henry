@@ -49,7 +49,13 @@
     /* overlays & shadows */
     --overlay-soft: rgba(0,0,0,0.08);
     --gallery-cover: rgba(0,0,0,0.18);
-    --page-overlay: rgba(0,0,0,0.22);
+    --page-overlay: rgba(0,0,0,0.35);
+    --page-overlay-gradient: linear-gradient(
+        180deg,
+        rgba(0,0,0,0.15) 0%,
+        rgba(0,0,0,0.35) 45%,
+        rgba(0,0,0,0.55) 100%
+      );
     --panel-bg-strong: rgba(0,0,0,0.28);
     --panel-bg-dense: rgba(0,0,0,0.34);
     --card-shadow-strong: 0 12px 40px rgba(0,0,0,0.30);
