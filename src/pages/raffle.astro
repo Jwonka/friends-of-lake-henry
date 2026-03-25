@@ -381,22 +381,24 @@ const description =
             }
         }
 
+        function renderPoster(posterUrl, posterAlt) {
+                        if (!(heroPosterEl instanceof HTMLElement)) return;
+                        if (!(heroPosterImgEl instanceof HTMLImageElement)) return;
+
+                        if (!posterUrl) {
+                            heroPosterEl.style.display = "none";
+                            heroPosterImgEl.removeAttribute("src");
+                            heroPosterImgEl.alt = "";
+                            return;
+                        }
+
+                        heroPosterEl.style.display = "";
+                        heroPosterImgEl.src = posterUrl;
+                        heroPosterImgEl.alt = (posterAlt ?? "").trim() || "Raffle poster";
+                    }
+
         function renderWinners(monthLabel, raffleTitle, winners) {
-            function renderPoster(posterUrl, posterAlt) {
-                if (!(heroPosterEl instanceof HTMLElement)) return;
-                if (!(heroPosterImgEl instanceof HTMLImageElement)) return;
-
-                if (!posterUrl) {
-                    heroPosterEl.style.display = "none";
-                    heroPosterImgEl.removeAttribute("src");
-                    heroPosterImgEl.alt = "";
-                    return;
-                }
-
-                heroPosterEl.style.display = "";
-                heroPosterImgEl.src = posterUrl;
-                heroPosterImgEl.alt = (posterAlt ?? "").trim() || "Raffle poster";
-            }
+           
             if (monthLabelEl) monthLabelEl.textContent = monthLabel;
 
             if (raffleTitleEl instanceof HTMLElement) {
