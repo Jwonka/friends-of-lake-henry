@@ -93,7 +93,9 @@ export const prerender = false;
                     <label class="label" for="rafflePoster">Raffle poster image</label>
                     <form id="rafflePosterForm" method="post" action="/api/admin/raffle/poster" enctype="multipart/form-data">
                       <input id="rafflePosterMonthKey" type="hidden" name="monthKey" value="" />
+                      <label class="btn" for="rafflePoster">Choose poster</label>
                       <input id="rafflePoster" class="input" type="file" name="poster" accept="image/jpeg,image/png,image/webp,image/gif" />
+                      <button class="btn" type="submit">Upload</button>
                       <div class="muted" style="margin-top:.35rem;">
                         Upload the poster image for the selected raffle month.
                       </div>
