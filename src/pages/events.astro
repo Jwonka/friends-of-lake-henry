@@ -156,17 +156,19 @@ const months = Array.from(new Set([currentMonthKey, ...dbMonths]))
 
 const defaultMonthKey = dbMonths.includes(currentMonthKey) ? currentMonthKey : (dbMonths[0] ?? currentMonthKey);
 
-// 2) Choose SSR month (clamp to allowed)
-let ssrMonthKey = defaultMonthKey;
-if (isMonthKey(monthParamRaw) && months.includes(monthParamRaw)) {
-    ssrMonthKey = monthParamRaw;
-}
-if (!months.includes(ssrMonthKey)) ssrMonthKey = months[0] ?? currentMonthKey;
+// 2) Choose SSR month (accept any valid YYYY-MM; no data-month clamp)
+let ssrMonthKey = isMonthKey(monthParamRaw) ? monthParamRaw : defaultMonthKey;
+if (!isMonthKey(ssrMonthKey)) ssrMonthKey = defaultMonthKey;
 
-// 3) Prev/Next restricted to allowed months
-const idx = months.indexOf(ssrMonthKey);
-const prevMonthKey = idx >= 0 && idx + 1 < months.length ? months[idx + 1] : null;
-const nextMonthKey = idx > 0 ? months[idx - 1] : null;
+// 3) Prev/Next use chronological month arithmetic
+function shiftMonthKey(monthKeyStr: string, delta: number) {
+    const [y, m] = monthKeyStr.split("-").map(Number);
+    const d = new Date(Date.UTC(y, m - 1 + delta, 1, 12));
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+const prevMonthKey = shiftMonthKey(ssrMonthKey, -1);
+const nextMonthKey = shiftMonthKey(ssrMonthKey, 1);
 
 // 4) Use ssrMonthKey for calendar math + queries
 const [yearStr, monthStr] = ssrMonthKey.split("-");
@@ -253,6 +255,9 @@ const description =
 
                         <label class="srOnly" for="eventsMonthSelect">Select month</label>
                         <select id="eventsMonthSelect" class="monthSelect">
+                             {!months.includes(ssrMonthKey) && (
+                                    <option value={ssrMonthKey} selected>{monthLabelFromKey(ssrMonthKey)}</option>
+                             )}
                             {months.map((m) => (
                                     <option value={m} selected={m === ssrMonthKey}>{monthLabelFromKey(m)}</option>
                             ))}
@@ -591,14 +596,28 @@ const description =
                     monthSelect.value = state.monthKey;
                     // optional: if API sends months list, rebuild options here
                     if (Array.isArray(data.months)) {
+                        const jumpMonths = Array.isArray(data.months) ? data.months : [];
+                        const hasSelected = jumpMonths.some((m) => m?.key === data.monthKey);
+
                         monthSelect.replaceChildren();
-                        for (const m of data.months) {
+
+                        // ensure current month is visible even if not in jump list
+                        if (!hasSelected && data.monthKey && data.monthLabel) {
                             const opt = document.createElement("option");
-                            opt.value = m.key;
-                            opt.textContent = m.label ?? m.key;
+                            opt.value = data.monthKey;
+                            opt.textContent = data.monthLabel;
+                            opt.selected = true;
                             monthSelect.appendChild(opt);
                         }
-                        monthSelect.value = state.monthKey;
+
+                        for (const m of jumpMonths) {
+                            if (!m?.key || !m?.label) continue;
+                            const opt = document.createElement("option");
+                            opt.value = m.key;
+                            opt.textContent = m.label;
+                            opt.selected = m.key === data.monthKey;
+                            monthSelect.appendChild(opt);
+                        }
                     }
                 }
 

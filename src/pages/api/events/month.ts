@@ -101,39 +101,30 @@ export const GET: APIRoute = async ({ locals, url }) => {
     const defaultMonthKey = activeMonths.includes(currentMonthKey) ? currentMonthKey : (activeMonths[0] ?? currentMonthKey);
 
     // 3) Resolve requested month
-    let requested = (url.searchParams.get("month") ?? "").trim();
-
-    // Allow:
-    // - any active month
-    // - current month (even if not active)
-    // Otherwise fallback to defaultMonthKey
-    let monthKey =
-        (isMonthKey(requested) && (activeMonths.includes(requested) || requested === currentMonthKey))
-            ? requested
-            : defaultMonthKey;
-
-    // Final hardening (shouldn’t be needed, but keeps behavior predictable)
+    const requested = (url.searchParams.get("month") ?? "").trim();
+    let monthKey = isMonthKey(requested) ? requested : defaultMonthKey;
     if (!isMonthKey(monthKey)) monthKey = defaultMonthKey;
 
-    // 4) Prev/Next logic
-    //    - Build "allowed" months
-    //    - active months (months with data) plus current month (even if no data)
-    //    - Sorted DESC (newest -> oldest)
-    const allowedMonths = Array.from(new Set([currentMonthKey, ...activeMonths]))
-        .filter(isMonthKey)
-        .sort((a, b) => b.localeCompare(a)); // DESC
+    // 4) Prev/Next logic = chronological month arithmetic
+    function shiftMonthKey(monthKeyStr: string, delta: number) {
+        const [y, m] = monthKeyStr.split("-").map(Number);
+        const d = new Date(Date.UTC(y, m - 1 + delta, 1, 12));
+        return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    }
 
-    const idx = allowedMonths.indexOf(monthKey);
+   const prevMonthKey = shiftMonthKey(monthKey, -1);
+   const nextMonthKey = shiftMonthKey(monthKey, 1);
 
-    // Prev = older (move down the DESC list), Next = newer (move up)
-    const prevMonthKey = idx >= 0 && idx + 1 < allowedMonths.length ? allowedMonths[idx + 1] : null;
-    const nextMonthKey = idx > 0 ? allowedMonths[idx - 1] : null;
+   // 5) Dropdown list = active months + current month (even if empty)
+   const months = Array.from(new Set([currentMonthKey, ...activeMonths]))
+       .filter(isMonthKey)
+       .sort((a, b) => b.localeCompare(a))
+       .map((k) => ({ key: k, label: monthKeyToLabel(k) }));
 
-    // 5) Query events for resolved monthKey (published only)
-    const range = monthStartEndUtc(monthKey);
-    if (!range) return json({ ok:false, error:"Bad month boundary" }, 400);
+   const range = monthStartEndUtc(monthKey);
+   if (!range) return json({ ok: false, error: "Invalid month range" }, 400);
 
-    const { startUtc, endUtc } = range;
+   const { startUtc, endUtc } = range;
 
     const monthRes = await DB.prepare(`
     SELECT id, title, kind, status, date_start, date_end, is_tbd,
@@ -151,9 +142,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
         .all<EventRow>();
 
     const monthEvents = monthRes.results ?? [];
-
-    // 6) Dropdown list = active months + current month (even if empty)
-    const months = allowedMonths.map((k) => ({ key: k, label: monthKeyToLabel(k) }));
 
     return json({
         ok: true,
